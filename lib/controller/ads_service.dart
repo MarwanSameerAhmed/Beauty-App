@@ -70,4 +70,22 @@ class AdsService {
       return snapshot.docs.map((doc) => Ad.fromMap(doc.data())).toList();
     });
   }
+
+  Future<void> updateAd(Ad ad) async {
+    try {
+      await _firestore.collection(_collectionPath).doc(ad.id).update(ad.toMap());
+    } catch (e) {
+      print(e); // for debugging
+      throw Exception('Failed to update ad');
+    }
+  }
+
+  Future<void> deleteAd(String adId) async {
+    try {
+      await _firestore.collection(_collectionPath).doc(adId).delete();
+    } catch (e) {
+      print(e); // for debugging
+      throw Exception('Failed to delete ad');
+    }
+  }
 }

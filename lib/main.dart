@@ -49,7 +49,6 @@ Future<void> main() async {
     }
   });
   // --- End of Setup ---
- 
 
   runApp(
     ChangeNotifierProvider(

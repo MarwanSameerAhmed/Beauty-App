@@ -9,7 +9,9 @@ import 'package:test_pro/widgets/buttonsWidgets.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
 
 class AddCompanyForm extends StatefulWidget {
-  const AddCompanyForm({super.key});
+  final Company? company;
+
+  const AddCompanyForm({super.key, this.company});
 
   @override
   State<AddCompanyForm> createState() => _AddCompanyFormState();
@@ -17,9 +19,17 @@ class AddCompanyForm extends StatefulWidget {
 
 class _AddCompanyFormState extends State<AddCompanyForm> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _logoUrlController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _logoUrlController;
   bool _isLoading = false;
+  bool get _isEditing => widget.company != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.company?.name ?? '');
+    _logoUrlController = TextEditingController(text: widget.company?.logoUrl ?? '');
+  }
 
   @override
   void dispose() {
@@ -31,27 +41,29 @@ class _AddCompanyFormState extends State<AddCompanyForm> {
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      final newCompany = Company(
-        id: '', // Firestore will generate this
+
+      final companyData = Company(
+        id: widget.company?.id ?? '',
         name: _nameController.text,
-        logoUrl: _logoUrlController.text.isNotEmpty
-            ? _logoUrlController.text
-            : null,
+        logoUrl: _logoUrlController.text.isNotEmpty ? _logoUrlController.text : null,
       );
 
       try {
-        await CompanyService().addCompany(newCompany);
+        if (_isEditing) {
+          await CompanyService().updateCompany(companyData);
+        } else {
+          await CompanyService().addCompany(companyData);
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تمت إضافة الشركة بنجاح')),
+            SnackBar(content: Text(_isEditing ? 'تم تحديث الشركة بنجاح' : 'تمت إضافة الشركة بنجاح')),
           );
           Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('حدث خطأ: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('حدث خطأ: $e')));
         }
       } finally {
         if (mounted) {
@@ -73,9 +85,11 @@ class _AddCompanyFormState extends State<AddCompanyForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CustomAdminHeader(
-                  title: 'إضافة شركة جديدة',
-                  subtitle: 'إدخال بيانات الشركة مثل الاسم والشعار',
+                CustomAdminHeader(
+                  title: _isEditing ? 'تعديل شركة' : 'إضافة شركة جديدة',
+                  subtitle: _isEditing
+                      ? 'تعديل بيانات الشركة الحالية'
+                      : 'إدخال بيانات الشركة مثل الاسم والشعار',
                 ),
                 Expanded(
                   child: Center(
@@ -135,7 +149,7 @@ class _AddCompanyFormState extends State<AddCompanyForm> {
                                     ),
                                     const SizedBox(height: 30),
                                     GradientElevatedButton(
-                                      text: 'حفظ الشركة',
+                                      text: _isEditing ? 'حفظ التعديلات' : 'حفظ الشركة',
                                       onPressed: _submitForm,
                                       isLoading: _isLoading,
                                     ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_pro/widgets/SearchBar.dart';
+import 'package:test_pro/widgets/CategorySectionUi.dart';
 import 'package:test_pro/widgets/SectionTitle.dart';
+import 'package:test_pro/widgets/loader.dart';
 import 'package:test_pro/widgets/SectionTitleNonSliver.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/corusalWidget.dart';
@@ -27,11 +29,14 @@ class _HomescreenuiState extends State<Homescreenui> {
   String _email = "No Email";
   String _imagePath = "images/0c7640ce594d7f983547e32f01ede503.jpg";
   final ProductService _productService = ProductService();
+  final AdsService _adsService = AdsService();
+  late Stream<List<Ad>> _adsStream;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _adsStream = _adsService.getAds();
   }
 
   Future<void> _loadUserData() async {
@@ -101,16 +106,14 @@ class _HomescreenuiState extends State<Homescreenui> {
   }
 
   Widget _buildAdsSection() {
-    final AdsService adsService = AdsService();
-
     return StreamBuilder<List<Ad>>(
-      stream: adsService.getAds(),
+      stream: _adsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(color: Color(0xFF52002C)),
+              child: Loader(),
             ),
           );
         }
@@ -226,7 +229,7 @@ class _HomescreenuiState extends State<Homescreenui> {
             child: Center(
               child: Padding(
                 padding: EdgeInsets.all(20.0),
-                child: CircularProgressIndicator(color: Color(0xFF52002C)),
+                child: Loader(),
               ),
             ),
           );

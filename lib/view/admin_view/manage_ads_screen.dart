@@ -6,11 +6,17 @@ import 'package:test_pro/model/ad.dart';
 import 'package:test_pro/view/admin_view/add_ad_form.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
+import 'package:test_pro/widgets/loader.dart';
 
-class ManageAdsScreen extends StatelessWidget {
+class ManageAdsScreen extends StatefulWidget {
+  const ManageAdsScreen({super.key});
+
+  @override
+  State<ManageAdsScreen> createState() => _ManageAdsScreenState();
+}
+
+class _ManageAdsScreenState extends State<ManageAdsScreen> {
   final AdsService _adsService = AdsService();
-
-  ManageAdsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +38,7 @@ class ManageAdsScreen extends StatelessWidget {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                        child: Loader(),
                       );
                     }
                     if (snapshot.hasError) {
@@ -76,7 +82,7 @@ class ManageAdsScreen extends StatelessWidget {
                               ),
                             );
                           },
-                          child: _buildAdCard(ad),
+                          child: _buildAdCard(context, ad),
                         );
                       },
                     );
@@ -104,7 +110,48 @@ class ManageAdsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAdCard(Ad ad) {
+  void _showDeleteConfirmation(BuildContext context, Ad ad) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('تأكيد الحذف'),
+          content: const Text('هل أنت متأكد من رغبتك في حذف هذا الإعلان؟'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('إلغاء'),
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('حذف'),
+              onPressed: () async {
+                try {
+                  await _adsService.deleteAd(ad.id);
+                  Navigator.of(ctx).pop(); 
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('تم حذف الإعلان بنجاح!')),
+                    );
+                  }
+                } catch (e) {
+                  Navigator.of(ctx).pop();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('فشل حذف الإعلان: $e')),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAdCard(BuildContext context, Ad ad) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(15.0),
       child: BackdropFilter(
@@ -149,7 +196,7 @@ class ManageAdsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'ID: ${ad.id}',
+                      'الشركة: ${ad.companyName}',
                       style: const TextStyle(
                         fontFamily: 'Tajawal',
                         color: Colors.black54,
@@ -159,6 +206,30 @@ class ManageAdsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddAdForm(ad: ad),
+                      ),
+                    );
+                  } else if (value == 'delete') {
+                    _showDeleteConfirmation(context, ad);
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Text('تعديل'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Text('حذف'),
+                  ),
+                ],
               ),
             ],
           ),

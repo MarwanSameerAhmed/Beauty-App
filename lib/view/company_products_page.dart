@@ -5,6 +5,7 @@ import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
 import 'package:test_pro/widgets/product_card.dart';
 import 'package:test_pro/widgets/productDetails.dart';
+import 'package:test_pro/widgets/loader.dart';
 
 class CompanyProductsPage extends StatelessWidget {
   final String companyId;
@@ -38,7 +39,7 @@ class CompanyProductsPage extends StatelessWidget {
                   stream: _productService.getProductsByCompanyId(companyId),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(child: Loader());
                     }
                     if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
@@ -63,17 +64,20 @@ class CompanyProductsPage extends StatelessWidget {
                       itemCount: products.length,
                       itemBuilder: (context, index) {
                         final product = products[index];
-                        return ProductCard(
-                          product: product,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ProductDetailsPage(
-                                  product: products[index],
+                        return Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: ProductCard(
+                            product: product,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => ProductDetailsPage(
+                                    product: products[index],
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         );
                       },
                     );

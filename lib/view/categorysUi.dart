@@ -21,12 +21,7 @@ class _CategorysState extends State<Categorys> {
   final CategoryService _categoryService = CategoryService();
   final ProductService _productService = ProductService();
   String? _selectedCategoryId;
-  int _selectedIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  int _selectedIndex = -1; // -1 represents 'All'
 
   @override
   Widget build(BuildContext context) {
@@ -58,33 +53,42 @@ class _CategorysState extends State<Categorys> {
                     }
 
                     final categories = snapshot.data!;
-                    if (_selectedCategoryId == null && categories.isNotEmpty) {
-                      // Use a post-frame callback to avoid calling setState during build
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          setState(() {
-                            _selectedCategoryId = categories.first.id;
-                          });
-                        }
-                      });
-                    }
 
                     return ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: categories.length,
+                      itemCount:
+                          categories.length + 1, // +1 for the 'All' button
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       itemBuilder: (context, index) {
-                        final category = categories[index];
+                        if (index == 0) {
+                          // This is the 'All' button
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedIndex = -1;
+                                _selectedCategoryId = null;
+                              });
+                            },
+                            child: CategoryCard(
+                              category: Category(id: 'all', name: 'الكل'),
+                              isSelected: _selectedIndex == -1,
+                            ),
+                          );
+                        }
+
+                        // Regular category items
+                        final categoryIndex = index - 1;
+                        final category = categories[categoryIndex];
                         return GestureDetector(
                           onTap: () {
                             setState(() {
-                              _selectedIndex = index;
+                              _selectedIndex = categoryIndex;
                               _selectedCategoryId = category.id;
                             });
                           },
                           child: CategoryCard(
                             category: category,
-                            isSelected: _selectedIndex == index,
+                            isSelected: _selectedIndex == categoryIndex,
                           ),
                         );
                       },
@@ -92,11 +96,7 @@ class _CategorysState extends State<Categorys> {
                   },
                 ),
               ),
-              Expanded(
-                child: _selectedCategoryId == null
-                    ? const Center(child: Loader())
-                    : _buildProductsGrid(_selectedCategoryId!),
-              ),
+              Expanded(child: _buildProductsGrid(_selectedCategoryId)),
             ],
           ),
         ),
@@ -104,9 +104,18 @@ class _CategorysState extends State<Categorys> {
     );
   }
 
-  Widget _buildProductsGrid(String categoryId) {
+  Widget _buildProductsGrid(String? categoryId) {
+    final Stream<List<Product>> productsStream;
+    if (categoryId == null) {
+      productsStream = _productService.getProducts(); // Get all products
+    } else {
+      productsStream = _productService.getProductsByCategory(
+        categoryId,
+      ); // Get products by category
+    }
+
     return StreamBuilder<List<Product>>(
-      stream: _productService.getProductsByCategory(categoryId),
+      stream: productsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: Loader());
@@ -135,16 +144,20 @@ class _CategorysState extends State<Categorys> {
           itemCount: products.length,
           itemBuilder: (context, index) {
             final product = products[index];
-            return ProductCard(
-              product: product,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProductDetailsPage(product: product),
-                  ),
-                );
-              },
+            return Directionality(
+              textDirection: TextDirection.ltr,
+              child: ProductCard(
+                product: product,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ProductDetailsPage(product: product),
+                    ),
+                  );
+                },
+              ),
             );
           },
         );

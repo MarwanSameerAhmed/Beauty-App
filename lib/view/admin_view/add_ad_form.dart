@@ -10,8 +10,13 @@ import 'package:test_pro/model/company.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/buttonsWidgets.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
+import 'package:test_pro/widgets/loader.dart';
 
 class AddAdForm extends StatefulWidget {
+  final Ad? ad;
+
+  const AddAdForm({super.key, this.ad});
+
   @override
   _AddAdFormState createState() => _AddAdFormState();
 }
@@ -19,8 +24,12 @@ class AddAdForm extends StatefulWidget {
 class _AddAdFormState extends State<AddAdForm> {
   final AdsService _adsService = AdsService();
   final CompanyService _companyService = CompanyService();
+  
+  bool get _isEditing => widget.ad != null;
+
   String _selectedShape = 'rectangle';
   List<File> _imageFiles = [];
+  String? _existingImageUrl;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
   List<Company> _companies = [];
@@ -30,71 +39,162 @@ class _AddAdFormState extends State<AddAdForm> {
   void initState() {
     super.initState();
     _fetchCompanies();
+    if (_isEditing) {
+      final ad = widget.ad!;
+      _selectedShape = ad.shapeType;
+      _existingImageUrl = ad.imageUrl;
+    }
   }
 
   Future<void> _fetchCompanies() async {
     final companies = await _companyService.getCompaniesFuture();
-    setState(() {
-      _companies = companies;
-    });
+    if (mounted) {
+      setState(() {
+        _companies = companies;
+        if (_isEditing) {
+          _selectedCompany = _companies.firstWhere(
+            (c) => c.id == widget.ad!.companyId,
+            orElse: () => _companies.first, 
+          );
+        }
+      });
+    }
   }
 
   Future<void> _pickImage() async {
-    final List<XFile> pickedFiles = await _picker.pickMultiImage();
-    if (pickedFiles.isNotEmpty) {
-      setState(() {
-        _imageFiles.addAll(pickedFiles.map((file) => File(file.path)));
-      });
+    if (_isEditing) { // In edit mode, only allow picking one image
+      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          _imageFiles = [File(pickedFile.path)];
+        });
+      }
+    } else { // In add mode, allow picking multiple images
+      final List<XFile> pickedFiles = await _picker.pickMultiImage();
+      if (pickedFiles.isNotEmpty) {
+        setState(() {
+          _imageFiles = pickedFiles.map((file) => File(file.path)).toList();
+        });
+      }
     }
   }
 
   Future<void> _submit() async {
     if (_selectedCompany == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('الرجاء اختيار شركة')));
-      return;
-    }
-    if (_selectedShape == 'square' && _imageFiles.length != 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء اختيار صورتين للإعلان المربع')),
-      );
-      return;
-    }
-    if (_selectedShape == 'rectangle' && _imageFiles.length != 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء اختيار صورة واحدة للإعلان المستطيل'),
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء اختيار شركة')));
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (!_isEditing) {
+      if (_selectedShape == 'square' && _imageFiles.length != 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('الرجاء اختيار صورتين للإعلان المربع')),
+        );
+        return;
+      }
+      if (_selectedShape == 'rectangle' && _imageFiles.length != 1) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('الرجاء اختيار صورة واحدة للإعلان المستطيل')),
+        );
+        return;
+      }
+    }
+
+    if (_imageFiles.isEmpty && !_isEditing) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء اختيار صورة للإعلان')));
+        return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
-      for (var imageFile in _imageFiles) {
-        String imageUrl = await _adsService.uploadImage(imageFile);
-        Ad newAd = Ad(
-          id: '', // Firestore will generate this
+      if (_isEditing) {
+        String imageUrl = _existingImageUrl ?? '';
+        if (_imageFiles.isNotEmpty) {
+          imageUrl = await _adsService.uploadImage(_imageFiles.first);
+        }
+        final ad = Ad(
+          id: widget.ad!.id,
           shapeType: _selectedShape,
           imageUrl: imageUrl,
           companyId: _selectedCompany!.id,
           companyName: _selectedCompany!.name,
         );
-        await _adsService.addAd(newAd);
+        await _adsService.updateAd(ad);
+      } else {
+        for (var imageFile in _imageFiles) {
+          String imageUrl = await _adsService.uploadImage(imageFile);
+          Ad newAd = Ad(
+            id: '', // Firestore will generate this
+            shapeType: _selectedShape,
+            imageUrl: imageUrl,
+            companyId: _selectedCompany!.id,
+            companyName: _selectedCompany!.name,
+          );
+          await _adsService.addAd(newAd);
+        }
       }
-      Navigator.of(context).pop();
+      
+      if(mounted){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_isEditing ? 'تم تحديث الإعلان بنجاح' : 'تمت إضافة الإعلان بنجاح')),
+        );
+        Navigator.of(context).pop();
+      }
+
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('فشل رفع الصور: $e')));
+      if(mounted){
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل حفظ الإعلان: $e')));
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if(mounted){
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Widget buildImageWidget() {
+    if (_imageFiles.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 4,
+            mainAxisSpacing: 4,
+          ),
+          itemCount: _imageFiles.length,
+          itemBuilder: (context, index) {
+            return Image.file(_imageFiles[index], fit: BoxFit.cover);
+          },
+        ),
+      );
+    } else if (_existingImageUrl != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14.0),
+        child: Image.network(_existingImageUrl!, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+      );
+    } else {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_a_photo_outlined,
+              color: Colors.black,
+              size: 40,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'اختر صورة',
+              style: TextStyle(
+                color: Colors.black,
+                fontFamily: 'Tajawal',
+              ),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -110,9 +210,9 @@ class _AddAdFormState extends State<AddAdForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CustomAdminHeader(
-                  title: 'إضافة إعلان جديد',
-                  subtitle: 'إدارة الإعلانات وتحميل صور للإعلانات',
+                CustomAdminHeader(
+                  title: _isEditing ? 'تعديل إعلان' : 'إضافة إعلان جديد',
+                  subtitle: _isEditing ? 'تعديل بيانات الإعلان الحالي' : 'إدارة الإعلانات وتحميل صور للإعلانات',
                 ),
                 Expanded(
                   child: Center(
@@ -147,13 +247,13 @@ class _AddAdFormState extends State<AddAdForm> {
                                 const SizedBox(height: 32),
                                 if (_isLoading)
                                   const Center(
-                                    child: CircularProgressIndicator(),
+                                    child: Loader(),
                                   )
                                 else
                                   _buildAnimatedWidget(
                                     delay: const Duration(milliseconds: 400),
                                     child: GradientElevatedButton(
-                                      text: 'إضافة الإعلان',
+                                      text: _isEditing ? 'حفظ التعديلات' : 'إضافة الإعلان',
                                       onPressed: _submit,
                                       isLoading: _isLoading,
                                     ),
@@ -207,41 +307,7 @@ class _AddAdFormState extends State<AddAdForm> {
           borderRadius: BorderRadius.circular(15.0),
           border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
         ),
-        child: _imageFiles.isNotEmpty
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(14.0),
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 4,
-                    mainAxisSpacing: 4,
-                  ),
-                  itemCount: _imageFiles.length,
-                  itemBuilder: (context, index) {
-                    return Image.file(_imageFiles[index], fit: BoxFit.cover);
-                  },
-                ),
-              )
-            : const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.add_a_photo_outlined,
-                      color: Colors.black,
-                      size: 40,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'اختر صورة أو أكثر',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontFamily: 'Tajawal',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+        child: buildImageWidget(),
       ),
     );
   }

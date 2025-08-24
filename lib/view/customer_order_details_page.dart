@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
+import 'package:test_pro/widgets/loader.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CustomerOrderDetailsPage extends StatefulWidget {
@@ -21,6 +22,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
   late String _status;
   double _totalPrice = 0;
   bool _hasProposedPrice = false;
+  bool _allActionsTaken = false;
 
   @override
   void initState() {
@@ -36,7 +38,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
     }).toList();
 
     _calculateTotalPrice();
-    _updateProposalState(); // Check for proposals initially
+    _updateButtonStates(); // Check for proposals and actions initially
   }
 
   void _calculateTotalPrice() {
@@ -149,7 +151,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                                         if (_status != 'final_approved') ...[
                                           const SizedBox(height: 8),
                                           _buildActionButtons(index),
-                                        ]
+                                        ],
                                       ],
                                     )
                                   : Container(
@@ -237,54 +239,40 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                   _status == 'awaiting_customer_approval')
                 Padding(
                   padding: const EdgeInsets.fromLTRB(15, 20, 15, 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _acceptAllPrices,
-                          child: const Text(
-                            'قبول جميع الأسعار',
-                            style: TextStyle(
-                              fontFamily: 'Tajawal',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade700,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _allActionsTaken
+                          ? () {
+                              if (_hasProposedPrice) {
+                                _submitForReview();
+                              } else {
+                                _acceptAllPrices();
+                              }
+                            }
+                          : null,
+                      child: Text(
+                        _hasProposedPrice
+                            ? 'إرسال للمراجعة'
+                            : 'قبول جميع الأسعار',
+                        style: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _hasProposedPrice ? _submitForReview : null,
-                          child: const Text(
-                            'إرسال للمراجعة',
-                            style: TextStyle(
-                              fontFamily: 'Tajawal',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFC23A6D),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            disabledBackgroundColor:
-                                Colors.grey.shade600,
-                          ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _hasProposedPrice
+                            ? const Color(0xFFC23A6D)
+                            : Colors.green.shade700,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
                         ),
+                        disabledBackgroundColor: Colors.grey.shade600,
                       ),
-                    ],
+                    ),
                   ),
                 ),
               if (_status == 'final_approved')
@@ -354,32 +342,88 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Column(
       children: [
-        SizedBox(
-          height: 30,
-          child: ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _items[index]['userAction'] = 'accepted';
-                _updateProposalState();
-              });
-            },
-            child: const Text('قبول', style: TextStyle(fontSize: 12)),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 30,
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _items[index]['userAction'] = 'accepted';
+                    _updateButtonStates();
+                  });
+                },
+                child: const Text(
+                  'قبول',
+                  style: TextStyle(fontSize: 12, color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              height: 30,
+              child: ElevatedButton(
+                onPressed: () => _showProposalDialog(index),
+                child: const Text(
+                  'اقتراح',
+                  style: TextStyle(fontSize: 12, color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
+        const SizedBox(height: 8),
         SizedBox(
           height: 30,
-          child: ElevatedButton(
-            onPressed: () => _showProposalDialog(index),
-            child: const Text('اقتراح', style: TextStyle(fontSize: 12)),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+          width: 150, // Match width of the two buttons above
+          child: ElevatedButton.icon(
+            onPressed: () => _showDeleteConfirmationDialog(index),
+            icon: const Icon(Icons.delete, size: 16, color: Colors.white),
+            label: const Text('حذف', style: TextStyle(fontSize: 12)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  void _showDeleteConfirmationDialog(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('تأكيد الحذف'),
+          content: const Text(
+            'هل أنت متأكد من رغبتك في حذف هذا المنتج من الطلب؟',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _items.removeAt(index);
+                  _calculateTotalPrice();
+                  _updateButtonStates();
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('حذف'),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -407,7 +451,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                   setState(() {
                     _items[index]['userAction'] = 'proposed';
                     _items[index]['proposedPrice'] = proposedPrice;
-                    _updateProposalState();
+                    _updateButtonStates();
                   });
                   Navigator.of(context).pop();
                 }
@@ -420,11 +464,15 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
     );
   }
 
-  void _updateProposalState() {
+  void _updateButtonStates() {
     if (mounted) {
       setState(() {
-        _hasProposedPrice =
-            _items.any((item) => item['userAction'] == 'proposed');
+        _hasProposedPrice = _items.any(
+          (item) => item['userAction'] == 'proposed',
+        );
+        _allActionsTaken = _items.every(
+          (item) => item['userAction'] != 'pending',
+        );
       });
     }
   }
@@ -434,7 +482,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) =>
-          const Center(child: CircularProgressIndicator()),
+          const Loader(),
     );
 
     try {
@@ -458,8 +506,10 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text(
-                'تم قبول الأسعار! سيتم إعلامك بعد المراجعة النهائية من الإدارة.')),
+          content: Text(
+            'تم قبول الأسعار! سيتم إعلامك بعد المراجعة النهائية من الإدارة.',
+          ),
+        ),
       );
 
       setState(() {
@@ -467,9 +517,9 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
       });
     } catch (e) {
       Navigator.of(context).pop(); // Dismiss dialog
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('حدث خطأ: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('حدث خطأ: $e')));
     }
   }
 
@@ -479,7 +529,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const Center(child: CircularProgressIndicator());
+        return const Loader();
       },
     );
 

@@ -10,12 +10,15 @@ import 'package:test_pro/model/product.dart';
 import 'package:test_pro/widgets/FormFields.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
+import 'package:test_pro/widgets/loader.dart';
 import 'dart:ui';
 import 'package:test_pro/widgets/buttonsWidgets.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 
 class AddProductUi extends StatefulWidget {
-  const AddProductUi({super.key});
+  final Product? product;
+
+  const AddProductUi({super.key, this.product});
 
   @override
   State<AddProductUi> createState() => _AddProductUiState();
@@ -23,9 +26,12 @@ class AddProductUi extends StatefulWidget {
 
 class _AddProductUiState extends State<AddProductUi> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _priceController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _priceController;
+
+  // Editing State
+  bool get _isEditing => widget.product != null;
 
   // State for Stepper
   int _currentStep = 0;
@@ -33,6 +39,7 @@ class _AddProductUiState extends State<AddProductUi> {
   // State for Images
   File? _mainImageFile;
   List<File> _otherImageFiles = [];
+  List<String> _existingImageUrls = [];
   List<String> _uploadedImageUrls = [];
 
   // State for Dropdowns
@@ -48,6 +55,22 @@ class _AddProductUiState extends State<AddProductUi> {
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _priceController = TextEditingController();
+
+    if (_isEditing) {
+      final product = widget.product!;
+      _nameController.text = product.name;
+      _descriptionController.text = product.description;
+      _priceController.text = product.price.toString();
+      _selectedCategoryId = product.categoryId;
+      _selectedCompanyId = product.companyId;
+      _existingImageUrls = List.from(product.images);
+      _uploadedImageUrls = List.from(product.images);
+      _currentStep = 1; // Start at details step when editing
+    }
+
     _loadInitialData();
   }
 
@@ -93,15 +116,28 @@ class _AddProductUiState extends State<AddProductUi> {
   }
 
   Future<void> _handleNextStep() async {
+    // This function is for moving from image step to details step.
+    // When editing, we start at the details step, so this is only for adding.
     if (_currentStep == 0) {
-      if (_mainImageFile == null) {
+      if (_mainImageFile == null && !_isEditing) {
         _showErrorSnackBar('الرجاء اختيار صورة أساسية للمنتج.');
         return;
       }
+
       setState(() => _isUploading = true);
       try {
-        List<File> allImages = [_mainImageFile!, ..._otherImageFiles];
-        _uploadedImageUrls = await ProductService().uploadImages(allImages);
+        List<File> allImages = [];
+        if (_mainImageFile != null) allImages.add(_mainImageFile!); 
+        allImages.addAll(_otherImageFiles);
+
+        if (allImages.isNotEmpty) {
+          final newUrls = await ProductService().uploadImages(allImages);
+          // In edit mode, new images are added to existing ones.
+          // For now, we will replace them. A more complex logic can be added later.
+          _uploadedImageUrls = _isEditing ? newUrls : newUrls;
+        } 
+        // If no new images are selected in edit mode, we keep the old ones.
+
         setState(() {
           _currentStep = 1;
         });
@@ -124,20 +160,25 @@ class _AddProductUiState extends State<AddProductUi> {
     setState(() => _isSaving = true);
 
     try {
-      Product newProduct = Product(
-        id: '',
+      final product = Product(
+        id: widget.product?.id ?? '',
         name: _nameController.text,
         description: _descriptionController.text,
         price: double.parse(_priceController.text),
-        images: _uploadedImageUrls, // Use uploaded URLs
+        images: _uploadedImageUrls,
         categoryId: _selectedCategoryId!,
         companyId: _selectedCompanyId!,
       );
 
-      await ProductService().addProduct(newProduct);
+      if (_isEditing) {
+        await ProductService().updateProduct(product);
+      } else {
+        await ProductService().addProduct(product);
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تمت إضافة المنتج بنجاح!')),
+          SnackBar(content: Text(_isEditing ? 'تم تحديث المنتج بنجاح!' : 'تمت إضافة المنتج بنجاح!')),
         );
         Navigator.pop(context);
       }
@@ -159,10 +200,11 @@ class _AddProductUiState extends State<AddProductUi> {
           backgroundColor: Colors.transparent,
           body: Column(
             children: [
-              const CustomAdminHeader(
-                title: 'إضافة منتج',
-                subtitle:
-                    'اكتب معلومات المنتج بدقة ليتم عرضه بشكل صحيح للعملاء',
+              CustomAdminHeader(
+                title: _isEditing ? 'تعديل منتج' : 'إضافة منتج',
+                subtitle: _isEditing
+                    ? 'تعديل تفاصيل المنتج الحالي'
+                    : 'اكتب معلومات المنتج بدقة ليتم عرضه بشكل صحيح للعملاء',
               ),
               EasyStepper(
                 activeStep: _currentStep,
@@ -203,10 +245,12 @@ class _AddProductUiState extends State<AddProductUi> {
                   ),
                 ],
                 onStepReached: (index) {
-                  if (index == 1 && _mainImageFile == null) {
-                    _showErrorSnackBar('الرجاء اختيار صورة أساسية أولاً.');
+                  if (_isEditing) {
+                    // In edit mode, allow free navigation
+                    setState(() => _currentStep = index);
                     return;
                   }
+                  // In add mode, enforce image selection before proceeding
                   if (index > _currentStep && _currentStep == 0) {
                     _handleNextStep();
                   } else {
@@ -243,7 +287,7 @@ class _AddProductUiState extends State<AddProductUi> {
       return const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: Color(0xFF52002C)),
+          Loader(),
           SizedBox(height: 10),
           Text(
             'جاري رفع الصور...',
@@ -270,12 +314,10 @@ class _AddProductUiState extends State<AddProductUi> {
         if (_currentStep == 1) const SizedBox(width: 20),
         Expanded(
           child: _isSaving
-              ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF52002C)),
-                )
+              ? const Loader()
               : GradientElevatedButton(
                   onPressed: _currentStep == 0 ? _handleNextStep : _saveProduct,
-                  text: _currentStep == 0 ? 'التالي' : 'حفظ المنتج',
+                  text: _currentStep == 0 ? 'التالي' : (_isEditing ? 'حفظ التعديلات' : 'حفظ المنتج'),
                 ),
         ),
       ],
@@ -369,16 +411,13 @@ class _AddProductUiState extends State<AddProductUi> {
   Widget _buildMainImagePicker() {
     return _buildImagePickerContainer(
       onTap: _pickMainImage,
-      child: _mainImageFile == null
+      child: _mainImageFile == null && _existingImageUrls.isEmpty
           ? _buildPlaceholder('اختر الصورة الأساسية')
           : ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.file(
-                _mainImageFile!,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-              ),
+              child: _mainImageFile != null
+                  ? Image.file(_mainImageFile!, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                  : Image.network(_existingImageUrls.first, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
             ),
     );
   }
@@ -386,7 +425,7 @@ class _AddProductUiState extends State<AddProductUi> {
   Widget _buildOtherImagesPicker() {
     return _buildImagePickerContainer(
       onTap: _pickOtherImages,
-      child: _otherImageFiles.isEmpty
+      child: _otherImageFiles.isEmpty && (_existingImageUrls.length <= 1)
           ? _buildPlaceholder('اختر صورًا إضافية')
           : GridView.builder(
               padding: const EdgeInsets.all(8),
@@ -395,11 +434,13 @@ class _AddProductUiState extends State<AddProductUi> {
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
-              itemCount: _otherImageFiles.length,
+              itemCount: _otherImageFiles.isNotEmpty ? _otherImageFiles.length : (_existingImageUrls.length > 1 ? _existingImageUrls.length - 1 : 0),
               itemBuilder: (context, index) {
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.file(_otherImageFiles[index], fit: BoxFit.cover),
+                  child: _otherImageFiles.isNotEmpty
+                      ? Image.file(_otherImageFiles[index], fit: BoxFit.cover)
+                      : Image.network(_existingImageUrls[index + 1], fit: BoxFit.cover),
                 );
               },
             ),

@@ -43,7 +43,7 @@ class _OtpScreenState extends State<OtpScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),

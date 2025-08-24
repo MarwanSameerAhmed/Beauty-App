@@ -46,38 +46,44 @@ class _ElegantToastState extends State<ElegantToast>
   Widget build(BuildContext context) {
     return SlideTransition(
       position: _offsetAnimation,
-      child: Container(
-        margin: const EdgeInsets.only(top: 50, left: 20, right: 20),
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-        decoration: BoxDecoration(
-          color: widget.backgroundColor,
-          borderRadius: BorderRadius.circular(25.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(widget.icon, color: Colors.white),
-            const SizedBox(width: 12.0),
-            Flexible(
-              child: Text(
-                widget.message,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontFamily: 'Tajawal',
-                ),
-                textAlign: TextAlign.center,
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Container(
+          margin: const EdgeInsets.only(top: 50, left: 20, right: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+          decoration: BoxDecoration(
+            color: widget.backgroundColor,
+            borderRadius: BorderRadius.circular(25.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 10,
+                offset: const Offset(0, 5),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(widget.icon, color: Colors.white),
+              const SizedBox(width: 12.0),
+              Flexible(
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Text(
+                    widget.message,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontFamily: 'Tajawal',
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

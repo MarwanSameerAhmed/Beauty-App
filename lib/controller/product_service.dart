@@ -120,4 +120,25 @@ class ProductService {
           .toList();
     });
   }
+
+  // تحديث منتج
+  Future<void> updateProduct(Product product) async {
+    try {
+      await _productsCollection.doc(product.id).update(product.toMap());
+    } catch (e) {
+      print('Error updating product: $e');
+      rethrow;
+    }
+  }
+
+  // حذف منتج
+  Future<void> deleteProduct(String productId) async {
+    try {
+      // TODO: Implement image deletion from ImageKit if possible
+      await _productsCollection.doc(productId).delete();
+    } catch (e) {
+      print('Error deleting product: $e');
+      rethrow;
+    }
+  }
 }

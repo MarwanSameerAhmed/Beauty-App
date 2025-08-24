@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:test_pro/view/admin_view/order_details_page.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_Header_user.dart';
+import 'package:test_pro/widgets/loader.dart';
 
 class CustomerOrdersPage extends StatefulWidget {
   const CustomerOrdersPage({Key? key}) : super(key: key);
@@ -99,9 +100,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
       stream: query.snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Colors.white),
-          );
+          return const Center(child: Loader());
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Center(

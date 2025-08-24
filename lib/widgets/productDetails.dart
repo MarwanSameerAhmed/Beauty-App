@@ -25,7 +25,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   int _currentPage = 0;
   final PageController _pageController = PageController();
 
-
   @override
   void dispose() {
     _pageController.dispose();
@@ -272,16 +271,15 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           ),
           const SizedBox(height: 4), // Adjust spacing if needed
           const SizedBox(height: 12),
-          Text(
-            '${widget.product.price.toStringAsFixed(2)} ر.س',
-            style: TextStyle(
-              fontFamily: 'Tajawal',
-              fontSize: 22,
-              color: const Color(0xFFC15C5C).withOpacity(0.9),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
+          // Text(
+          //   '${widget.product.price.toStringAsFixed(2)} ر.س',
+          //   style: TextStyle(
+          //     fontFamily: 'Tajawal',
+          //     fontSize: 22,
+          //     color: const Color(0xFFC15C5C).withOpacity(0.9),
+          //     fontWeight: FontWeight.bold,
+          //   ),
+          // ),
           Text(
             widget.product.description,
             style: TextStyle(
@@ -291,7 +289,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               color: Colors.black.withOpacity(0.7),
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 170),
           _buildAddToCartButton(),
           const SizedBox(height: 20),
         ],

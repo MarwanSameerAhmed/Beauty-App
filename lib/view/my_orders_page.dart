@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_pro/view/customer_order_details_page.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_Header_user.dart';
+import 'package:test_pro/widgets/loader.dart';
 
 class MyOrdersPage extends StatefulWidget {
   const MyOrdersPage({Key? key}) : super(key: key);
@@ -45,7 +46,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
               Expanded(
                 child: _userId == null
                     ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                        child: Loader(),
                       )
                     : StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
@@ -57,9 +58,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
+                              child: Loader(),
                             );
                           }
                           if (!snapshot.hasData ||

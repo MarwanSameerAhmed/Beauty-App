@@ -6,6 +6,7 @@ import 'package:test_pro/model/product.dart';
 import 'package:test_pro/view/admin_view/addProductUi.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
+import 'package:test_pro/widgets/loader.dart';
 
 class ManageProductsScreen extends StatefulWidget {
   const ManageProductsScreen({super.key});
@@ -35,7 +36,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                        child: Loader(),
                       );
                     }
                     if (snapshot.hasError) {
@@ -166,30 +167,69 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '${product.price} ريال',
-                      style: const TextStyle(
-                        fontFamily: 'Tajawal',
-                        color: Colors.black54,
-                        fontSize: 15,
-                      ),
-                    ),
+                   
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.black54,
-                ),
-                onPressed: () {
-                  // TODO: Implement edit/delete functionality or navigation
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    _editProduct(product);
+                  } else if (value == 'delete') {
+                    _deleteProduct(product.id);
+                  }
                 },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Text('تعديل'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Text('حذف'),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  void _editProduct(Product product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddProductUi(product: product),
+      ),
+    );
+  }
+
+  void _deleteProduct(String productId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('تأكيد الحذف'),
+          content: const Text('هل أنت متأكد أنك تريد حذف هذا المنتج؟'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('إلغاء'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('حذف'),
+              onPressed: () {
+                ProductService().deleteProduct(productId);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

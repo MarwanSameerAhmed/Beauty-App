@@ -21,7 +21,6 @@ class CartItem {
       productId: product.id,
       name: product.name,
       images: product.images,
-      price: product.price,
       quantity: 1,
     );
   }

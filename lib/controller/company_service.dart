@@ -27,4 +27,22 @@ class CompanyService {
       }).toList();
     });
   }
+
+  Future<void> updateCompany(Company company) async {
+    try {
+      await _companiesCollection.doc(company.id).update(company.toMap());
+    } catch (e) {
+      print('Error updating company: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCompany(String companyId) async {
+    try {
+      await _companiesCollection.doc(companyId).delete();
+    } catch (e) {
+      print('Error deleting company: $e');
+      rethrow;
+    }
+  }
 }

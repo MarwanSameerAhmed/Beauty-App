@@ -6,6 +6,7 @@ import 'package:test_pro/model/categorys.dart';
 import 'package:test_pro/view/admin_view/add_category_form.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
+import 'package:test_pro/widgets/loader.dart';
 
 class ManageCategoriesScreen extends StatefulWidget {
   const ManageCategoriesScreen({super.key});
@@ -35,7 +36,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                        child: Loader(),
                       );
                     }
                     if (snapshot.hasError) {
@@ -142,9 +143,64 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 fontSize: 17,
               ),
             ),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _editCategory(category);
+                } else if (value == 'delete') {
+                  _deleteCategory(category.id);
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'edit',
+                  child: Text('تعديل'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text('حذف'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  void _editCategory(Category category) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddCategoryForm(category: category),
+      ),
+    );
+  }
+
+  void _deleteCategory(String categoryId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('تأكيد الحذف'),
+          content: const Text('هل أنت متأكد أنك تريد حذف هذا الصنف؟'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('إلغاء'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('حذف'),
+              onPressed: () {
+                CategoryService().deleteCategory(categoryId);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:test_pro/controller/notification_service.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
+import 'package:test_pro/widgets/loader.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final DocumentSnapshot order;
@@ -74,11 +75,25 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   Future<void> _updateOrder() async {
     if (!mounted) return;
 
+    // Validate that all items have a price if the status is 'pending'
+    if (_status == 'pending') {
+      final allPriced = _priceControllers.values.every((c) => c.text.isNotEmpty && double.tryParse(c.text) != null && double.parse(c.text) > 0);
+      if (!allPriced) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('الرجاء إدخال سعر صحيح لجميع المنتجات قبل الإرسال.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) =>
-          const Center(child: CircularProgressIndicator()),
+          const Center(child: Loader()),
     );
 
     // Update prices from text controllers back into the local _items list
@@ -416,10 +431,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   Widget _buildPriceTextField(Map<String, dynamic> item) {
     final key = item['productId']?.toString() ?? item['name']?.toString();
+    final bool isEditable = _status == 'pending';
+
     return SizedBox(
       width: 90,
       child: TextField(
         controller: _priceControllers[key],
+        enabled: isEditable,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         textAlign: TextAlign.center,
         style: const TextStyle(

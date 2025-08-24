@@ -7,6 +7,7 @@ import 'dart:ui';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_Header_user.dart';
 import 'package:test_pro/controller/notification_service.dart'; // For sending notifications
+import 'package:test_pro/widgets/loader.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({Key? key}) : super(key: key);
@@ -16,7 +17,13 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  Future<void> _submitForPricing(BuildContext context, CartService cart) async {
+  bool _isLoading = false;
+    Future<void> _submitForPricing(BuildContext context, CartService cart) async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('uid');
 
@@ -42,7 +49,7 @@ class _CartPageState extends State<CartPage> {
       await FirebaseFirestore.instance.collection('customer_orders').add({
         'userId': userId,
         'items': orderItems,
-        'status': 'pending',
+        'status': 'pending_pricing',
         'timestamp': FieldValue.serverTimestamp(),
       });
 
@@ -79,10 +86,17 @@ class _CartPageState extends State<CartPage> {
           ),
         );
       }
-    } catch (e) {
+        } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('حدث خطأ أثناء إرسال الطلب: $e')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -249,21 +263,23 @@ class _CartPageState extends State<CartPage> {
                           Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: ElevatedButton(
-                              onPressed: cart.items.isEmpty
+                              onPressed: cart.items.isEmpty || _isLoading
                                   ? null
                                   : () => _submitForPricing(context, cart),
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(double.infinity, 50),
                                 backgroundColor: const Color(0xFF52002C),
                               ),
-                              child: const Text(
-                                'إرسال الطلب للتسعير',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontFamily: 'Tajawal',
-                                  color: Colors.white,
-                                ),
-                              ),
+                              child: _isLoading
+                                  ? const Loader(width: 30, height: 30)
+                                  : const Text(
+                                      'إرسال الطلب للتسعير',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontFamily: 'Tajawal',
+                                        color: Colors.white,
+                                      ),
+                                    ),
                             ),
                           ),
                           SizedBox(height: 80),

@@ -31,4 +31,22 @@ class CategoryService {
       }).toList();
     });
   }
+
+  Future<void> updateCategory(Category category) async {
+    try {
+      await _categoriesCollection.doc(category.id).update(category.toMap());
+    } catch (e) {
+      print('Error updating category: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCategory(String categoryId) async {
+    try {
+      await _categoriesCollection.doc(categoryId).delete();
+    } catch (e) {
+      print('Error deleting category: $e');
+      rethrow;
+    }
+  }
 }

@@ -9,7 +9,9 @@ import 'package:test_pro/widgets/buttonsWidgets.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
 
 class AddCategoryForm extends StatefulWidget {
-  const AddCategoryForm({super.key});
+  final Category? category;
+
+  const AddCategoryForm({super.key, this.category});
 
   @override
   State<AddCategoryForm> createState() => _AddCategoryFormState();
@@ -21,6 +23,14 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.category != null) {
+      _nameController.text = widget.category!.name;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
@@ -29,24 +39,36 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      final newCategory = Category(
-        id: '', // Firestore will generate this
+
+      final categoryData = Category(
+        id: widget.category?.id ?? '',
         name: _nameController.text,
       );
 
       try {
-        await CategoryService().addCategory(newCategory);
+        if (widget.category == null) {
+          await CategoryService().addCategory(categoryData);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('تمت إضافة الصنف بنجاح')),
+            );
+          }
+        } else {
+          await CategoryService().updateCategory(categoryData);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('تم تعديل الصنف بنجاح')),
+            );
+          }
+        }
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تمت إضافة الصنف بنجاح')),
-          );
           Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('حدث خطأ: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('حدث خطأ: $e')),
+          );
         }
       } finally {
         if (mounted) {
@@ -69,9 +91,11 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CustomAdminHeader(
-                  title: 'إضافة صنف جديد',
-                  subtitle: 'إدارة الأصناف وإضافة صنف جديد',
+                CustomAdminHeader(
+                  title: widget.category == null ? 'إضافة صنف جديد' : 'تعديل الصنف',
+                  subtitle: widget.category == null
+                      ? 'إدارة الأصناف وإضافة صنف جديد'
+                      : 'تعديل بيانات الصنف الحالي',
                 ),
                 Expanded(
                   child: Center(
@@ -125,7 +149,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
                                     ),
                                     const SizedBox(height: 30),
                                     GradientElevatedButton(
-                                      text: 'حفظ الصنف',
+                                      text: widget.category == null ? 'حفظ الصنف' : 'تحديث الصنف',
                                       onPressed: _submitForm,
                                       isLoading: _isLoading,
                                     ),
