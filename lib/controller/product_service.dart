@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -31,10 +31,10 @@ class ProductService {
   }
 
   // رفع صور إلى ImageKit
-  Future<List<String>> uploadImages(List<File> imageFiles) async {
+  Future<List<String>> uploadImages(List<Uint8List> imageBytesList) async {
     List<String> imageUrls = [];
 
-    for (var file in imageFiles) {
+    for (var imageBytes in imageBytesList) {
       String fileName = DateTime.now().millisecondsSinceEpoch.toString();
       int expiry =
           (DateTime.now().millisecondsSinceEpoch / 1000).round() +
@@ -58,7 +58,7 @@ class ProductService {
       request.fields['token'] = token;
       request.fields['fileName'] = fileName;
       request.fields['folder'] = imageKitFolder;
-      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+      request.files.add(http.MultipartFile.fromBytes('file', imageBytes, filename: '$fileName.jpg'));
 
       var response = await request.send();
       var respStr = await response.stream.bytesToString();

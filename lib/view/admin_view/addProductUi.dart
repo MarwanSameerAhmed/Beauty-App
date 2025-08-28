@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:test_pro/controller/company_service.dart';
 import 'package:test_pro/controller/category_service.dart';
 import 'package:test_pro/controller/product_service.dart';
+import 'package:test_pro/controller/image_service.dart';
 import 'package:test_pro/model/company.dart';
 import 'package:test_pro/model/categorys.dart';
 import 'package:test_pro/model/product.dart';
@@ -14,6 +15,8 @@ import 'package:test_pro/widgets/loader.dart';
 import 'dart:ui';
 import 'package:test_pro/widgets/buttonsWidgets.dart';
 import 'package:easy_stepper/easy_stepper.dart';
+import 'dart:typed_data';
+import 'package:test_pro/widgets/ElegantToast.dart';
 
 class AddProductUi extends StatefulWidget {
   final Product? product;
@@ -116,8 +119,6 @@ class _AddProductUiState extends State<AddProductUi> {
   }
 
   Future<void> _handleNextStep() async {
-    // This function is for moving from image step to details step.
-    // When editing, we start at the details step, so this is only for adding.
     if (_currentStep == 0) {
       if (_mainImageFile == null && !_isEditing) {
         _showErrorSnackBar('الرجاء اختيار صورة أساسية للمنتج.');
@@ -125,18 +126,38 @@ class _AddProductUiState extends State<AddProductUi> {
       }
 
       setState(() => _isUploading = true);
+
       try {
         List<File> allImages = [];
-        if (_mainImageFile != null) allImages.add(_mainImageFile!); 
+        if (_mainImageFile != null) allImages.add(_mainImageFile!);
         allImages.addAll(_otherImageFiles);
 
         if (allImages.isNotEmpty) {
-          final newUrls = await ProductService().uploadImages(allImages);
-          // In edit mode, new images are added to existing ones.
-          // For now, we will replace them. A more complex logic can be added later.
-          _uploadedImageUrls = _isEditing ? newUrls : newUrls;
-        } 
-        // If no new images are selected in edit mode, we keep the old ones.
+          List<Uint8List> compressedImages = [];
+          for (var imgFile in allImages) {
+            final compressed = await ImageService.compressImage(imgFile);
+            if (compressed != null) {
+              compressedImages.add(compressed);
+            }
+          }
+
+          if (compressedImages.isEmpty) {
+            showElegantToast(
+              context,
+              'فشل ضغط الصور. يرجى المحاولة مرة أخرى.',
+              isSuccess: false,
+            );
+            return; // Stop execution
+          }
+
+          List<String> newUrls = await ProductService().uploadImages(
+            compressedImages,
+          );
+          // In edit mode, combine new URLs with existing ones if needed, or replace.
+          // For now, we replace.
+          _uploadedImageUrls = newUrls;
+        }
+        // If no new images are selected in edit mode, _uploadedImageUrls remains unchanged.
 
         setState(() {
           _currentStep = 1;
@@ -178,7 +199,11 @@ class _AddProductUiState extends State<AddProductUi> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_isEditing ? 'تم تحديث المنتج بنجاح!' : 'تمت إضافة المنتج بنجاح!')),
+          SnackBar(
+            content: Text(
+              _isEditing ? 'تم تحديث المنتج بنجاح!' : 'تمت إضافة المنتج بنجاح!',
+            ),
+          ),
         );
         Navigator.pop(context);
       }
@@ -198,84 +223,84 @@ class _AddProductUiState extends State<AddProductUi> {
       child: FlowerBackground(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          body: Column(
-            children: [
-              CustomAdminHeader(
-                title: _isEditing ? 'تعديل منتج' : 'إضافة منتج',
-                subtitle: _isEditing
-                    ? 'تعديل تفاصيل المنتج الحالي'
-                    : 'اكتب معلومات المنتج بدقة ليتم عرضه بشكل صحيح للعملاء',
-              ),
-              EasyStepper(
-                activeStep: _currentStep,
-                stepShape: StepShape.rRectangle,
-                stepBorderRadius: 15,
-                borderThickness: 2,
-                padding: const EdgeInsets.all(20),
-                stepRadius: 28,
-                finishedStepTextColor: Colors.black,
-                finishedStepBackgroundColor: const Color(0xFF942A59),
-                activeStepBackgroundColor: const Color(0xFF942A59),
-                unreachedStepBackgroundColor: Colors.white.withOpacity(0.5),
-                unreachedStepBorderColor: const Color(
-                  0xFF942A59,
-                ).withOpacity(0.5),
-                activeStepBorderColor: Colors.white,
-                lineStyle: const LineStyle(
-                  lineLength: 80,
-                  lineSpace: 0,
-                  lineType: LineType.normal,
-                  defaultLineColor: Color(0xFF942A59),
-                  finishedLineColor: Color(0xFF52002C),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                CustomAdminHeader(
+                  title: _isEditing ? 'تعديل منتج' : 'إضافة منتج',
+                  subtitle: _isEditing
+                      ? 'تعديل تفاصيل المنتج الحالي'
+                      : 'اكتب معلومات المنتج بدقة ليتم عرضه بشكل صحيح للعملاء',
                 ),
-                steps: [
-                  EasyStep(
-                    customStep: const Icon(
-                      Icons.image_outlined,
-                      color: Colors.white,
-                    ),
-                    title: 'الصور',
+                EasyStepper(
+                  activeStep: _currentStep,
+                  stepShape: StepShape.rRectangle,
+                  stepBorderRadius: 15,
+                  borderThickness: 2,
+                  padding: const EdgeInsets.all(20),
+                  stepRadius: 28,
+                  finishedStepTextColor: Colors.black,
+                  finishedStepBackgroundColor: const Color(0xFF942A59),
+                  activeStepBackgroundColor: const Color(0xFF942A59),
+                  unreachedStepBackgroundColor: Colors.white.withOpacity(0.5),
+                  unreachedStepBorderColor: const Color(
+                    0xFF942A59,
+                  ).withOpacity(0.5),
+                  activeStepBorderColor: Colors.white,
+                  lineStyle: const LineStyle(
+                    lineLength: 80,
+                    lineSpace: 0,
+                    lineType: LineType.normal,
+                    defaultLineColor: Color(0xFF942A59),
+                    finishedLineColor: Color(0xFF52002C),
                   ),
-                  EasyStep(
-                    customStep: const Icon(
-                      Icons.description_outlined,
-                      color: Colors.white,
+                  steps: [
+                    EasyStep(
+                      customStep: const Icon(
+                        Icons.image_outlined,
+                        color: Colors.white,
+                      ),
+                      title: 'الصور',
                     ),
-                    title: 'التفاصيل',
-                  ),
-                ],
-                onStepReached: (index) {
-                  if (_isEditing) {
-                    // In edit mode, allow free navigation
-                    setState(() => _currentStep = index);
-                    return;
-                  }
-                  // In add mode, enforce image selection before proceeding
-                  if (index > _currentStep && _currentStep == 0) {
-                    _handleNextStep();
-                  } else {
-                    setState(() {
-                      _currentStep = index;
-                    });
-                  }
-                },
-              ),
-              Expanded(
-                child: Padding(
+                    EasyStep(
+                      customStep: const Icon(
+                        Icons.description_outlined,
+                        color: Colors.white,
+                      ),
+                      title: 'التفاصيل',
+                    ),
+                  ],
+                  onStepReached: (index) {
+                    if (_isEditing) {
+                      // In edit mode, allow free navigation
+                      setState(() => _currentStep = index);
+                      return;
+                    }
+                    // In add mode, enforce image selection before proceeding
+                    if (index > _currentStep && _currentStep == 0) {
+                      _handleNextStep();
+                    } else {
+                      setState(() {
+                        _currentStep = index;
+                      });
+                    }
+                  },
+                ),
+                Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 8.0,
                   ),
                   child: _currentStep == 0
                       ? _buildImagePickerStep()
-                      : SingleChildScrollView(child: _buildDetailsStep()),
+                      : _buildDetailsStep(),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: _buildControls(),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildControls(),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -317,7 +342,9 @@ class _AddProductUiState extends State<AddProductUi> {
               ? const Loader()
               : GradientElevatedButton(
                   onPressed: _currentStep == 0 ? _handleNextStep : _saveProduct,
-                  text: _currentStep == 0 ? 'التالي' : (_isEditing ? 'حفظ التعديلات' : 'حفظ المنتج'),
+                  text: _currentStep == 0
+                      ? 'التالي'
+                      : (_isEditing ? 'حفظ التعديلات' : 'حفظ المنتج'),
                 ),
         ),
       ],
@@ -416,8 +443,18 @@ class _AddProductUiState extends State<AddProductUi> {
           : ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: _mainImageFile != null
-                  ? Image.file(_mainImageFile!, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
-                  : Image.network(_existingImageUrls.first, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                  ? Image.file(
+                      _mainImageFile!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    )
+                  : Image.network(
+                      _existingImageUrls.first,
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
             ),
     );
   }
@@ -434,13 +471,20 @@ class _AddProductUiState extends State<AddProductUi> {
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
-              itemCount: _otherImageFiles.isNotEmpty ? _otherImageFiles.length : (_existingImageUrls.length > 1 ? _existingImageUrls.length - 1 : 0),
+              itemCount: _otherImageFiles.isNotEmpty
+                  ? _otherImageFiles.length
+                  : (_existingImageUrls.length > 1
+                        ? _existingImageUrls.length - 1
+                        : 0),
               itemBuilder: (context, index) {
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: _otherImageFiles.isNotEmpty
-                      ? Image.file(_otherImageFiles[index], fit: BoxFit.cover)
-                      : Image.network(_existingImageUrls[index + 1], fit: BoxFit.cover),
+                      ? Image.file(_otherImageFiles[index], fit: BoxFit.contain)
+                      : Image.network(
+                          _existingImageUrls[index + 1],
+                          fit: BoxFit.contain,
+                        ),
                 );
               },
             ),
@@ -499,17 +543,12 @@ class _AddProductUiState extends State<AddProductUi> {
         fontFamily: 'Tajawal',
         fontWeight: FontWeight.bold,
       ),
-      items: _companies
-          .map(
-            (company) => DropdownMenuItem(
-              value: company.id,
-              child: Text(
-                company.name,
-                style: const TextStyle(fontFamily: 'Tajawal'),
-              ),
-            ),
-          )
-          .toList(),
+      items: _companies.map((company) {
+        return DropdownMenuItem<String>(
+          value: company.id,
+          child: Text(company.name),
+        );
+      }).toList(),
       onChanged: (value) => setState(() => _selectedCompanyId = value),
       validator: (value) => value == null ? 'الرجاء اختيار شركة' : null,
     );

@@ -55,7 +55,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     if (!mounted) return;
 
     bool isEnabled = false;
-    if (_status == 'pending') {
+    if (_status == 'pending' || _status == 'pending_pricing') {
       // Enable if at least one price is entered
       isEnabled = _priceControllers.values.any((c) => c.text.isNotEmpty && double.tryParse(c.text) != null);
     } else if (_status == 'awaiting_admin_approval') {
@@ -75,8 +75,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   Future<void> _updateOrder() async {
     if (!mounted) return;
 
-    // Validate that all items have a price if the status is 'pending'
-    if (_status == 'pending') {
+    // Validate that all items have a price if the status is 'pending' or 'pending_pricing'
+    if (_status == 'pending' || _status == 'pending_pricing') {
       final allPriced = _priceControllers.values.every((c) => c.text.isNotEmpty && double.tryParse(c.text) != null && double.parse(c.text) > 0);
       if (!allPriced) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -431,7 +431,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   Widget _buildPriceTextField(Map<String, dynamic> item) {
     final key = item['productId']?.toString() ?? item['name']?.toString();
-    final bool isEditable = _status == 'pending';
+    final bool isEditable = _status == 'pending' || _status == 'pending_pricing';
 
     return SizedBox(
       width: 90,

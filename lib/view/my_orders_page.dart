@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:test_pro/view/loginUi.dart';
 import 'package:test_pro/view/customer_order_details_page.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_Header_user.dart';
@@ -15,23 +16,67 @@ class MyOrdersPage extends StatefulWidget {
 }
 
 class _MyOrdersPageState extends State<MyOrdersPage> {
-  String? _userId;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadUserId();
-  }
-
-  Future<void> _loadUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _userId = prefs.getString('uid');
-    });
-  }
-
-  @override
+    @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null || user.isAnonymous) {
+      return Directionality(
+        textDirection: TextDirection.rtl,
+        child: FlowerBackground(
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Column(
+              children: [
+                CustomHeaderUser(
+                  title: 'طلباتي',
+                  subtitle: 'يجب عليك تسجيل الدخول لعرض طلباتك',
+                ),
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'يرجى تسجيل الدخول لعرض هذه الصفحة.',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontFamily: 'Tajawal',
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const LoginUi()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF52002C),
+                            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                          ),
+                          child: const Text(
+                            'تسجيل الدخول',
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Directionality(
       textDirection: TextDirection.rtl,
       child: FlowerBackground(
@@ -44,14 +89,10 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                 subtitle: 'تتبّع حالة طلباتك السابقة والحالية',
               ),
               Expanded(
-                child: _userId == null
-                    ? const Center(
-                        child: Loader(),
-                      )
-                    : StreamBuilder<QuerySnapshot>(
+                child: StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection('customer_orders')
-                            .where('userId', isEqualTo: _userId)
+                            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
                             .orderBy('timestamp', descending: true)
                             .snapshots(),
                         builder: (context, snapshot) {

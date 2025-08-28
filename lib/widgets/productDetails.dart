@@ -72,7 +72,30 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                           width: 1.5,
                         ),
                       ),
-                      child: _buildDetailsContent(controller),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _buildDetailsContent(controller),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(
+                                24,
+                                10,
+                                24,
+                                30,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.0),
+                                backgroundBlendMode: BlendMode.srcOver,
+                              ),
+                              child: _buildAddToCartButton(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -218,7 +241,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     return SingleChildScrollView(
       controller: controller,
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 120),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -269,7 +292,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               ),
             ],
           ),
-          const SizedBox(height: 4), // Adjust spacing if needed
           const SizedBox(height: 12),
           // Text(
           //   '${widget.product.price.toStringAsFixed(2)} ر.س',
@@ -289,9 +311,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               color: Colors.black.withOpacity(0.7),
             ),
           ),
-          const SizedBox(height: 170),
-          _buildAddToCartButton(),
-          const SizedBox(height: 20),
         ],
       ),
     );

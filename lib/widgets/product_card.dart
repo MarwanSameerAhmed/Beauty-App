@@ -213,17 +213,20 @@ class _ProductCardState extends State<ProductCard> {
               mainAxisAlignment:
                   MainAxisAlignment.end, // Align text to the bottom
               children: [
-                Text(
-                  widget.product.name,
-                  style: const TextStyle(
-                    fontFamily: 'Tajawal',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.black87,
+                Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Text(
+                    widget.product.name,
+                    style: const TextStyle(
+                      fontFamily: 'Tajawal',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.right,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.right,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Directionality(

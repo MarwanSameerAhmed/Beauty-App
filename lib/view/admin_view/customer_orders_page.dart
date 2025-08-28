@@ -64,6 +64,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
                   children: [
                     _buildOrdersList([
                       // Active orders
+                      'pending_pricing', // <-- أضفت هذه الحالة
                       'pending',
                       'priced',
                       'awaiting_customer_approval',
@@ -109,7 +110,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
               style: TextStyle(
                 fontSize: 18,
                 fontFamily: 'Tajawal',
-                color: Colors.white70,
+                color: Colors.black,
               ),
             ),
           );
@@ -266,6 +267,8 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
 
   Color _getStatusColor(String status) {
     switch (status) {
+      case 'pending_pricing':
+        return Colors.red.shade700;
       case 'pending':
         return Colors.orange.shade700;
       case 'priced':
@@ -287,6 +290,8 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
 
   String _getStatusText(String status) {
     switch (status) {
+      case 'pending_pricing':
+        return 'بانتظار التسعير';
       case 'pending':
         return 'بانتظار التسعير';
       case 'priced':

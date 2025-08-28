@@ -6,6 +6,7 @@ import 'package:simple_animations/simple_animations.dart';
 import 'package:test_pro/controller/ads_service.dart';
 import 'package:test_pro/controller/company_service.dart';
 import 'package:test_pro/model/ad.dart';
+import 'package:test_pro/controller/image_service.dart';
 import 'package:test_pro/model/company.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/buttonsWidgets.dart';
@@ -111,7 +112,15 @@ class _AddAdFormState extends State<AddAdForm> {
       if (_isEditing) {
         String imageUrl = _existingImageUrl ?? '';
         if (_imageFiles.isNotEmpty) {
-          imageUrl = await _adsService.uploadImage(_imageFiles.first);
+          final compressedImage = await ImageService.compressImage(_imageFiles.first);
+          if (compressedImage == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('فشل ضغط الصورة. يرجى المحاولة مرة أخرى.')),
+            );
+            setState(() { _isLoading = false; });
+            return;
+          }
+          imageUrl = await _adsService.uploadImage(compressedImage);
         }
         final ad = Ad(
           id: widget.ad!.id,
@@ -123,7 +132,17 @@ class _AddAdFormState extends State<AddAdForm> {
         await _adsService.updateAd(ad);
       } else {
         for (var imageFile in _imageFiles) {
-          String imageUrl = await _adsService.uploadImage(imageFile);
+          final compressedImage = await ImageService.compressImage(imageFile);
+          if (compressedImage == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('فشل ضغط الصورة. يرجى المحاولة مرة أخرى.')),
+            );
+            setState(() {
+              _isLoading = false;
+            });
+            return;
+          }
+          String imageUrl = await _adsService.uploadImage(compressedImage);
           Ad newAd = Ad(
             id: '', // Firestore will generate this
             shapeType: _selectedShape,

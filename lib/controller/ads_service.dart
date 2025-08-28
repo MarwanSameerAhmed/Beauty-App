@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -16,7 +16,7 @@ class AdsService {
   final String imageKitPrivateKey = "private_XF+0X9Xj25cfAeREpralrnMdMuQ=";
   final String imageKitFolder = "/ads";
 
-  Future<String> uploadImage(File imageFile) async {
+  Future<String> uploadImage(Uint8List imageBytes) async {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
     int expiry =
         (DateTime.now().millisecondsSinceEpoch / 1000).round() +
@@ -39,7 +39,7 @@ class AdsService {
     request.fields['fileName'] = fileName;
     request.fields['folder'] = imageKitFolder;
     request.files.add(
-      await http.MultipartFile.fromPath('file', imageFile.path),
+      http.MultipartFile.fromBytes('file', imageBytes, filename: '$fileName.jpg'),
     );
 
     var response = await request.send();

@@ -32,6 +32,7 @@ class CartService with ChangeNotifier {
         (existingCartItem) => CartItem(
           productId: existingCartItem.productId,
           name: existingCartItem.name,
+          description: existingCartItem.description, // Added description
           images: existingCartItem.images,
           price: existingCartItem.price,
           quantity: existingCartItem.quantity + 1,
@@ -55,6 +56,7 @@ class CartService with ChangeNotifier {
           (existing) => CartItem(
             productId: existing.productId,
             name: existing.name,
+            description: existing.description,
             images: existing.images,
             price: existing.price,
             quantity: quantity,

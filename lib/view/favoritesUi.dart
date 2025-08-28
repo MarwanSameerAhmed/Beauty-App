@@ -18,7 +18,7 @@ class FavoritesPage extends StatefulWidget {
 
 class _FavoritesPageState extends State<FavoritesPage> {
   final ProductService _productService = ProductService();
-  final FavoritesService _favoritesService = FavoritesService();
+  final FavoritesService _favoritesService = FavoritesService(); // Now uses the singleton instance
 
   // Fetches full product details for a list of favorite IDs.
   Future<List<Product>> _getFavoriteProducts(List<String> ids) async {

@@ -2,13 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FavoritesService {
+  // Singleton pattern setup
+  static final FavoritesService _instance = FavoritesService._internal();
+  factory FavoritesService() => _instance;
   static const _favoritesKey = 'favoriteProducts';
 
   // A ValueNotifier that holds the list of favorite product IDs.
   // Widgets can listen to this notifier to rebuild when the list of favorites changes.
   final ValueNotifier<List<String>> favoriteProductIds = ValueNotifier([]);
 
-  FavoritesService() {
+  FavoritesService._internal() {
     // Load the initial list of favorites when the service is instantiated.
     _loadFavorites();
   }
@@ -29,7 +32,8 @@ class FavoritesService {
   Future<void> addFavorite(String productId) async {
     if (!favoriteProductIds.value.contains(productId)) {
       // Create a new list and add the new id, then assign it to the notifier.
-      final updatedFavorites = List<String>.from(favoriteProductIds.value)..add(productId);
+      final updatedFavorites = List<String>.from(favoriteProductIds.value)
+        ..add(productId);
       favoriteProductIds.value = updatedFavorites;
       await _saveFavorites();
     }
@@ -39,7 +43,8 @@ class FavoritesService {
   Future<void> removeFavorite(String productId) async {
     if (favoriteProductIds.value.contains(productId)) {
       // Create a new list without the id, then assign it to the notifier.
-      final updatedFavorites = List<String>.from(favoriteProductIds.value)..remove(productId);
+      final updatedFavorites = List<String>.from(favoriteProductIds.value)
+        ..remove(productId);
       favoriteProductIds.value = updatedFavorites;
       await _saveFavorites();
     }
