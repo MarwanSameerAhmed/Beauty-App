@@ -1,10 +1,11 @@
-import 'dart:ui';
+import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:test_pro/view/admin_view/order_details_page.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_Header_user.dart';
 import 'package:test_pro/widgets/loader.dart';
+import 'package:intl/intl.dart';
 
 class CustomerOrdersPage extends StatefulWidget {
   const CustomerOrdersPage({Key? key}) : super(key: key);
@@ -32,7 +33,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       child: FlowerBackground(
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -126,9 +127,11 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
             final items = order['items'] as List;
             final firstItem = items.first;
             final status = order['status'];
-            final orderDate = (order['timestamp'] as Timestamp).toDate();
-            final formattedDate =
-                '${orderDate.year}-${orderDate.month.toString().padLeft(2, '0')}-${orderDate.day.toString().padLeft(2, '0')}';
+            final orderTimestamp = order['timestamp'] as Timestamp;
+            final formattedDateTime = DateFormat(
+              'h:mm a - yyyy/MM/dd',
+              'ar',
+            ).format(orderTimestamp.toDate());
 
             return GestureDetector(
               onTap: () {
@@ -142,7 +145,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(25.0),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                  filter: ui.ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
                   child: Container(
                     margin: const EdgeInsets.symmetric(
                       horizontal: 15,
@@ -174,13 +177,13 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              FutureBuilder<String>(
-                                future: _getUserName(order['userId']),
+                              FutureBuilder<Map<String, String>>(
+                                future: _getUserData(order['userId']),
                                 builder: (context, userSnapshot) {
                                   if (userSnapshot.connectionState ==
                                       ConnectionState.waiting) {
                                     return const Text(
-                                      'جاري تحميل اسم العميل...',
+                                      'جاري تحميل بيانات العميل...',
                                       style: TextStyle(
                                         fontFamily: 'Tajawal',
                                         color: Colors.black,
@@ -188,20 +191,41 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
                                       ),
                                     );
                                   }
-                                  return Text(
-                                    'طلب من: ${userSnapshot.data ?? 'غير معروف'}',
-                                    style: const TextStyle(
-                                      fontFamily: 'Tajawal',
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
+                                  final userName =
+                                      userSnapshot.data?['name'] ?? 'غير معروف';
+                                  final userRole =
+                                      userSnapshot.data?['role'] ?? 'غير محدد';
+                                  final arabicRole = _getArabicRole(userRole);
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'طلب من: $userName',
+                                        style: const TextStyle(
+                                          fontFamily: 'Tajawal',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'نوع العميل: $arabicRole',
+                                        style: const TextStyle(
+                                          fontFamily: 'Tajawal',
+                                          fontSize: 13,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   );
                                 },
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'بتاريخ: $formattedDate',
+                                'وقت الطلب: $formattedDateTime',
                                 style: const TextStyle(
                                   fontFamily: 'Tajawal',
                                   fontSize: 13,
@@ -250,19 +274,33 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
     );
   }
 
-  Future<String> _getUserName(String userId) async {
+  Future<Map<String, String>> _getUserData(String userId) async {
     try {
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .get();
       if (userDoc.exists) {
-        return userDoc.data()?['name'] ?? 'مستخدم غير معروف';
+        return {
+          'name': userDoc.data()?['name'] ?? 'غير معروف',
+          'role': userDoc.data()?['role'] ?? 'غير محدد',
+        };
       }
     } catch (e) {
-      debugPrint('Error fetching user name: $e');
+      debugPrint('Error fetching user data: $e');
     }
-    return 'مستخدم غير معروف';
+    return {'name': 'غير معروف', 'role': 'غير محدد'};
+  }
+
+  String _getArabicRole(String role) {
+    switch (role) {
+      case 'user':
+        return 'فرد';
+      case 'company':
+        return 'شركة';
+      default:
+        return 'غير محدد';
+    }
   }
 
   Color _getStatusColor(String status) {

@@ -9,7 +9,6 @@ class Company {
     this.logoUrl,
   });
 
-  // fromMap method to create a Company object from a map (e.g., from Firestore)
   factory Company.fromMap(Map<String, dynamic> map) {
     return Company(
       id: map['id'] ?? '',
@@ -18,7 +17,6 @@ class Company {
     );
   }
 
-  // toMap method to convert a Company object to a map
   Map<String, dynamic> toMap() {
     return {
       'id': id,

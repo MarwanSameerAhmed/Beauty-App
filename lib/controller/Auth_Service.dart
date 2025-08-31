@@ -4,6 +4,12 @@ import 'package:test_pro/model/userAccount.dart';
 import 'package:firebase_messaging/firebase_messaging.dart'; // For FCM Token
 import 'package:google_sign_in/google_sign_in.dart';
 
+// A special class to indicate a new user from Google sign-in
+class NewGoogleUser {
+  final User user;
+  NewGoogleUser(this.user);
+}
+
 class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -17,8 +23,8 @@ class AuthService {
       );
       user.uid = cred.user!.uid;
       await _firestore.collection('users').doc(user.uid).set(user.toJson());
-      await _saveDeviceToken(user.uid); // Save FCM token
-      return null; // Success
+      await _saveDeviceToken(user.uid); 
+      return null; 
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'email-already-in-use':
@@ -41,16 +47,15 @@ class AuthService {
         email: email,
         password: password,
       );
-      // Fetch user data from Firestore
       DocumentSnapshot doc = await _firestore
           .collection('users')
           .doc(userCredential.user!.uid)
           .get();
-      await _saveDeviceToken(userCredential.user!.uid); // Save FCM token
-      await _subscribeToTopics(userCredential.user!.uid); // Subscribe to topics
+      await _saveDeviceToken(userCredential.user!.uid); 
+      await _subscribeToTopics(userCredential.user!.uid);
       return UserAccount.fromJson(
         doc.data() as Map<String, dynamic>,
-      ); // Success, return user data
+      );
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'user-not-found':
@@ -69,9 +74,11 @@ class AuthService {
 
   Future<Object?> signInWithGoogle() async {
     try {
+      // Ensure the user is signed out from any previous session to allow account switching.
+      await _googleSignIn.signOut();
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        return 'تم إلغاء تسجيل الدخول.'; // User cancelled the sign-in
+        return 'تم إلغاء تسجيل الدخول.';
       }
 
       final GoogleSignInAuthentication googleAuth =
@@ -92,25 +99,10 @@ class AuthService {
             .doc(user.uid)
             .get();
         if (!doc.exists) {
-          // New user, create a document in Firestore
-          final newUserAccount = UserAccount(
-            uid: user.uid,
-            name: user.displayName ?? 'مستخدم جوجل',
-            email: user.email!,
-            password: '', // Not needed for Google Sign-In
-            confirmPassword: '', // Not needed for Google Sign-In
-            accountType: 'فرد', // Default account type
-            role: 'user', // Default role
-          );
-          await _firestore
-              .collection('users')
-              .doc(user.uid)
-              .set(newUserAccount.toJson());
-          await _saveDeviceToken(user.uid);
-          await _subscribeToTopics(user.uid);
-          return newUserAccount;
+          // This is a new user, return a special object to signal profile completion is needed.
+          return NewGoogleUser(user);
         } else {
-          // Existing user, just update token and return data
+         
           await _saveDeviceToken(user.uid);
           await _subscribeToTopics(user.uid);
           return UserAccount.fromJson(doc.data() as Map<String, dynamic>);
@@ -139,7 +131,17 @@ class AuthService {
     await _auth.signOut();
   }
 
-  // Helper method to get and save the FCM token
+  Future<String?> updateUserProfile(UserAccount user) async {
+    try {
+      await _firestore.collection('users').doc(user.uid).set(user.toJson(), SetOptions(merge: true));
+      await _saveDeviceToken(user.uid);
+      await _subscribeToTopics(user.uid);
+      return null; // Success
+    } catch (e) {
+      return 'حدث خطأ أثناء تحديث الملف الشخصي.';
+    }
+  }
+
   Future<void> _saveDeviceToken(String uid) async {
     try {
       String? fcmToken = await FirebaseMessaging.instance.getToken();
@@ -150,11 +152,11 @@ class AuthService {
       }
     } catch (e) {
       print('Error saving device token: $e');
-      // Handle error appropriately
+      
     }
   }
 
-  // Subscribes the user to relevant topics based on their role
+  
   static Future<void> _subscribeToTopics(String userId) async {
     print('Checking user role for topic subscription for user: $userId');
     try {
@@ -165,7 +167,7 @@ class AuthService {
       if (userDoc.exists) {
         String role =
             userDoc.get('role') ??
-            'user'; // Default to 'user' if role is not set
+            'user'; 
         print('User role is: $role');
         if (role == 'admin') {
           print('User is an admin. Subscribing to new_orders topic...');

@@ -5,6 +5,7 @@ import 'package:test_pro/view/admin_view/manage_ads_screen.dart';
 import 'package:test_pro/view/admin_view/manage_categories_screen.dart';
 import 'package:test_pro/view/admin_view/manage_companies_screen.dart';
 import 'package:test_pro/view/admin_view/manage_products_screen.dart';
+import 'package:test_pro/view/admin_view/manage_carousel_ads_screen.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 
 class DashboardUi extends StatelessWidget {
@@ -64,6 +65,15 @@ class DashboardUi extends StatelessWidget {
                           subtitle: 'إنشاء وتعديل الإعلانات',
                           delay: const Duration(milliseconds: 500),
                           cardType: 'ad',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildModernDashboardCard(
+                          context,
+                          icon: Ionicons.images_outline,
+                          title: 'إدارة إعلانات الكاروسيل',
+                          subtitle: 'تغيير صور الكاروسيل في الرئيسية',
+                          delay: const Duration(milliseconds: 600),
+                          cardType: 'carousel_ad',
                         ),
                       ],
                     ),
@@ -144,6 +154,9 @@ class DashboardUi extends StatelessWidget {
         break;
       case 'ad':
         page = ManageAdsScreen();
+        break;
+      case 'carousel_ad':
+        page = ManageCarouselAdsScreen();
         break;
       default:
         return;

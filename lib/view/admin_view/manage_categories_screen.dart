@@ -61,12 +61,14 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                     }
 
                     final categories = snapshot.data!;
+                    final mainCategories = categories.where((c) => c.parentId == null).toList();
 
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      itemCount: categories.length,
+                      itemCount: mainCategories.length,
                       itemBuilder: (context, index) {
-                        final category = categories[index];
+                        final category = mainCategories[index];
+                        final subCategories = categories.where((c) => c.parentId == category.id).toList();
                         return PlayAnimationBuilder<double>(
                           tween: Tween(begin: 0.0, end: 1.0),
                           duration: Duration(milliseconds: 300 + (index * 100)),
@@ -80,7 +82,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                               ),
                             );
                           },
-                          child: _buildCategoryCard(category),
+                          child: _buildCategoryItem(category, subCategories),
                         );
                       },
                     );
@@ -108,16 +110,65 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     );
   }
 
-  Widget _buildCategoryCard(Category category) {
+  Widget _buildCategoryItem(Category category, List<Category> subCategories) {
+    if (subCategories.isEmpty) {
+      return _buildCategoryCard(category, isSubCategory: false);
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(15.0),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9D5D3).withOpacity(0.5),
+            borderRadius: BorderRadius.circular(15.0),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.4),
+              width: 1.2,
+            ),
+          ),
+          child: ExpansionTile(
+            leading: CircleAvatar(
+              radius: 28,
+              backgroundColor: Colors.white.withOpacity(0.8),
+              child: const Icon(
+                Icons.category,
+                size: 30,
+                color: Color(0xFF52002C),
+              ),
+            ),
+            title: Text(
+              category.name,
+              style: const TextStyle(
+                fontFamily: 'Tajawal',
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                fontSize: 17,
+              ),
+            ),
+            children: subCategories.map((sub) => _buildCategoryCard(sub, isSubCategory: true)).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(Category category, {required bool isSubCategory}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(15.0),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+        child: Container(
+          margin: isSubCategory
+              ? const EdgeInsets.fromLTRB(12, 0, 12, 12)
+              : const EdgeInsets.symmetric(vertical: 8),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-          color: const Color(0xFFF9D5D3).withOpacity(0.5),
+            color: isSubCategory
+                ? const Color(0xFFF9D5D3).withOpacity(0.7)
+                : const Color(0xFFF9D5D3).withOpacity(0.5),
             borderRadius: BorderRadius.circular(15.0),
             border: Border.all(
               color: Colors.white.withOpacity(0.4),
@@ -126,12 +177,12 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
           ),
           child: ListTile(
             leading: CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.white.withOpacity(0.8),
-              child: const Icon(
-                Icons.category,
-                size: 30,
-                color: Color(0xFF52002C),
+              radius: isSubCategory ? 24 : 28,
+              backgroundColor: Colors.white.withOpacity(isSubCategory ? 0.6 : 0.8),
+              child: Icon(
+                isSubCategory ? Icons.subdirectory_arrow_right : Icons.category,
+                size: isSubCategory ? 26 : 30,
+                color: const Color(0xFF52002C),
               ),
             ),
             title: Text(

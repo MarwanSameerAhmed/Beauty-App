@@ -12,8 +12,8 @@ import 'package:test_pro/view/bottomNavUi.dart';
 import 'package:test_pro/view/loginUi.dart';
 import 'package:test_pro/view/onboardingUi.dart';
 import 'package:test_pro/controller/local_notification_service.dart'; // For foreground notifications
+import 'package:intl/date_symbol_data_local.dart';
 
-// Must be a top-level function
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -38,17 +38,15 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final bool onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
 
-  // --- Foreground Notification Setup ---
-  // Initialize the local notification service
   LocalNotificationService.initialize();
 
-  // Listen for messages when the app is in the foreground
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     if (message.notification != null) {
       LocalNotificationService.display(message);
     }
   });
-  // --- End of Setup ---
+
+  await initializeDateFormatting('ar', null);
 
   runApp(
     ChangeNotifierProvider(

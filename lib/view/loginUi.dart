@@ -5,7 +5,6 @@ import 'package:simple_animations/simple_animations.dart';
 import 'package:test_pro/controller/Auth_Service.dart';
 import 'package:test_pro/view/bottomNavUi.dart';
 import 'package:test_pro/view/admin_dashboard/admin_bottom_nav_ui.dart';
-import 'package:test_pro/view/otpUi.dart';
 import 'package:test_pro/widgets/ElegantToast.dart';
 import 'package:test_pro/view/signupUi.dart';
 import 'package:test_pro/widgets/FormFields.dart';
@@ -13,6 +12,7 @@ import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/buttonsWidgets.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:test_pro/widgets/loader.dart';
+import 'package:test_pro/view/complete_profile_ui.dart';
 
 class LoginUi extends StatefulWidget {
   const LoginUi({super.key});
@@ -246,17 +246,12 @@ class _LoginUiState extends State<LoginUi> {
       isLoading: _isLoading,
       onPressed: () async {
         if (_isPhoneAuth) {
-          // Phone auth logic remains the same, no loading indicator needed for now
-          if (phoneController.text.isNotEmpty) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => OtpScreen(
-                  verificationId: 'test_id',
-                  phoneNumber: phoneController.text,
-                ),
-              ),
-            );
-          }
+          // Show a toast indicating the service is unavailable
+          showElegantToast(
+            context,
+            "هذه الخدمة غير متوفرة حالياً",
+            isSuccess: false,
+          );
         } else {
           // Email auth logic
           if (_formKey.currentState!.validate()) {
@@ -513,6 +508,7 @@ class _LoginUiState extends State<LoginUi> {
     if (!mounted) return;
 
     if (result is UserAccount) {
+      // Existing user logic
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('uid', result.uid);
       await prefs.setString('userName', result.name);
@@ -533,6 +529,14 @@ class _LoginUiState extends State<LoginUi> {
           MaterialPageRoute(builder: (context) => const Run()),
         );
       }
+    } else if (result is NewGoogleUser) {
+      // New Google user, navigate to complete profile screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CompleteProfileUi(user: result.user),
+        ),
+      );
     } else if (result is String) {
       showElegantToast(context, result, isSuccess: false);
     }

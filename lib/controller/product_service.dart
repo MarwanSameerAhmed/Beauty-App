@@ -99,6 +99,20 @@ class ProductService {
     }
   }
 
+  Stream<List<Product>> getProductsByCategories(List<String> categoryIds) {
+    if (categoryIds.isEmpty) {
+      return Stream.value([]);
+    }
+    return _productsCollection
+        .where('categoryId', whereIn: categoryIds)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    });
+  }
+
   Stream<List<Product>> getProductsByCategory(String categoryId) {
     return _productsCollection
         .where('categoryId', isEqualTo: categoryId)

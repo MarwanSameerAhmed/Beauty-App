@@ -4,20 +4,26 @@ import 'package:test_pro/model/categorys.dart';
 class CategoryCard extends StatelessWidget {
   final Category category;
   final bool isSelected;
+  final bool isSubcategory;
 
   const CategoryCard({
-    Key? key,
+    super.key,
     required this.category,
     this.isSelected = false,
-  }) : super(key: key);
+    this.isSubcategory = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeInOut,
-      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      margin: isSubcategory
+          ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
+          : const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      padding: isSubcategory
+          ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6)
+          : const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
         gradient: isSelected
             ? const LinearGradient(
@@ -50,9 +56,9 @@ class CategoryCard extends StatelessWidget {
           category.name,
           style: TextStyle(
             fontFamily: 'Tajawal',
-            fontSize: 15,
             fontWeight: FontWeight.bold,
             color: isSelected ? Colors.white : Colors.black87,
+            fontSize: isSubcategory ? 12 : 14,
           ),
         ),
       ),

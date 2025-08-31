@@ -46,9 +46,12 @@ class _AddProductUiState extends State<AddProductUi> {
   List<String> _uploadedImageUrls = [];
 
   // State for Dropdowns
-  List<Category> _categories = [];
+  List<Category> _categories = []; // Holds all categories
+  List<Category> _mainCategories = [];
+  List<Category> _subCategories = [];
   List<Company> _companies = [];
-  String? _selectedCategoryId;
+  String? _selectedMainCategoryId;
+  String? _selectedSubCategoryId; // This will be the product's categoryId
   String? _selectedCompanyId;
 
   // Loading States
@@ -67,7 +70,7 @@ class _AddProductUiState extends State<AddProductUi> {
       _nameController.text = product.name;
       _descriptionController.text = product.description;
       _priceController.text = product.price.toString();
-      _selectedCategoryId = product.categoryId;
+      // Category will be set in _loadInitialData after categories are loaded
       _selectedCompanyId = product.companyId;
       _existingImageUrls = List.from(product.images);
       _uploadedImageUrls = List.from(product.images);
@@ -84,7 +87,25 @@ class _AddProductUiState extends State<AddProductUi> {
       if (mounted) {
         setState(() {
           _categories = categories;
+          _mainCategories = categories.where((c) => c.parentId == null).toList();
           _companies = companies;
+
+          if (_isEditing && widget.product!.categoryId.isNotEmpty) {
+            final productCategoryId = widget.product!.categoryId;
+            final selectedCategory = _categories.firstWhere((c) => c.id == productCategoryId, orElse: () => categories.firstWhere((c) => c.id == productCategoryId));
+
+            if (selectedCategory.parentId != null) {
+              // Product is in a sub-category
+              _selectedMainCategoryId = selectedCategory.parentId;
+              _subCategories = _categories.where((c) => c.parentId == _selectedMainCategoryId).toList();
+              _selectedSubCategoryId = productCategoryId;
+            } else {
+              // Product is in a main category
+              _selectedMainCategoryId = productCategoryId;
+              _subCategories = _categories.where((c) => c.parentId == _selectedMainCategoryId).toList();
+              _selectedSubCategoryId = null; // No sub-category selected initially
+            }
+          }
         });
       }
     } catch (e) {
@@ -187,7 +208,7 @@ class _AddProductUiState extends State<AddProductUi> {
         description: _descriptionController.text,
         price: double.parse(_priceController.text),
         images: _uploadedImageUrls,
-        categoryId: _selectedCategoryId!,
+        categoryId: _selectedSubCategoryId ?? _selectedMainCategoryId!,
         companyId: _selectedCompanyId!,
       );
 
@@ -424,7 +445,7 @@ class _AddProductUiState extends State<AddProductUi> {
                   textColor: Colors.black,
                 ),
                 const SizedBox(height: 16),
-                _buildCategoryDropdown(),
+                _buildCategoryDropdowns(),
                 const SizedBox(height: 16),
                 _buildCompanyDropdown(),
               ],
@@ -554,31 +575,69 @@ class _AddProductUiState extends State<AddProductUi> {
     );
   }
 
-  Widget _buildCategoryDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _selectedCategoryId,
-      isExpanded: true,
-      hint: const Text('اختر الصنف', style: TextStyle(color: Colors.black54)),
-      decoration: _glassInputDecoration('الصنف'),
-      dropdownColor: Colors.pink[100]?.withOpacity(0.9),
-      style: const TextStyle(
-        color: Colors.black,
-        fontFamily: 'Tajawal',
-        fontWeight: FontWeight.bold,
-      ),
-      items: _categories
-          .map(
-            (category) => DropdownMenuItem(
+  Widget _buildCategoryDropdowns() {
+    return Column(
+      children: [
+        // Main Category Dropdown
+        DropdownButtonFormField<String>(
+          value: _selectedMainCategoryId,
+          isExpanded: true,
+          hint: const Text('اختر الصنف الرئيسي', style: TextStyle(color: Colors.black54)),
+          decoration: _glassInputDecoration('الصنف الرئيسي'),
+          dropdownColor: Colors.pink[100]?.withOpacity(0.9),
+          style: const TextStyle(
+            color: Colors.black,
+            fontFamily: 'Tajawal',
+            fontWeight: FontWeight.bold,
+          ),
+          items: _mainCategories.map((category) {
+            return DropdownMenuItem<String>(
               value: category.id,
-              child: Text(
-                category.name,
-                style: const TextStyle(fontFamily: 'Tajawal'),
-              ),
+              child: Text(category.name),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedMainCategoryId = value;
+              _selectedSubCategoryId = null; // Reset sub-category
+              _subCategories = _categories.where((c) => c.parentId == value).toList();
+            });
+          },
+          validator: (value) => value == null ? 'الرجاء اختيار صنف رئيسي' : null,
+        ),
+
+        if (_subCategories.isNotEmpty)
+          const SizedBox(height: 16),
+
+        // Sub-Category Dropdown
+        if (_subCategories.isNotEmpty)
+          DropdownButtonFormField<String>(
+            value: _selectedSubCategoryId,
+            isExpanded: true,
+            hint: const Text('اختر الصنف الفرعي', style: TextStyle(color: Colors.black54)),
+            decoration: _glassInputDecoration('الصنف الفرعي (اختياري)'),
+            dropdownColor: Colors.pink[100]?.withOpacity(0.9),
+            style: const TextStyle(
+              color: Colors.black,
+              fontFamily: 'Tajawal',
+              fontWeight: FontWeight.bold,
             ),
-          )
-          .toList(),
-      onChanged: (value) => setState(() => _selectedCategoryId = value),
-      validator: (value) => value == null ? 'الرجاء اختيار صنف' : null,
+            items: _subCategories.map((category) {
+              return DropdownMenuItem<String>(
+                value: category.id,
+                child: Text(category.name),
+              );
+            }).toList(),
+            onChanged: (value) => setState(() => _selectedSubCategoryId = value),
+            // This field is optional if a main category is already selected
+            validator: (value) {
+              if (_selectedMainCategoryId != null && _subCategories.isNotEmpty && value == null) {
+                return 'الرجاء اختيار صنف فرعي';
+              }
+              return null;
+            },
+          ),
+      ],
     );
   }
 

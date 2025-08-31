@@ -8,6 +8,9 @@ import 'package:test_pro/view/my_orders_page.dart';
 import 'package:test_pro/view/profileUi.dart';
 import 'package:provider/provider.dart';
 import 'package:test_pro/controller/cart_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:test_pro/controller/order_status_service.dart';
 
 class Run extends StatefulWidget {
   const Run({Key? key}) : super(key: key);
@@ -19,9 +22,13 @@ class Run extends StatefulWidget {
 class _RunState extends State<Run> with SingleTickerProviderStateMixin {
   late int currentPage;
   late TabController tabController;
+  final OrderStatusService _orderStatusService = OrderStatusService();
+  String _userRole = 'user';
+  String? _userId;
 
   @override
   void initState() {
+    super.initState();
     currentPage = 0;
     tabController = TabController(length: 5, vsync: this);
     tabController.addListener(() {
@@ -29,7 +36,21 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
         currentPage = tabController.index;
       });
     });
-    super.initState();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null && !user.isAnonymous) {
+      _userId = user.uid;
+      FirebaseFirestore.instance.collection('users').doc(_userId).get().then((doc) {
+        if (mounted && doc.exists) {
+          setState(() {
+            _userRole = doc.data()?['role'] ?? 'user';
+          });
+        }
+      });
+    } 
   }
 
   @override
@@ -48,109 +69,147 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
       const ProfileUi(),
     ];
 
-    return Scaffold(
-      body: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          TabBarView(
-            controller: tabController,
-            dragStartBehavior: DragStartBehavior.down,
-            physics: const BouncingScrollPhysics(),
-            children: _pages,
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(30.0),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9D5D3).withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                  child: Consumer<CartService>(
-                    builder: (context, cart, child) {
-                      return TabBar(
-                        controller: tabController,
-                        indicatorColor: Colors.transparent,
-                        dividerColor: Colors.transparent,
-                        tabs: [
-                          TabsIcon(
-                            icons: currentPage == 0
-                                ? Icons.home
-                                : Icons.home_outlined,
-                            color: currentPage == 0
-                                ? Colors.brown
-                                : Colors.grey,
-                          ),
-                          TabsIcon(
-                            icons: currentPage == 1
-                                ? Icons.category
-                                : Icons.category_outlined,
-                            color: currentPage == 1
-                                ? Colors.brown
-                                : Colors.grey,
-                          ),
-                          Stack(
-                            alignment: Alignment.topRight,
-                            children: [
-                              TabsIcon(
-                                icons: currentPage == 2
-                                    ? Icons.shopping_cart
-                                    : Icons.shopping_cart_outlined,
-                                color: currentPage == 2
-                                    ? Colors.brown
-                                    : Colors.grey,
-                              ),
-                              if (cart.items.isNotEmpty)
-                                Container(
-                                  padding: const EdgeInsets.all(0),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.redAccent,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
-                                  child: Text(
-                                    '${cart.items.length}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            TabBarView(
+              controller: tabController,
+              dragStartBehavior: DragStartBehavior.down,
+              physics: const BouncingScrollPhysics(),
+              children: _pages,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30.0),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9D5D3).withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    child: Consumer<CartService>(
+                      builder: (context, cart, child) {
+                        return TabBar(
+                          controller: tabController,
+                          indicatorColor: Colors.transparent,
+                          dividerColor: Colors.transparent,
+                          tabs: [
+                            TabsIcon(
+                              icons: currentPage == 0
+                                  ? Icons.home
+                                  : Icons.home_outlined,
+                              color: currentPage == 0
+                                  ? Colors.brown
+                                  : Colors.grey,
+                            ),
+                            TabsIcon(
+                              icons: currentPage == 1
+                                  ? Icons.category
+                                  : Icons.category_outlined,
+                              color: currentPage == 1
+                                  ? Colors.brown
+                                  : Colors.grey,
+                            ),
+                            Stack(
+                              alignment: Alignment.topRight,
+                              children: [
+                                TabsIcon(
+                                  icons: currentPage == 2
+                                      ? Icons.shopping_cart
+                                      : Icons.shopping_cart_outlined,
+                                  color: currentPage == 2
+                                      ? Colors.brown
+                                      : Colors.grey,
                                 ),
-                            ],
-                          ),
-                          TabsIcon(
-                            icons: currentPage == 3
-                                ? Icons.receipt_long
-                                : Icons.receipt_long_outlined,
-                            color: currentPage == 3
-                                ? Colors.brown
-                                : Colors.grey,
-                          ),
-                          TabsIcon(
-                            icons: currentPage == 4
-                                ? Icons.person
-                                : Icons.person_outlined,
-                            color: currentPage == 4
-                                ? Colors.brown
-                                : Colors.grey,
-                          ),
-                        ],
-                      );
-                    },
+                                if (cart.items.isNotEmpty)
+                                  Container(
+                                    padding: const EdgeInsets.all(0),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.redAccent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    child: Text(
+                                      '${cart.items.length}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            StreamBuilder<int>(
+                              stream: _userId == null
+                                  ? Stream.value(0)
+                                  : _orderStatusService
+                                      .getOrderStatusNotificationStream(
+                                          userId: _userId!,
+                                          userRole: _userRole),
+                              builder: (context, snapshot) {
+                                final count = snapshot.data ?? 0;
+                                return Stack(
+                                  alignment: Alignment.topRight,
+                                  children: [
+                                    TabsIcon(
+                                      icons: currentPage == 3
+                                          ? Icons.receipt_long
+                                          : Icons.receipt_long_outlined,
+                                      color: currentPage == 3
+                                          ? Colors.brown
+                                          : Colors.grey,
+                                    ),
+                                    if (count > 0)
+                                      Container(
+                                        padding: const EdgeInsets.all(0),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.redAccent,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 16,
+                                          minHeight: 16,
+                                        ),
+                                        child: Text(
+                                          '$count',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
+                            ),
+                            TabsIcon(
+                              icons: currentPage == 4
+                                  ? Icons.person
+                                  : Icons.person_outlined,
+                              color: currentPage == 4
+                                  ? Colors.brown
+                                  : Colors.grey,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

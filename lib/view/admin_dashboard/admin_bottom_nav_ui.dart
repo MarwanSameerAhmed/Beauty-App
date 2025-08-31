@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:test_pro/view/admin_dashboard/dashboardUi.dart';
 import 'package:test_pro/view/admin_view/customer_orders_page.dart';
 import 'package:test_pro/view/profileUi.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:test_pro/controller/order_status_service.dart';
 
 class AdminBottomNav extends StatefulWidget {
   const AdminBottomNav({Key? key}) : super(key: key);
@@ -16,9 +18,12 @@ class _AdminBottomNavState extends State<AdminBottomNav>
     with SingleTickerProviderStateMixin {
   late int currentPage;
   late TabController tabController;
+  final OrderStatusService _orderStatusService = OrderStatusService();
+  String? _userId;
 
   @override
   void initState() {
+    super.initState();
     currentPage = 0;
     tabController = TabController(length: 3, vsync: this);
     tabController.animation!.addListener(() {
@@ -27,7 +32,16 @@ class _AdminBottomNavState extends State<AdminBottomNav>
         changePage(value);
       }
     });
-    super.initState();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _userId = user.uid;
+      });
+    }
   }
 
   void changePage(int newPage) {
@@ -86,11 +100,49 @@ class _AdminBottomNavState extends State<AdminBottomNav>
                               : Icons.home_outlined,
                           color: currentPage == 0 ? Colors.brown : Colors.grey,
                         ),
-                        TabsIcon(
-                          icons: currentPage == 1
-                              ? Icons.receipt_long
-                              : Icons.receipt_long_outlined,
-                          color: currentPage == 1 ? Colors.brown : Colors.grey,
+                        StreamBuilder<int>(
+                          stream: _userId == null
+                              ? Stream.value(0)
+                              : _orderStatusService
+                                  .getOrderStatusNotificationStream(
+                                      userId: _userId!,
+                                      userRole: 'admin'),
+                          builder: (context, snapshot) {
+                            final count = snapshot.data ?? 0;
+                            return Stack(
+                              alignment: Alignment.topRight,
+                              children: [
+                                TabsIcon(
+                                  icons: currentPage == 1
+                                      ? Icons.receipt_long
+                                      : Icons.receipt_long_outlined,
+                                  color: currentPage == 1
+                                      ? Colors.brown
+                                      : Colors.grey,
+                                ),
+                                if (count > 0)
+                                  Container(
+                                    padding: const EdgeInsets.all(0),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.redAccent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    child: Text(
+                                      '$count',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                         TabsIcon(
                           icons: currentPage == 2

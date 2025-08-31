@@ -6,11 +6,10 @@ class ImageService {
   // Compresses the image file and returns the compressed file as Uint8List.
   static Future<Uint8List?> compressImage(File file) async {
     try {
-      // Compress the image directly to a Uint8List.
       final result = await FlutterImageCompress.compressWithFile(
         file.absolute.path,
-        quality: 70, // Adjust quality (0-100)
-        minWidth: 1024, // Adjust resolution
+        quality: 70, 
+        minWidth: 1024, 
         minHeight: 1024,
       );
       return result;

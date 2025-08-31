@@ -16,7 +16,6 @@ class CategoryService {
     }
   }
 
-  
   Future<List<Category>> getCategoriesFuture() async {
     final snapshot = await _categoriesCollection.get();
     return snapshot.docs

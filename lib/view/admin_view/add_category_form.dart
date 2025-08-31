@@ -21,12 +21,38 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   bool _isLoading = false;
+  String? _selectedParentId;
+  List<Category> _parentCategories = [];
+  bool _isCategoriesLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadCategories();
     if (widget.category != null) {
       _nameController.text = widget.category!.name;
+      _selectedParentId = widget.category!.parentId;
+    }
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await CategoryService().getCategoriesFuture();
+      if (mounted) {
+        setState(() {
+          _parentCategories = categories.where((c) => c.parentId == null).toList();
+          _isCategoriesLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('حدث خطأ في تحميل الأصناف: $e')),
+        );
+        setState(() {
+          _isCategoriesLoading = false;
+        });
+      }
     }
   }
 
@@ -43,6 +69,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
       final categoryData = Category(
         id: widget.category?.id ?? '',
         name: _nameController.text,
+        parentId: _selectedParentId,
       );
 
       try {
@@ -147,6 +174,8 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
                                         return null;
                                       },
                                     ),
+                                    const SizedBox(height: 20),
+                                    _buildParentCategoryDropdown(),
                                     const SizedBox(height: 30),
                                     GradientElevatedButton(
                                       text: widget.category == null ? 'حفظ الصنف' : 'تحديث الصنف',
@@ -166,6 +195,48 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildParentCategoryDropdown() {
+    if (_isCategoriesLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(15.0),
+        border: Border.all(color: Colors.white.withOpacity(0.5)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedParentId,
+          isExpanded: true,
+          hint: const Text('اختر الصنف الرئيسي (اختياري)', style: TextStyle(color: Colors.white70, fontFamily: 'Tajawal')),
+          dropdownColor: const Color(0xFFF9D5D3),
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+          style: const TextStyle(color: Colors.black, fontFamily: 'Tajawal', fontSize: 16),
+          items: [
+            const DropdownMenuItem<String>(
+              value: null,
+              child: Text('بدون صنف رئيسي', style: TextStyle(fontFamily: 'Tajawal')),
+            ),
+            ..._parentCategories.map((Category category) {
+              return DropdownMenuItem<String>(
+                value: category.id,
+                child: Text(category.name, style: const TextStyle(fontFamily: 'Tajawal')),
+              );
+            }).toList(),
+          ],
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedParentId = newValue;
+            });
+          },
         ),
       ),
     );

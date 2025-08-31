@@ -20,8 +20,11 @@ class Categorys extends StatefulWidget {
 class _CategorysState extends State<Categorys> {
   final CategoryService _categoryService = CategoryService();
   final ProductService _productService = ProductService();
-  String? _selectedCategoryId;
-  int _selectedIndex = -1; // -1 represents 'All'
+  List<Category> _allCategories = [];
+  String? _selectedMainCategoryId;
+  String? _selectedSubCategoryId;
+  int _selectedMainIndex = -1; // -1 for 'All'
+  int _selectedSubIndex = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -52,51 +55,15 @@ class _CategorysState extends State<Categorys> {
                       return const Center(child: Text('لا توجد أقسام حالياً'));
                     }
 
-                    final categories = snapshot.data!;
+                    _allCategories = snapshot.data!;
+                    final mainCategories = _allCategories.where((c) => c.parentId == null).toList();
 
-                    return ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount:
-                          categories.length + 1, // +1 for the 'All' button
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      itemBuilder: (context, index) {
-                        if (index == 0) {
-                          // This is the 'All' button
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedIndex = -1;
-                                _selectedCategoryId = null;
-                              });
-                            },
-                            child: CategoryCard(
-                              category: Category(id: 'all', name: 'الكل'),
-                              isSelected: _selectedIndex == -1,
-                            ),
-                          );
-                        }
-
-                        // Regular category items
-                        final categoryIndex = index - 1;
-                        final category = categories[categoryIndex];
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedIndex = categoryIndex;
-                              _selectedCategoryId = category.id;
-                            });
-                          },
-                          child: CategoryCard(
-                            category: category,
-                            isSelected: _selectedIndex == categoryIndex,
-                          ),
-                        );
-                      },
-                    );
+                    return _buildMainCategoryList(mainCategories);
                   },
                 ),
               ),
-              Expanded(child: _buildProductsGrid(_selectedCategoryId)),
+              _buildSubCategoryList(),
+              Expanded(child: _buildProductsGrid()),
             ],
           ),
         ),
@@ -104,14 +71,147 @@ class _CategorysState extends State<Categorys> {
     );
   }
 
-  Widget _buildProductsGrid(String? categoryId) {
+  Widget _buildMainCategoryList(List<Category> mainCategories) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: mainCategories.length + 1, // +1 for 'All'
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedMainIndex = -1;
+                _selectedMainCategoryId = null;
+                _selectedSubCategoryId = null;
+              });
+            },
+            child: CategoryCard(
+              category: Category(id: 'all', name: 'الكل'),
+              isSelected: _selectedMainIndex == -1,
+            ),
+          );
+        }
+
+        final categoryIndex = index - 1;
+        final category = mainCategories[categoryIndex];
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _selectedMainIndex = categoryIndex;
+              _selectedMainCategoryId = category.id;
+              _selectedSubCategoryId = null; // Reset sub-category selection
+              _selectedSubIndex = -1;
+            });
+          },
+          child: CategoryCard(
+            category: category,
+            isSelected: _selectedMainIndex == categoryIndex,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSubCategoryList() {
+    final subCategories = _selectedMainCategoryId == null
+        ? <Category>[]
+        : _allCategories.where((c) => c.parentId == _selectedMainCategoryId).toList();
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        child: subCategories.isEmpty
+            ? const SizedBox.shrink()
+            : Column(
+                key: ValueKey(_selectedMainCategoryId),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(
+                      'الأصناف الفرعية',
+                      style: TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 50,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: subCategories.length + 1,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedSubIndex = -1;
+                                _selectedSubCategoryId = null;
+                              });
+                            },
+                            child: CategoryCard(
+                              category: Category(id: 'all_sub', name: 'الكل'),
+                              isSelected: _selectedSubIndex == -1,
+                              isSubcategory: true,
+                            ),
+                          );
+                        }
+
+                        final subCategoryIndex = index - 1;
+                        final subCategory = subCategories[subCategoryIndex];
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedSubIndex = subCategoryIndex;
+                              _selectedSubCategoryId = subCategory.id;
+                            });
+                          },
+                          child: CategoryCard(
+                            category: subCategory,
+                            isSelected: _selectedSubIndex == subCategoryIndex,
+                            isSubcategory: true,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildProductsGrid() {
     final Stream<List<Product>> productsStream;
-    if (categoryId == null) {
-      productsStream = _productService.getProducts(); // Get all products
+
+    if (_selectedSubCategoryId != null) {
+      // A sub-category is selected
+      productsStream = _productService.getProductsByCategory(_selectedSubCategoryId!);
+    } else if (_selectedMainCategoryId != null) {
+      // A main category is selected, get products from it and all its sub-categories
+      final categoryIds = [_selectedMainCategoryId!];
+      final subCategoryIds = _allCategories
+          .where((c) => c.parentId == _selectedMainCategoryId)
+          .map((c) => c.id)
+          .toList();
+      categoryIds.addAll(subCategoryIds);
+      productsStream = _productService.getProductsByCategories(categoryIds);
     } else {
-      productsStream = _productService.getProductsByCategory(
-        categoryId,
-      ); // Get products by category
+      // 'All' is selected
+      productsStream = _productService.getProducts();
     }
 
     return StreamBuilder<List<Product>>(
