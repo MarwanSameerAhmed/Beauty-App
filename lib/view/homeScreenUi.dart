@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_pro/widgets/SearchBar.dart';
-import 'package:test_pro/widgets/CategorySectionUi.dart';
 import 'package:test_pro/widgets/SectionTitle.dart';
 import 'package:test_pro/widgets/loader.dart';
 import 'package:test_pro/widgets/SectionTitleNonSliver.dart';

@@ -5,6 +5,7 @@ import 'package:test_pro/model/product.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/controller/favorites_service.dart';
 import 'package:test_pro/controller/cart_service.dart';
+import 'package:lottie/lottie.dart';
 
 class ProductDetailsPage extends StatefulWidget {
   final Product product;
@@ -320,51 +321,75 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     return Center(
       child: SizedBox(
         width: double.infinity,
-        child: ElevatedButton.icon(
-          icon: _isAdding
-              ? const SizedBox.shrink()
-              : const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-          label: Text(
-            _isAdding ? 'جاري الإضافة...' : 'أضف إلى العربة',
-            style: const TextStyle(
-              fontSize: 18,
-              fontFamily: 'Tajawal',
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+        child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+            padding: const EdgeInsets.symmetric(vertical: 15),
             backgroundColor: const Color(0xFFC15C5C).withOpacity(0.8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
             elevation: 5,
             shadowColor: Colors.black.withOpacity(0.3),
+            // Fixed height to prevent layout shifts during animation switch
+            minimumSize: const Size(double.infinity, 54),
+            alignment: Alignment.center,
           ),
           onPressed: _isAdding
               ? null
               : () {
                   setState(() => _isAdding = true);
 
-                  // Add item to cart
                   CartService().addItem(widget.product);
 
-                  // Show a confirmation message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تمت إضافة المنتج إلى السلة بنجاح!'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
+                  // ScaffoldMessenger.of(context).showSnackBar(
+                  //   const SnackBar(
+                  //     content: Text('تمت إضافة المنتج إلى السلة بنجاح!'),
+                  //     duration: Duration(seconds: 2),
+                  //   ),
+                  // );
 
-                  // Reset the button state after a delay
-                  Future.delayed(const Duration(seconds: 2), () {
+                  Future.delayed(const Duration(seconds: 3), () {
                     if (mounted) {
                       setState(() => _isAdding = false);
                     }
                   });
                 },
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            child: _isAdding
+                ? Lottie.asset(
+                    'images/Shopping Cart.json',
+                    key: const ValueKey('lottie_anim'),
+                    height: 50,
+                    // Adjust height to fit inside the button
+                  )
+                : const Row(
+                    key: ValueKey('add_to_cart_text'),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'أضف إلى السلة',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: 'Tajawal',
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 15),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 10.0),
+                        child: Icon(
+                          Icons.shopping_cart_outlined,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );

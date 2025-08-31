@@ -3,7 +3,6 @@ import 'package:test_pro/controller/favorites_service.dart';
 import 'package:test_pro/controller/product_service.dart';
 import 'package:test_pro/model/product.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_Header_user.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
 import 'package:test_pro/widgets/product_card.dart';
 import 'package:test_pro/widgets/productDetails.dart';
@@ -18,7 +17,8 @@ class FavoritesPage extends StatefulWidget {
 
 class _FavoritesPageState extends State<FavoritesPage> {
   final ProductService _productService = ProductService();
-  final FavoritesService _favoritesService = FavoritesService(); // Now uses the singleton instance
+  final FavoritesService _favoritesService =
+      FavoritesService(); // Now uses the singleton instance
 
   // Fetches full product details for a list of favorite IDs.
   Future<List<Product>> _getFavoriteProducts(List<String> ids) async {
@@ -43,7 +43,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
           body: Column(
             children: [
-              CustomAdminHeader(
+              const CustomAdminHeader(
                 title: 'المفضلة',
                 subtitle: 'كل ما أحببتَه سيظهر هنا للوصول السريع',
               ),
