@@ -119,14 +119,30 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
 
         final orders = snapshot.data!.docs;
 
+        if (orders.isEmpty) {
+          return Center(
+            child: Text(
+              'لا توجد طلبات في هذا القسم.',
+              style: TextStyle(
+                fontSize: 18,
+                fontFamily: 'Tajawal',
+                color: Colors.black,
+              ),
+            ),
+          );
+        }
+
         return ListView.builder(
           padding: const EdgeInsets.only(bottom: 20),
           itemCount: orders.length,
           itemBuilder: (context, index) {
             final order = orders[index];
-            final items = order['items'] as List;
-            final firstItem = items.first;
-            final status = order['status'];
+            final orderData = order.data() as Map<String, dynamic>;
+            final status = orderData['status'];
+            final isCancelled = status == 'cancelled';
+            final items = orderData['items'] as List? ?? [];
+            final String? imageUrl = isCancelled || items.isEmpty ? null : items[0]['imageUrl'];
+
             final orderTimestamp = order['timestamp'] as Timestamp;
             final formattedDateTime = DateFormat(
               'h:mm a - yyyy/MM/dd',
@@ -135,12 +151,21 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
 
             return GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => OrderDetailsPage(order: order),
-                  ),
-                );
+                if (isCancelled) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('هذا الطلب ملغي.', style: TextStyle(fontFamily: 'Tajawal')),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderDetailsPage(order: order),
+                    ),
+                  );
+                }
               },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(25.0),
@@ -164,12 +189,23 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(15.0),
-                          child: Image.network(
-                            firstItem['imageUrl'],
-                            width: 85,
-                            height: 85,
-                            fit: BoxFit.cover,
-                          ),
+                          child: imageUrl != null
+                              ? Image.network(
+                                  imageUrl,
+                                  width: 85,
+                                  height: 85,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  width: 85,
+                                  height: 85,
+                                  color: Colors.grey.shade300,
+                                  child: Icon(
+                                    Icons.cancel_outlined,
+                                    color: Colors.red.shade400,
+                                    size: 40,
+                                  ),
+                                ),
                         ),
                         const SizedBox(width: 15),
                         Expanded(
@@ -202,12 +238,13 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'طلب من: $userName',
-                                        style: const TextStyle(
+                                        isCancelled ? 'طلب ملغي' : 'طلب من: $userName',
+                                        style: TextStyle(
                                           fontFamily: 'Tajawal',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
-                                          color: Colors.black,
+                                          color: isCancelled ? Colors.red.shade400 : Colors.black,
+                                          decoration: isCancelled ? TextDecoration.lineThrough : TextDecoration.none,
                                         ),
                                       ),
                                       const SizedBox(height: 4),

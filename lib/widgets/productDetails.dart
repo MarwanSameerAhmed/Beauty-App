@@ -348,7 +348,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                   //   ),
                   // );
 
-                  Future.delayed(const Duration(seconds: 3), () {
+                  Future.delayed(const Duration(seconds: 1), () {
                     if (mounted) {
                       setState(() => _isAdding = false);
                     }

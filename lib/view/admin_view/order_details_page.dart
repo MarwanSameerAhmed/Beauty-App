@@ -5,6 +5,7 @@ import 'package:test_pro/controller/notification_service.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
 import 'package:test_pro/widgets/loader.dart';
+import 'package:test_pro/widgets/elegant_dialog.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final DocumentSnapshot order;
@@ -26,10 +27,16 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     super.initState();
     _status = widget.order['status'];
     _items = (widget.order['items'] as List).map<Map<String, dynamic>>((item) {
+      // Create a mutable copy to handle local state like price controllers
       final mutableItem = Map<String, dynamic>.from(item);
+
+      // Ensure 'userAction' from Firestore is preserved. Default to 'pending' if not present.
+      mutableItem.putIfAbsent('userAction', () => 'pending');
+
       final key =
           mutableItem['productId']?.toString() ??
           mutableItem['name']?.toString();
+
       if (key != null) {
         final controller = TextEditingController(
           text: mutableItem['price']?.toString() ?? '',
@@ -37,6 +44,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         controller.addListener(_validateButtonState);
         _priceControllers[key] = controller;
       }
+
       return mutableItem;
     }).toList();
     _validateButtonState();
@@ -57,9 +65,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     bool isEnabled = false;
     if (_status == 'pending' || _status == 'pending_pricing') {
       // Enable if at least one price is entered
-      isEnabled = _priceControllers.values.any((c) => c.text.isNotEmpty && double.tryParse(c.text) != null);
+      isEnabled = _priceControllers.values.any(
+        (c) => c.text.isNotEmpty && double.tryParse(c.text) != null,
+      );
     } else if (_status == 'awaiting_admin_approval') {
-      // Enable only if there are no pending proposals from the user
+      // Enable only if there are no pending proposals from the user (ignoring rejected items)
       isEnabled = !_items.any((item) => item['userAction'] == 'proposed');
     } else {
       isEnabled = false;
@@ -77,7 +87,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
     // Validate that all items have a price if the status is 'pending' or 'pending_pricing'
     if (_status == 'pending' || _status == 'pending_pricing') {
-      final allPriced = _priceControllers.values.every((c) => c.text.isNotEmpty && double.tryParse(c.text) != null && double.parse(c.text) > 0);
+      final allPriced = _priceControllers.values.every(
+        (c) =>
+            c.text.isNotEmpty &&
+            double.tryParse(c.text) != null &&
+            double.parse(c.text) > 0,
+      );
       if (!allPriced) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -92,25 +107,42 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) =>
-          const Center(child: Loader()),
+      builder: (BuildContext context) => const Center(child: Loader()),
     );
 
-    // Update prices from text controllers back into the local _items list
-    for (var item in _items) {
+    // Update prices and ensure 'userAction' is present
+    final List<Map<String, dynamic>> updatedItems = _items.map((item) {
       final key = item['productId']?.toString() ?? item['name']?.toString();
-      if (key != null) {
-        final priceText = _priceControllers[key]?.text ?? '0.0';
-        item['price'] = double.tryParse(priceText) ?? 0.0;
+      double price = item['price'] ?? 0.0;
+      if (key != null && _priceControllers.containsKey(key)) {
+        price = double.tryParse(_priceControllers[key]!.text) ?? price;
       }
-    }
+
+      // Create a new map to avoid modifying the original list directly in the loop
+      final newItem = Map<String, dynamic>.from(item);
+      newItem['price'] = price;
+
+      // If it's the first pricing, set userAction for all items.
+      if (_status == 'pending' || _status == 'pending_pricing') {
+        newItem['userAction'] = 'pending';
+      }
+
+      return newItem;
+    }).toList();
 
     final isFinalApproval = _status == 'awaiting_admin_approval';
     final newStatus = isFinalApproval ? 'final_approved' : 'priced';
 
+    // For final approval, filter out any rejected items before saving.
+    final itemsToSave = isFinalApproval
+        ? updatedItems
+              .where((item) => item['userAction'] != 'rejected')
+              .toList()
+        : updatedItems;
+
     try {
       await widget.order.reference.update({
-        'items': _items,
+        'items': itemsToSave, // Save the potentially filtered list
         'status': newStatus,
       });
 
@@ -183,61 +215,68 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   itemCount: _items.length,
                   itemBuilder: (context, index) {
                     final item = _items[index];
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(20.0),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF9D5D3).withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(20.0),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 1.5,
+                    final isRejected = item['userAction'] == 'rejected';
+                    return Opacity(
+                      opacity: isRejected ? 0.6 : 1.0,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20.0),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isRejected
+                                  ? Colors.grey.withOpacity(0.4)
+                                  : const Color(0xFFF9D5D3).withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(20.0),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                                width: 1.5,
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12.0),
-                                child: Image.network(
-                                  item['imageUrl'],
-                                  width: 70,
-                                  height: 70,
-                                  fit: BoxFit.cover,
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  child: Image.network(
+                                    item['imageUrl'],
+                                    width: 70,
+                                    height: 70,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item['name'],
-                                      style: const TextStyle(
-                                        fontFamily: 'Tajawal',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: Colors.black,
+                                const SizedBox(width: 15),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item['name'],
+                                        style: const TextStyle(
+                                          fontFamily: 'Tajawal',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.black,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'الكمية: ${item['quantity']}',
-                                      style: const TextStyle(
-                                        fontFamily: 'Tajawal',
-                                        fontSize: 14,
-                                        color: Colors.black87,
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'الكمية: ${item['quantity']}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Tajawal',
+                                          fontSize: 14,
+                                          color: Colors.black87,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              _buildItemActions(item, index),
-                            ],
+                                const SizedBox(width: 10),
+                                _buildItemActions(item, index),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -247,8 +286,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               ),
             ],
           ),
-          bottomNavigationBar: _status == 'final_approved' || _status == 'priced'
-              ? const SizedBox.shrink() // Hide button if order is final or already priced
+          bottomNavigationBar:
+              _status == 'final_approved' || _status == 'priced'
+              ? const SizedBox.shrink()
               : Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: ElevatedButton(
@@ -258,8 +298,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                           ? Colors.green.shade700
                           : const Color(0xFFC23A6D),
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor:
-                          const Color(0xFFC23A6D).withOpacity(0.5),
+                      disabledBackgroundColor: const Color(
+                        0xFFC23A6D,
+                      ).withOpacity(0.5),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
@@ -289,6 +330,29 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     final userAction = item['userAction'];
 
     switch (userAction) {
+      case 'rejected':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              '${item['price']?.toStringAsFixed(2) ?? '0.00'} ر.س',
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+                decoration: TextDecoration.lineThrough,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Chip(
+              label: Text(
+                'رفضه العميل',
+                style: TextStyle(color: Colors.white, fontSize: 10),
+              ),
+              backgroundColor: Colors.red,
+              padding: EdgeInsets.symmetric(horizontal: 4),
+            ),
+          ],
+        );
       case 'accepted':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -390,48 +454,29 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   void _showPriceEditDialog(Map<String, dynamic> item, int index) {
-    final controller = TextEditingController(
-      text: item['price']?.toString() ?? '',
-    );
-    showDialog(
+    showElegantDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('تعديل سعر ${item['name']}'),
-        content: TextField(
-          controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(labelText: 'السعر الجديد'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                final newPrice =
-                    double.tryParse(controller.text) ?? item['price'];
-                item['price'] = newPrice;
-                item['userAction'] = 'admin_approved';
-                final key =
-                    item['productId']?.toString() ?? item['name']?.toString();
-                if (key != null) {
-                  _priceControllers[key]?.text = newPrice.toString();
-                }
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('حفظ'),
-          ),
-        ],
+      child: ProposePriceDialog(
+        onPropose: (newPrice) {
+          setState(() {
+            item['price'] = newPrice;
+            item['userAction'] = 'admin_approved';
+            final key =
+                item['productId']?.toString() ?? item['name']?.toString();
+            if (key != null) {
+              _priceControllers[key]?.text = newPrice.toString();
+            }
+            _validateButtonState(); // Re-validate after price change
+          });
+        },
       ),
     );
   }
 
   Widget _buildPriceTextField(Map<String, dynamic> item) {
     final key = item['productId']?.toString() ?? item['name']?.toString();
-    final bool isEditable = _status == 'pending' || _status == 'pending_pricing';
+    final bool isEditable =
+        _status == 'pending' || _status == 'pending_pricing';
 
     return SizedBox(
       width: 90,

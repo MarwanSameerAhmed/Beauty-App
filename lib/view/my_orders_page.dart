@@ -102,8 +102,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                               child: Loader(),
                             );
                           }
-                          if (!snapshot.hasData ||
-                              snapshot.data!.docs.isEmpty) {
+                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                             return Center(
                               child: Text(
                                 'ليس لديك طلبات حاليًا.',
@@ -118,6 +117,19 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
 
                           final orders = snapshot.data!.docs;
 
+                          if (orders.isEmpty) {
+                            return Center(
+                              child: Text(
+                                'ليس لديك طلبات حاليًا.',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontFamily: 'Tajawal',
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            );
+                          }
+
                           return ListView.builder(
                             padding: const EdgeInsets.only(
                               bottom: 80,
@@ -125,25 +137,38 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                             itemCount: orders.length,
                             itemBuilder: (context, index) {
                               final order = orders[index];
-                              final items = order['items'] as List;
-                              final firstItem = items.first;
-                              final status = order['status'];
-                              final orderDate =
-                                  (order['timestamp'] as Timestamp).toDate();
+                              final orderData = order.data() as Map<String, dynamic>;
+                              final status = orderData['status'];
+                              final orderDate = (orderData['timestamp'] as Timestamp).toDate();
+                              final bool isCancelled = status == 'cancelled';
+                              final items = orderData['items'] as List? ?? [];
+
+                              final String titleText = isCancelled ? 'طلب ملغي' : items.isNotEmpty ? items[0]['name'] : 'طلب فارغ';
+                              final String? imageUrl = isCancelled || items.isEmpty ? null : items[0]['imageUrl'];
+
                               final formattedDate =
                                   '${orderDate.year}-${orderDate.month.toString().padLeft(2, '0')}-${orderDate.day.toString().padLeft(2, '0')}';
 
                               return GestureDetector(
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          CustomerOrderDetailsPage(
-                                            order: order,
-                                          ),
-                                    ),
-                                  );
+                                  if (isCancelled) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('هذا الطلب ملغي ولا يمكن عرض تفاصيله.', style: TextStyle(fontFamily: 'Tajawal')),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            CustomerOrderDetailsPage(
+                                              order: order,
+                                            ),
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(25.0),
@@ -174,15 +199,24 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                                       child: Row(
                                         children: [
                                           ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              15.0,
-                                            ),
-                                            child: Image.network(
-                                              firstItem['imageUrl'],
-                                              width: 90,
-                                              height: 90,
-                                              fit: BoxFit.cover,
-                                            ),
+                                            borderRadius: BorderRadius.circular(15.0),
+                                            child: imageUrl != null
+                                                ? Image.network(
+                                                    imageUrl,
+                                                    width: 90,
+                                                    height: 90,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                : Container(
+                                                    width: 90,
+                                                    height: 90,
+                                                    color: Colors.grey.shade300,
+                                                    child: Icon(
+                                                      Icons.cancel_outlined,
+                                                      color: Colors.red.shade400,
+                                                      size: 40,
+                                                    ),
+                                                  ),
                                           ),
                                           const SizedBox(width: 15),
                                           Expanded(
@@ -193,15 +227,27 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  'طلب بتاريخ: $formattedDate',
+                                                  titleText,
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'Tajawal',
+                                                    color: isCancelled ? Colors.red.shade400 : Colors.black,
+                                                    decoration: isCancelled ? TextDecoration.lineThrough : TextDecoration.none,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  'تاريخ الطلب: $formattedDate',
                                                   style: const TextStyle(
                                                     fontFamily: 'Tajawal',
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                    color: Colors.black,
+                                                    fontSize: 14,
+                                                    color: Colors.black54,
                                                   ),
                                                 ),
-                                                const SizedBox(height: 8),
+                                                const SizedBox(height: 4),
                                                 Container(
                                                   padding:
                                                       const EdgeInsets.symmetric(
@@ -269,6 +315,8 @@ String _getStatusText(String status) {
       return 'تمت الموافقة النهائية';
     case 'completed':
       return 'مكتمل';
+    case 'cancelled':
+      return 'ملغي';
     default:
       return 'غير معروف';
   }
@@ -288,6 +336,8 @@ Color _getStatusColor(String status) {
       return Colors.green.shade700;
     case 'completed':
       return Colors.grey.shade600;
+    case 'cancelled':
+      return Colors.red.shade400;
     default:
       return Colors.black;
   }

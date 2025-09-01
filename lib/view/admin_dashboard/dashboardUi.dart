@@ -238,17 +238,7 @@ class DashboardUi extends StatelessWidget {
               children: [
                 _buildCardButton(
                   Icons.add_circle_outline,
-                  'إضافة',
-                  () => _navigateTo(context, cardType),
-                ),
-                _buildCardButton(
-                  Icons.edit_outlined,
-                  'تعديل',
-                  () => _navigateTo(context, cardType),
-                ),
-                _buildCardButton(
-                  Icons.delete_outline,
-                  'حذف',
+                  'إدارة',
                   () => _navigateTo(context, cardType),
                 ),
               ],
@@ -266,12 +256,16 @@ class DashboardUi extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       onPressed: onPressed,
-      icon: Icon(icon, size: 20),
+      icon: Padding(
+        padding: const EdgeInsets.only(bottom: 5.0),
+        child: Icon(icon, size: 20),
+      ),
       label: Text(
         label,
         style: const TextStyle(
           fontFamily: 'Tajawal',
           fontWeight: FontWeight.w600,
+          fontSize: 18,
         ),
       ),
     );

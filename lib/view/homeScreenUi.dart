@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test_pro/view/cart_page.dart';
 import 'package:test_pro/widgets/SearchBar.dart';
 import 'package:test_pro/widgets/SectionTitle.dart';
 import 'package:test_pro/widgets/loader.dart';
@@ -66,7 +67,10 @@ class _HomescreenuiState extends State<Homescreenui> {
                   userName: _userName,
                   email: _email,
                   onCartPressed: () {
-                    print("تم الضغط على السلة");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CartPage()),
+                    );
                   },
                   onFavoritePressed: () {
                     Navigator.push(
@@ -110,10 +114,7 @@ class _HomescreenuiState extends State<Homescreenui> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Loader(),
-            ),
+            child: Padding(padding: EdgeInsets.all(8.0), child: Loader()),
           );
         }
         if (snapshot.hasError) {
@@ -226,10 +227,7 @@ class _HomescreenuiState extends State<Homescreenui> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SliverToBoxAdapter(
             child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Loader(),
-              ),
+              child: Padding(padding: EdgeInsets.all(20.0), child: Loader()),
             ),
           );
         }

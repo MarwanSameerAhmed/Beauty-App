@@ -56,7 +56,9 @@ class _CategorysState extends State<Categorys> {
                     }
 
                     _allCategories = snapshot.data!;
-                    final mainCategories = _allCategories.where((c) => c.parentId == null).toList();
+                    final mainCategories = _allCategories
+                        .where((c) => c.parentId == null)
+                        .toList();
 
                     return _buildMainCategoryList(mainCategories);
                   },
@@ -116,7 +118,9 @@ class _CategorysState extends State<Categorys> {
   Widget _buildSubCategoryList() {
     final subCategories = _selectedMainCategoryId == null
         ? <Category>[]
-        : _allCategories.where((c) => c.parentId == _selectedMainCategoryId).toList();
+        : _allCategories
+              .where((c) => c.parentId == _selectedMainCategoryId)
+              .toList();
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 300),
@@ -124,10 +128,7 @@ class _CategorysState extends State<Categorys> {
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
         child: subCategories.isEmpty
             ? const SizedBox.shrink()
@@ -199,7 +200,9 @@ class _CategorysState extends State<Categorys> {
 
     if (_selectedSubCategoryId != null) {
       // A sub-category is selected
-      productsStream = _productService.getProductsByCategory(_selectedSubCategoryId!);
+      productsStream = _productService.getProductsByCategory(
+        _selectedSubCategoryId!,
+      );
     } else if (_selectedMainCategoryId != null) {
       // A main category is selected, get products from it and all its sub-categories
       final categoryIds = [_selectedMainCategoryId!];
@@ -237,9 +240,9 @@ class _CategorysState extends State<Categorys> {
           padding: const EdgeInsets.all(16.0),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            mainAxisSpacing: 18.0,
-            crossAxisSpacing: 18.0,
-            childAspectRatio: 0.7,
+            mainAxisSpacing: 9.0,
+            crossAxisSpacing: 9.0,
+            childAspectRatio: 0.8,
           ),
           itemCount: products.length,
           itemBuilder: (context, index) {
