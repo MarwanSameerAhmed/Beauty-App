@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_pro/view/admin_view/manage_ads_screen.dart';
-import 'package:test_pro/view/loginUi.dart';
+import 'package:test_pro/view/auth_Ui/loginUi.dart';
+import 'package:test_pro/view/profile_Ui/account_settings_page.dart';
+import 'package:test_pro/view/profile_Ui/help_and_support_page.dart';
+import 'package:test_pro/view/profile_Ui/privacy_policy_page.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
+import 'package:test_pro/widgets/ElegantToast.dart';
 
 class ProfileUi extends StatefulWidget {
   const ProfileUi({super.key});
@@ -55,6 +59,7 @@ class _ProfileUiState extends State<ProfileUi> {
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
+              const SizedBox(height: 40),
               _buildProfileHeader(),
               const SizedBox(height: 30),
               _buildProfileMenu(context),
@@ -70,10 +75,20 @@ class _ProfileUiState extends State<ProfileUi> {
   Widget _buildProfileHeader() {
     return Column(
       children: [
-        const CircleAvatar(
+        CircleAvatar(
           radius: 50,
           backgroundColor: Colors.white,
-          child: Icon(Icons.person, size: 60, color: Color(0xFF942A59)),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10.0),
+            child: Text(
+              _userName[0].toUpperCase(),
+              style: const TextStyle(
+                fontSize: 50,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF52002C),
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         Text(
@@ -86,14 +101,14 @@ class _ProfileUiState extends State<ProfileUi> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          _email,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.black54,
-            fontFamily: 'Tajawal',
-          ),
-        ),
+        // Text(
+        //   _email,
+        //   style: const TextStyle(
+        //     fontSize: 16,
+        //     color: Colors.black54,
+        //     fontFamily: 'Tajawal',
+        //   ),
+        // ),
       ],
     );
   }
@@ -123,17 +138,54 @@ class _ProfileUiState extends State<ProfileUi> {
                   'إدارة الإعلانات',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) =>  ManageAdsScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => ManageAdsScreen(),
+                      ),
                     );
                   },
                 ),
                 const Divider(),
               ],
             ),
-          _buildMenuTile(Icons.settings, 'إعدادات الحساب'),
-          _buildMenuTile(Icons.notifications, 'الإشعارات'),
-          _buildMenuTile(Icons.lock, 'الخصوصية والأمان'),
-          _buildMenuTile(Icons.help_outline, 'المساعدة والدعم'),
+          _buildMenuTile(
+            Icons.settings,
+            'إعدادات الحساب',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AccountSettingsPage(),
+              ),
+            ),
+          ),
+          _buildMenuTile(
+            Icons.notifications,
+            'الإشعارات',
+            onTap: () => showElegantToast(
+              context,
+              'هذه الخدمة قيد التطوير حاليًا',
+              isSuccess: false,
+            ),
+          ),
+          _buildMenuTile(
+            Icons.lock,
+            'الخصوصية والأمان',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PrivacyPolicyPage(),
+              ),
+            ),
+          ),
+          _buildMenuTile(
+            Icons.help_outline,
+            'المساعدة والدعم',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HelpAndSupportPage(),
+              ),
+            ),
+          ),
           const Divider(),
           _buildMenuTile(
             Icons.logout,

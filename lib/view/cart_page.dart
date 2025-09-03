@@ -9,7 +9,7 @@ import 'package:test_pro/controller/notification_service.dart'; // For sending n
 import 'package:test_pro/widgets/loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:test_pro/widgets/elegant_dialog.dart';
-import 'package:test_pro/view/loginUi.dart';
+import 'package:test_pro/view/auth_Ui/loginUi.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({Key? key}) : super(key: key);

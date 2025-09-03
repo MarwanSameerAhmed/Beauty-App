@@ -36,7 +36,7 @@ class _CategorysState extends State<Categorys> {
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomHeaderUser(
+              const CustomHeaderUser(
                 title: 'الاقسام',
                 subtitle: "اختر القسم لتعرض المنتجات المرتبطة به",
               ),
@@ -66,6 +66,7 @@ class _CategorysState extends State<Categorys> {
               ),
               _buildSubCategoryList(),
               Expanded(child: _buildProductsGrid()),
+              const SizedBox(height: 65.0),
             ],
           ),
         ),

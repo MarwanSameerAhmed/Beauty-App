@@ -6,6 +6,7 @@ class ProfileHeaderWidget extends StatelessWidget {
   final String imagePath;
   final VoidCallback? onCartPressed;
   final VoidCallback? onFavoritePressed; // Add this
+  final int cartItemCount;
 
   const ProfileHeaderWidget({
     super.key,
@@ -14,6 +15,7 @@ class ProfileHeaderWidget extends StatelessWidget {
     required this.imagePath,
     this.onCartPressed,
     this.onFavoritePressed, // Add this
+    required this.cartItemCount,
   });
 
   @override
@@ -93,13 +95,41 @@ class ProfileHeaderWidget extends StatelessWidget {
                         width: 1,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.shopping_bag_outlined,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                      onPressed: onCartPressed,
+                    Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.shopping_bag_outlined,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          onPressed: onCartPressed,
+                        ),
+                        if (cartItemCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Text(
+                                '$cartItemCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),

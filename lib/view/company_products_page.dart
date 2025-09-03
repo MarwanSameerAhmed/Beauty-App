@@ -57,9 +57,9 @@ class CompanyProductsPage extends StatelessWidget {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            crossAxisSpacing: 16.0,
-                            mainAxisSpacing: 16.0,
-                            childAspectRatio: 0.75,
+                            crossAxisSpacing: 9.0,
+                            mainAxisSpacing: 9.0,
+                            childAspectRatio: 0.8,
                           ),
                       itemCount: products.length,
                       itemBuilder: (context, index) {

@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:test_pro/view/loginUi.dart';
+import 'package:test_pro/view/auth_Ui/loginUi.dart';
 import 'package:test_pro/view/customer_order_details_page.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_Header_user.dart';
@@ -29,7 +29,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
             backgroundColor: Colors.transparent,
             body: Column(
               children: [
-                CustomHeaderUser(
+                const CustomHeaderUser(
                   title: 'طلباتي',
                   subtitle: 'يجب عليك تسجيل الدخول لعرض طلباتك',
                 ),
@@ -84,7 +84,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
           backgroundColor: Colors.transparent,
           body: Column(
             children: [
-              CustomHeaderUser(
+              const CustomHeaderUser(
                 title: 'طلباتي',
                 subtitle: 'تتبّع حالة طلباتك السابقة والحالية',
               ),
@@ -103,7 +103,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                             );
                           }
                           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                            return Center(
+                            return const Center(
                               child: Text(
                                 'ليس لديك طلبات حاليًا.',
                                 style: TextStyle(
@@ -118,7 +118,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                           final orders = snapshot.data!.docs;
 
                           if (orders.isEmpty) {
-                            return Center(
+                            return const Center(
                               child: Text(
                                 'ليس لديك طلبات حاليًا.',
                                 style: TextStyle(
@@ -277,11 +277,12 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                                               ],
                                             ),
                                           ),
-                                          const Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: Colors.grey,
-                                            size: 20,
-                                          ),
+                                          if (!isCancelled)
+                                            const Icon(
+                                              Icons.arrow_forward_ios,
+                                              color: Colors.grey,
+                                              size: 20,
+                                            ),
                                         ],
                                       ),
                                     ),

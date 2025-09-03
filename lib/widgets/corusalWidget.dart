@@ -51,10 +51,12 @@ class _ProductCarouselState extends State<ProductCarousel> {
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 5),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16), // Adjusted for consistency
+                    borderRadius: BorderRadius.circular(
+                      16,
+                    ), // Adjusted for consistency
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
+                        color: Colors.white.withOpacity(0.4),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -66,14 +68,23 @@ class _ProductCarouselState extends State<ProductCarousel> {
                       ad.imageUrl,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      // Optional: Add loading and error builders for better UX
-                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const Center(child: Loader());
-                      },
-                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                        return const Icon(Icons.error);
-                      },
+                      loadingBuilder:
+                          (
+                            BuildContext context,
+                            Widget child,
+                            ImageChunkEvent? loadingProgress,
+                          ) {
+                            if (loadingProgress == null) return child;
+                            return const Center(child: Loader());
+                          },
+                      errorBuilder:
+                          (
+                            BuildContext context,
+                            Object exception,
+                            StackTrace? stackTrace,
+                          ) {
+                            return const Icon(Icons.error);
+                          },
                     ),
                   ),
                 );
@@ -105,7 +116,9 @@ class _ProductCarouselState extends State<ProductCarousel> {
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
-                    color: isActive ? const Color(0xFFf9d5d3) : Colors.grey.shade300,
+                    color: isActive
+                        ? const Color(0xFFf9d5d3)
+                        : Colors.grey.shade300,
                   ),
                 );
               }).toList(),

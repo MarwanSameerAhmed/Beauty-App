@@ -142,6 +142,25 @@ class AuthService {
     }
   }
 
+  Future<UserAccount?> getCurrentUserAccount() async {
+    try {
+      final User? currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        final DocumentSnapshot doc = await _firestore
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+        if (doc.exists) {
+          return UserAccount.fromJson(doc.data() as Map<String, dynamic>);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error getting current user account: $e');
+      return null;
+    }
+  }
+
   Future<void> _saveDeviceToken(String uid) async {
     try {
       String? fcmToken = await FirebaseMessaging.instance.getToken();

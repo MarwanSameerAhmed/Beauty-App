@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_pro/view/cart_page.dart';
+import 'package:test_pro/controller/cart_service.dart';
 import 'package:test_pro/widgets/SearchBar.dart';
 import 'package:test_pro/widgets/SectionTitle.dart';
 import 'package:test_pro/widgets/loader.dart';
@@ -18,7 +19,8 @@ import 'package:test_pro/view/favoritesUi.dart';
 import 'package:test_pro/view/company_products_page.dart';
 
 class Homescreenui extends StatefulWidget {
-  const Homescreenui({super.key});
+  final TabController tabController;
+  const Homescreenui({super.key, required this.tabController});
 
   @override
   _HomescreenuiState createState() => _HomescreenuiState();
@@ -62,22 +64,24 @@ class _HomescreenuiState extends State<Homescreenui> {
               delegate: _SliverAppBarDelegate(
                 minHeight: 110.0,
                 maxHeight: 110.0,
-                child: ProfileHeaderWidget(
-                  imagePath: _imagePath,
-                  userName: _userName,
-                  email: _email,
-                  onCartPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const CartPage()),
-                    );
-                  },
-                  onFavoritePressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FavoritesPage(),
-                      ),
+                child: Consumer<CartService>(
+                  builder: (context, cart, child) {
+                    return ProfileHeaderWidget(
+                      imagePath: _imagePath,
+                      userName: _userName,
+                      email: _email,
+                      cartItemCount: cart.itemCount,
+                      onCartPressed: () {
+                        widget.tabController.animateTo(2); // Index 2 is CartPage
+                      },
+                      onFavoritePressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FavoritesPage(),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

@@ -33,118 +33,124 @@ class _SignupUiState extends State<SignupUi> {
   @override
   Widget build(BuildContext context) {
     return FlowerBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: Stack(
-            children: [
-              Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0,
-                    vertical: 40.0,
-                  ),
-                  child: _buildAnimatedContainer(
-                    child: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Text(
-                              'حساب جديد',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 32.0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                                fontFamily: 'Tajawal',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: SafeArea(
+            child: Stack(
+              children: [
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 40.0,
+                    ),
+                    child: _buildAnimatedContainer(
+                      child: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Text(
+                                'حساب جديد',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 32.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                  fontFamily: 'Tajawal',
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 40),
-                            GlassField(
-                              controller: nameController,
-                              hintText: 'الاسم الكامل',
-                              prefixIcon: Icons.person_outline,
-                              validator: (value) {
-                                if (value == null || value.isEmpty)
-                                  return 'يرجى إدخال الاسم';
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-                            GlassField(
-                              controller: emailController,
-                              hintText: 'البريد الإلكتروني',
-                              prefixIcon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (value) {
-                                if (value == null || value.isEmpty)
-                                  return 'يرجى إدخال البريد الإلكتروني';
-                                if (!value.contains('@'))
-                                  return 'البريد الإلكتروني غير صالح';
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-                            GlassField(
-                              controller: passwordController,
-                              hintText: 'كلمة المرور',
-                              prefixIcon: Icons.lock_outline,
-                              obscureText: true,
-                              validator: (value) {
-                                if (value == null || value.isEmpty)
-                                  return 'يرجى إدخال كلمة المرور';
-                                if (value.length < 6)
-                                  return 'كلمة المرور قصيرة جدًا';
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-                            GlassField(
-                              controller: confirmPasswordController,
-                              hintText: 'تأكيد كلمة المرور',
-                              prefixIcon: Icons.lock_outline,
-                              obscureText: true,
-                              validator: (value) {
-                                if (value == null || value.isEmpty)
-                                  return 'يرجى تأكيد كلمة المرور';
-                                if (value != passwordController.text)
-                                  return 'كلمة المرور غير متطابقة';
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-                            _buildAccountTypeDropdown(),
-                            const SizedBox(height: 20),
-                            _buildCompanyFields(),
-                            const SizedBox(height: 30),
-                            GradientElevatedButton(
-                              text: 'إنشاء حساب',
-                              isLoading: _isLoading,
-                              onPressed: _onRegisterPressed,
-                            ),
-                          ],
+                              const SizedBox(height: 40),
+                              GlassField(
+                                controller: nameController,
+                                hintText: 'الاسم الكامل',
+                                prefixIcon: Icons.person_outline,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty)
+                                    return 'يرجى إدخال الاسم';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              GlassField(
+                                controller: emailController,
+                                hintText: 'البريد الإلكتروني',
+                                prefixIcon: Icons.email_outlined,
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty)
+                                    return 'يرجى إدخال البريد الإلكتروني';
+                                  if (!value.contains('@'))
+                                    return 'البريد الإلكتروني غير صالح';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              GlassField(
+                                controller: passwordController,
+                                hintText: 'كلمة المرور',
+                                prefixIcon: Icons.lock_outline,
+                                obscureText: true,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty)
+                                    return 'يرجى إدخال كلمة المرور';
+                                  if (value.length < 6)
+                                    return 'كلمة المرور قصيرة جدًا';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              GlassField(
+                                controller: confirmPasswordController,
+                                hintText: 'تأكيد كلمة المرور',
+                                prefixIcon: Icons.lock_outline,
+                                obscureText: true,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty)
+                                    return 'يرجى تأكيد كلمة المرور';
+                                  if (value != passwordController.text)
+                                    return 'كلمة المرور غير متطابقة';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              _buildAccountTypeDropdown(),
+                              const SizedBox(height: 20),
+                              _buildCompanyFields(),
+                              const SizedBox(height: 30),
+                              GradientElevatedButton(
+                                text: 'إنشاء حساب',
+                                isLoading: _isLoading,
+                                onPressed: _onRegisterPressed,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Positioned(
-                top: 10,
-                left: 10,
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new,
-                    color: Colors.black87,
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.black87,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
-                  onPressed: () => Navigator.of(context).pop(),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

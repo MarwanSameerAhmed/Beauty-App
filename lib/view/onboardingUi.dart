@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_pro/view/loginUi.dart';
-import 'package:test_pro/view/signupUi.dart';
+import 'package:test_pro/view/auth_Ui/loginUi.dart';
+import 'package:test_pro/view/auth_Ui/signupUi.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:simple_animations/simple_animations.dart';
 

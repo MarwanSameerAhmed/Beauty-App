@@ -5,7 +5,7 @@ import 'package:test_pro/view/categorysUi.dart';
 import 'package:test_pro/view/homeScreenUi.dart';
 import 'package:test_pro/view/cart_page.dart';
 import 'package:test_pro/view/my_orders_page.dart';
-import 'package:test_pro/view/profileUi.dart';
+import 'package:test_pro/view/profile_Ui/profileUi.dart';
 import 'package:provider/provider.dart';
 import 'package:test_pro/controller/cart_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,14 +43,16 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null && !user.isAnonymous) {
       _userId = user.uid;
-      FirebaseFirestore.instance.collection('users').doc(_userId).get().then((doc) {
+      FirebaseFirestore.instance.collection('users').doc(_userId).get().then((
+        doc,
+      ) {
         if (mounted && doc.exists) {
           setState(() {
             _userRole = doc.data()?['role'] ?? 'user';
           });
         }
       });
-    } 
+    }
   }
 
   @override
@@ -62,7 +64,7 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final List<Widget> _pages = [
-      const Homescreenui(),
+      Homescreenui(tabController: tabController),
       const Categorys(),
       const CartPage(),
       const MyOrdersPage(),
@@ -104,7 +106,7 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
                                   ? Icons.home
                                   : Icons.home_outlined,
                               color: currentPage == 0
-                                  ? Colors.brown
+                                  ? Color(0xFF52002C)
                                   : Colors.grey,
                             ),
                             TabsIcon(
@@ -112,7 +114,7 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
                                   ? Icons.category
                                   : Icons.category_outlined,
                               color: currentPage == 1
-                                  ? Colors.brown
+                                  ? Color(0xFF52002C)
                                   : Colors.grey,
                             ),
                             Stack(
@@ -123,7 +125,7 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
                                       ? Icons.shopping_cart
                                       : Icons.shopping_cart_outlined,
                                   color: currentPage == 2
-                                      ? Colors.brown
+                                      ? Color(0xFF52002C)
                                       : Colors.grey,
                                 ),
                                 if (cart.items.isNotEmpty)
@@ -152,9 +154,10 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
                               stream: _userId == null
                                   ? Stream.value(0)
                                   : _orderStatusService
-                                      .getOrderStatusNotificationStream(
+                                        .getOrderStatusNotificationStream(
                                           userId: _userId!,
-                                          userRole: _userRole),
+                                          userRole: _userRole,
+                                        ),
                               builder: (context, snapshot) {
                                 final count = snapshot.data ?? 0;
                                 return Stack(
@@ -165,7 +168,7 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
                                           ? Icons.receipt_long
                                           : Icons.receipt_long_outlined,
                                       color: currentPage == 3
-                                          ? Colors.brown
+                                          ? Color(0xFF52002C)
                                           : Colors.grey,
                                     ),
                                     if (count > 0)
@@ -197,7 +200,7 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
                                   ? Icons.person
                                   : Icons.person_outlined,
                               color: currentPage == 4
-                                  ? Colors.brown
+                                  ? Color(0xFF52002C)
                                   : Colors.grey,
                             ),
                           ],

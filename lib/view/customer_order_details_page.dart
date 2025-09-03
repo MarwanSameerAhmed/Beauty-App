@@ -85,7 +85,10 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                     final isRejected = item['userAction'] == 'rejected';
 
                     return Container(
-                      key: ValueKey(item.hashCode + DateTime.now().millisecondsSinceEpoch.toInt()), // Stronger unique key
+                      key: ValueKey(
+                        item.hashCode +
+                            DateTime.now().millisecondsSinceEpoch.toInt(),
+                      ), // Stronger unique key
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20.0),
@@ -94,99 +97,109 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                           child: Opacity(
                             opacity: isRejected ? 0.5 : 1.0,
                             child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isRejected ? Colors.grey.withOpacity(0.4) : const Color(0xFFF9D5D3).withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(20.0),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1.5,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isRejected
+                                    ? Colors.grey.withOpacity(0.4)
+                                    : const Color(0xFFF9D5D3).withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(20.0),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  child: Image.network(
-                                    item['imageUrl'],
-                                    width: 70,
-                                    height: 70,
-                                    fit: BoxFit.cover,
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    child: Image.network(
+                                      item['imageUrl'],
+                                      width: 70,
+                                      height: 70,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 15),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['name'],
-                                        style: const TextStyle(
-                                          fontFamily: 'Tajawal',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.black,
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item['name'],
+                                          style: const TextStyle(
+                                            fontFamily: 'Tajawal',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'الكمية: ${item['quantity']}',
-                                        style: const TextStyle(
-                                          fontFamily: 'Tajawal',
-                                          fontSize: 14,
-                                          color: Colors.black87,
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'الكمية: ${item['quantity']}',
+                                          style: const TextStyle(
+                                            fontFamily: 'Tajawal',
+                                            fontSize: 14,
+                                            color: Colors.black87,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                _status == 'priced' ||
-                                        _status == 'awaiting_customer_approval' ||
-                                        _status == 'final_approved'
-                                    ? Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            '${price.toStringAsFixed(2)} ر.س',
+                                  const SizedBox(width: 10),
+                                  _status == 'priced' ||
+                                          _status ==
+                                              'awaiting_customer_approval' ||
+                                          _status == 'final_approved'
+                                      ? Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              '${price.toStringAsFixed(2)} ر.س',
+                                              style: const TextStyle(
+                                                fontFamily: 'Tajawal',
+                                                fontSize: 16,
+                                                color: Color(0xFF006400),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            if (_status !=
+                                                'final_approved') ...[
+                                              const SizedBox(height: 8),
+                                              _buildActionButtons(index),
+                                            ],
+                                          ],
+                                        )
+                                      : Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.shade700
+                                                .withOpacity(0.8),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            _status == 'awaiting_admin_approval'
+                                                ? 'بانتظار الموافقة'
+                                                : 'بانتظار السعر',
                                             style: const TextStyle(
                                               fontFamily: 'Tajawal',
-                                              fontSize: 16,
-                                              color: Color(0xFF006400),
+                                              color: Colors.white,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          if (_status != 'final_approved') ...[
-                                            const SizedBox(height: 8),
-                                            _buildActionButtons(index),
-                                          ],
-                                        ],
-                                      )
-                                    : Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
                                         ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange.shade700.withOpacity(0.8),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: Text(
-                                          _status == 'awaiting_admin_approval'
-                                              ? 'بانتظار الموافقة'
-                                              : 'بانتظار السعر',
-                                          style: const TextStyle(
-                                            fontFamily: 'Tajawal',
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ), 
+                          ),
                         ),
-                      ),), 
+                      ),
                     );
                   },
                 ),
@@ -354,9 +367,11 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
               },
               icon: const Icon(Icons.undo, size: 16),
               label: const Text('تراجع'),
-              style: TextButton.styleFrom(foregroundColor: Colors.blue.shade800),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue.shade800,
+              ),
             ),
-          )
+          ),
         ],
       );
     }
@@ -440,8 +455,9 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
         message: 'هل أنت متأكد من رغبتك في رفض هذا المنتج من الطلب؟',
         confirmText: 'نعم, ارفض',
         onConfirm: () {
-          final nonRejectedItems =
-              _items.where((item) => item['userAction'] != 'rejected').toList();
+          final nonRejectedItems = _items
+              .where((item) => item['userAction'] != 'rejected')
+              .toList();
           if (nonRejectedItems.length == 1) {
             _cancelOrder();
             return;
@@ -488,7 +504,9 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
           (item) => item['userAction'] == 'proposed',
         );
         // All non-rejected items must have an action (accepted or proposed).
-        final activeItems = _items.where((i) => i['userAction'] != 'rejected').toList();
+        final activeItems = _items
+            .where((i) => i['userAction'] != 'rejected')
+            .toList();
         _allActionsTaken =
             activeItems.isNotEmpty &&
             activeItems.every((item) => item['userAction'] != 'pending');
@@ -506,16 +524,16 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
       await widget.order.reference.update({'status': 'cancelled'});
       if (!mounted) return;
       Navigator.of(context).pop(); // Dismiss loader
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إلغاء الطلب.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تم إلغاء الطلب.')));
       Navigator.of(context).pop(); // Go back from details page
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context).pop(); // Dismiss loader
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('حدث خطأ أثناء إلغاء الطلب: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('حدث خطأ أثناء إلغاء الطلب: $e')));
     }
   }
 
@@ -543,8 +561,8 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
 
       // If all items were rejected, cancel the order.
       if (itemsToUpdate.every((item) => item['userAction'] == 'rejected')) {
-          _cancelOrder();
-          return;
+        _cancelOrder();
+        return;
       }
 
       await widget.order.reference.update({
@@ -599,8 +617,8 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
 
       // If all items were rejected, cancel the order.
       if (itemsToUpdate.every((item) => item['userAction'] == 'rejected')) {
-          _cancelOrder();
-          return;
+        _cancelOrder();
+        return;
       }
 
       await widget.order.reference.update({
@@ -685,5 +703,3 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
     }
   }
 }
-
-

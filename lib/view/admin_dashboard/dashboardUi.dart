@@ -1,15 +1,52 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:simple_animations/simple_animations.dart';
+import 'package:test_pro/controller/Auth_Service.dart';
+import 'package:test_pro/model/userAccount.dart';
+import 'package:test_pro/view/auth_Ui/loginUi.dart';
 import 'package:test_pro/view/admin_view/manage_ads_screen.dart';
 import 'package:test_pro/view/admin_view/manage_categories_screen.dart';
 import 'package:test_pro/view/admin_view/manage_companies_screen.dart';
 import 'package:test_pro/view/admin_view/manage_products_screen.dart';
 import 'package:test_pro/view/admin_view/manage_carousel_ads_screen.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
+import 'package:test_pro/widgets/elegant_dialog.dart';
 
-class DashboardUi extends StatelessWidget {
+class DashboardUi extends StatefulWidget {
   const DashboardUi({super.key});
+
+  @override
+  State<DashboardUi> createState() => _DashboardUiState();
+}
+
+class _DashboardUiState extends State<DashboardUi> {
+  UserAccount? _adminAccount;
+  final AuthService _authService = AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAdminData();
+  }
+
+  Future<void> _fetchAdminData() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      DocumentSnapshot adminDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+      if (mounted) {
+        setState(() {
+          _adminAccount = UserAccount.fromJson(
+            adminDoc.data() as Map<String, dynamic>,
+          );
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +61,9 @@ class DashboardUi extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
-                  _buildHeader(),
                   const SizedBox(height: 30),
+                  _buildHeader(),
+                  const SizedBox(height: 20),
                   Expanded(
                     child: ListView(
                       physics: const BouncingScrollPhysics(),
@@ -104,35 +141,41 @@ class DashboardUi extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'أهلاً بعودتك،',
-                style: TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontSize: 22,
-                  color: Colors.black54,
+          Padding(
+            padding: const EdgeInsets.only(right: 10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'أهلاً بعودتك',
+                  style: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 20,
+                    color: Colors.black54,
+                  ),
                 ),
-              ),
-              Text(
-                'لوحة التحكم',
-                style: TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                Text(
+                  _adminAccount?.name ?? 'مسؤول',
+                  style: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: const Color(0xFFF9D5D3).withOpacity(0.6),
-            child: const Icon(
-              Ionicons.person_outline,
-              size: 30,
-              color: Colors.black87,
+          GestureDetector(
+            onTap: () => _showLogoutDialog(context),
+            child: CircleAvatar(
+              radius: 28,
+              backgroundColor: const Color(0xFFF9D5D3).withOpacity(0.6),
+              child: const Icon(
+                Ionicons.log_out_outline,
+                size: 30,
+                color: Colors.black87,
+              ),
             ),
           ),
         ],
@@ -186,87 +229,72 @@ class DashboardUi extends StatelessWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: const Color(0xFFF9D5D3).withOpacity(0.5),
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white.withOpacity(0.2)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 2,
-              spreadRadius: 2,
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 5,
+              spreadRadius: 1,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Icon(icon, size: 30, color: Colors.black87),
-              ),
-              title: Text(
-                title,
-                style: const TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Colors.black87,
-                ),
-              ),
-              subtitle: Text(
-                subtitle,
-                style: const TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
-              ),
+        child: ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 15),
-            const Divider(color: Colors.white30, height: 1),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildCardButton(
-                  Icons.add_circle_outline,
-                  'إدارة',
-                  () => _navigateTo(context, cardType),
-                ),
-              ],
+            child: Icon(icon, size: 26, color: Colors.black87),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontFamily: 'Tajawal',
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.black87,
             ),
-          ],
+          ),
+          subtitle: Text(
+            subtitle,
+            style: const TextStyle(
+              fontFamily: 'Tajawal',
+              fontSize: 12,
+              color: Colors.black54,
+            ),
+          ),
+          trailing: const Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: Colors.black54,
+          ),
+          onTap: () => _navigateTo(context, cardType),
         ),
       ),
     );
   }
 
-  Widget _buildCardButton(IconData icon, String label, VoidCallback onPressed) {
-    return TextButton.icon(
-      style: TextButton.styleFrom(
-        foregroundColor: Colors.black87,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      onPressed: onPressed,
-      icon: Padding(
-        padding: const EdgeInsets.only(bottom: 5.0),
-        child: Icon(icon, size: 20),
-      ),
-      label: Text(
-        label,
-        style: const TextStyle(
-          fontFamily: 'Tajawal',
-          fontWeight: FontWeight.w600,
-          fontSize: 18,
-        ),
+  void _showLogoutDialog(BuildContext context) {
+    showElegantDialog(
+      context: context,
+      child: ConfirmActionDialog(
+        message: 'هل أنت متأكد أنك تريد تسجيل الخروج؟',
+        onConfirm: () async {
+          await _authService.logout();
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => LoginUi()),
+              (Route<dynamic> route) => false,
+            );
+          }
+        },
       ),
     );
   }

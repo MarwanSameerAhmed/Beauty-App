@@ -155,8 +155,9 @@ class ConfirmActionDialog extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
+
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 18.0),
+                  padding: const EdgeInsets.only(left: 30.0),
                   child: Text(
                     cancelText,
                     style: const TextStyle(

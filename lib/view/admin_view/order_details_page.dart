@@ -492,7 +492,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           fontWeight: FontWeight.bold,
         ),
         decoration: InputDecoration(
-          labelText: 'السعر',
+          labelText: 'السعر للوحدة',
           labelStyle: const TextStyle(
             fontFamily: 'Tajawal',
             color: Colors.black54,

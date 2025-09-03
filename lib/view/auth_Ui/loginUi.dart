@@ -6,13 +6,13 @@ import 'package:test_pro/controller/Auth_Service.dart';
 import 'package:test_pro/view/bottomNavUi.dart';
 import 'package:test_pro/view/admin_dashboard/admin_bottom_nav_ui.dart';
 import 'package:test_pro/widgets/ElegantToast.dart';
-import 'package:test_pro/view/signupUi.dart';
+import 'package:test_pro/view/auth_Ui/signupUi.dart';
 import 'package:test_pro/widgets/FormFields.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/buttonsWidgets.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:test_pro/widgets/loader.dart';
-import 'package:test_pro/view/complete_profile_ui.dart';
+import 'package:test_pro/view/auth_Ui/complete_profile_ui.dart';
 
 class LoginUi extends StatefulWidget {
   const LoginUi({super.key});
@@ -33,68 +33,76 @@ class _LoginUiState extends State<LoginUi> {
   @override
   Widget build(BuildContext context) {
     return FlowerBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isSmallScreen = constraints.maxWidth < 600;
-              final horizontalPadding = isSmallScreen ? 24.0 : 60.0;
-              final verticalPadding = isSmallScreen ? 40.0 : 60.0;
-              final containerMaxWidth = isSmallScreen ? double.infinity : 500.0;
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque, 
+        onTap: () {
+          FocusScope.of(context).unfocus(); 
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isSmallScreen = constraints.maxWidth < 600;
+                final horizontalPadding = isSmallScreen ? 24.0 : 60.0;
+                final verticalPadding = isSmallScreen ? 40.0 : 60.0;
+                final containerMaxWidth = isSmallScreen
+                    ? double.infinity
+                    : 500.0;
 
-              return Center(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: horizontalPadding,
-                    vertical: verticalPadding,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: containerMaxWidth),
-                    child: _buildAnimatedContainer(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildAnimatedHeader(),
-                          const SizedBox(height: 40.0),
-                          _buildAnimatedFormField(
-                            delay: const Duration(milliseconds: 400),
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 400),
-                              transitionBuilder: (child, animation) =>
-                                  FadeTransition(
-                                    opacity: animation,
-                                    child: SizeTransition(
-                                      sizeFactor: animation,
-                                      child: child,
+                return Center(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: verticalPadding,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: containerMaxWidth),
+                      child: _buildAnimatedContainer(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildAnimatedHeader(),
+                            const SizedBox(height: 40.0),
+                            _buildAnimatedFormField(
+                              delay: const Duration(milliseconds: 400),
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 400),
+                                transitionBuilder: (child, animation) =>
+                                    FadeTransition(
+                                      opacity: animation,
+                                      child: SizeTransition(
+                                        sizeFactor: animation,
+                                        child: child,
+                                      ),
                                     ),
-                                  ),
-                              child: _isPhoneAuth
-                                  ? _buildPhoneForm(
-                                      key: const ValueKey('phone'),
-                                    )
-                                  : _buildEmailPasswordFields(
-                                      key: const ValueKey('email'),
-                                    ),
+                                child: _isPhoneAuth
+                                    ? _buildPhoneForm(
+                                        key: const ValueKey('phone'),
+                                      )
+                                    : _buildEmailPasswordFields(
+                                        key: const ValueKey('email'),
+                                      ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 15.0),
-                          _buildAnimatedLoginButton(),
-                          const SizedBox(height: 20.0),
-                          _buildAnimatedSocialLogin(),
-                          const SizedBox(height: 10.0),
-                          _buildAnimatedSkipButton(),
-                          const SizedBox(height: 10.0),
-                          _buildAnimatedPhoneToggle(),
-                          _buildAnimatedSignUp(),
-                        ],
+                            const SizedBox(height: 15.0),
+                            _buildAnimatedLoginButton(),
+                            const SizedBox(height: 20.0),
+                            _buildAnimatedSocialLogin(),
+                            const SizedBox(height: 10.0),
+                            _buildAnimatedSkipButton(),
+                            const SizedBox(height: 10.0),
+                            _buildAnimatedPhoneToggle(),
+                            _buildAnimatedSignUp(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

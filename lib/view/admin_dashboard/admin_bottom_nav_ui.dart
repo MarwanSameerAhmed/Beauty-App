@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:test_pro/view/admin_dashboard/dashboardUi.dart';
 import 'package:test_pro/view/admin_view/customer_orders_page.dart';
-import 'package:test_pro/view/profileUi.dart';
+import 'package:test_pro/view/profile_Ui/profileUi.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:test_pro/controller/order_status_service.dart';
 
@@ -104,9 +104,10 @@ class _AdminBottomNavState extends State<AdminBottomNav>
                           stream: _userId == null
                               ? Stream.value(0)
                               : _orderStatusService
-                                  .getOrderStatusNotificationStream(
+                                    .getOrderStatusNotificationStream(
                                       userId: _userId!,
-                                      userRole: 'admin'),
+                                      userRole: 'admin',
+                                    ),
                           builder: (context, snapshot) {
                             final count = snapshot.data ?? 0;
                             return Stack(
