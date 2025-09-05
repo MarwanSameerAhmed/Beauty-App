@@ -55,58 +55,66 @@ class _HomescreenuiState extends State<Homescreenui> {
   @override
   Widget build(BuildContext context) {
     return FlowerBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: CustomScrollView(
-          slivers: [
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _SliverAppBarDelegate(
-                minHeight: 110.0,
-                maxHeight: 110.0,
-                child: Consumer<CartService>(
-                  builder: (context, cart, child) {
-                    return ProfileHeaderWidget(
-                      imagePath: _imagePath,
-                      userName: _userName,
-                      email: _email,
-                      cartItemCount: cart.itemCount,
-                      onCartPressed: () {
-                        widget.tabController.animateTo(2); // Index 2 is CartPage
-                      },
-                      onFavoritePressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const FavoritesPage(),
-                          ),
-                        );
-                      },
-                    );
-                  },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: CustomScrollView(
+            slivers: [
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  minHeight: 110.0,
+                  maxHeight: 110.0,
+                  child: Consumer<CartService>(
+                    builder: (context, cart, child) {
+                      return ProfileHeaderWidget(
+                        imagePath: _imagePath,
+                        userName: _userName,
+                        email: _email,
+                        cartItemCount: cart.itemCount,
+                        onCartPressed: () {
+                          widget.tabController.animateTo(
+                            2,
+                          ); // Index 2 is CartPage
+                        },
+                        onFavoritePressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const FavoritesPage(),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
 
-            // Search Bar and Search Icon
-            SliverToBoxAdapter(child: Searchbar()),
+              // Search Bar and Search Icon
+              SliverToBoxAdapter(child: Searchbar()),
 
-            Sectiontitle(Title: 'جديدنا'),
+              Sectiontitle(Title: 'جديدنا'),
 
-            // Carousel Section
-            SliverToBoxAdapter(child: ProductCarousel()),
+              // Carousel Section
+              SliverToBoxAdapter(child: ProductCarousel()),
 
-            // Ads Section
-            SliverToBoxAdapter(child: _buildAdsSection()),
+              // Ads Section
+              SliverToBoxAdapter(child: _buildAdsSection()),
 
-            Sectiontitle(Title: 'الأكثر مبيعاً'),
+              Sectiontitle(Title: 'الأكثر مبيعاً'),
 
-            // Products Section
-            _buildProductsSection(),
+              // Products Section
+              _buildProductsSection(),
 
-            // Add padding for the translucent bottom navigation bar
-            const SliverToBoxAdapter(child: SizedBox(height: 85.0)),
-          ],
+              // Add padding for the translucent bottom navigation bar
+              const SliverToBoxAdapter(child: SizedBox(height: 85.0)),
+            ],
+          ),
         ),
       ),
     );

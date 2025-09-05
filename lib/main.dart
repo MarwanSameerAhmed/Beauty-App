@@ -8,11 +8,9 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_pro/controller/cart_service.dart';
 import 'package:test_pro/firebase_options.dart';
-import 'package:test_pro/view/admin_dashboard/admin_bottom_nav_ui.dart';
-import 'package:test_pro/view/bottomNavUi.dart';
-import 'package:test_pro/view/auth_Ui/loginUi.dart';
-import 'package:test_pro/view/onboardingUi.dart';
+import 'package:test_pro/view/app_wrapper.dart';
 import 'package:test_pro/controller/local_notification_service.dart'; // For foreground notifications
+import 'package:test_pro/controller/remote_config_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:test_pro/controller/connectivity_service.dart';
@@ -62,6 +60,10 @@ Future<void> main() async {
 
   await initializeDateFormatting('ar', null);
 
+  // Initialize Remote Config
+  final remoteConfigService = RemoteConfigService();
+  await remoteConfigService.initialize();
+
   final connectivityService = ConnectivityService();
   final initialConnectivity = await connectivityService.checkConnectivity();
 
@@ -74,7 +76,11 @@ Future<void> main() async {
           initialData: initialConnectivity,
         ),
       ],
-      child: MyApp(onboardingComplete: onboardingComplete, prefs: prefs),
+      child: MyApp(
+        onboardingComplete: onboardingComplete, 
+        prefs: prefs,
+        remoteConfigService: remoteConfigService,
+      ),
     ),
   );
 }
@@ -84,10 +90,12 @@ class MyApp extends StatelessWidget {
     super.key,
     required this.onboardingComplete,
     required this.prefs,
+    required this.remoteConfigService,
   });
 
   final bool onboardingComplete;
   final SharedPreferences prefs;
+  final RemoteConfigService remoteConfigService;
 
   @override
   Widget build(BuildContext context) {
@@ -96,26 +104,15 @@ class MyApp extends StatelessWidget {
       title: 'تطبيق ميك أب',
       theme: ThemeData(fontFamily: 'Tajawal'),
       home: ConnectivityWrapper(
-        child: onboardingComplete
-            ? _getInitialScreen()
-            : const OnboardingScreen(),
+        child: AppWrapper(
+          onboardingComplete: onboardingComplete,
+          prefs: prefs,
+          remoteConfigService: remoteConfigService,
+        ),
       ),
     );
   }
 
-  Widget _getInitialScreen() {
-    final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    if (isLoggedIn) {
-      final String userRole = prefs.getString('role') ?? 'user';
-      if (userRole == 'admin') {
-        return const AdminBottomNav();
-      } else {
-        return const Run();
-      }
-    } else {
-      return const LoginUi();
-    }
-  }
 }
 
 class ConnectivityWrapper extends StatelessWidget {

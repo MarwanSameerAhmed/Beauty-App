@@ -155,4 +155,89 @@ class ProductService {
       rethrow;
     }
   }
+
+  // البحث في المنتجات
+  Stream<List<Product>> searchProducts(String query) {
+    if (query.isEmpty) {
+      return Stream.value([]);
+    }
+    
+    // تحويل النص إلى أحرف صغيرة للبحث
+    String searchQuery = query.toLowerCase().trim();
+    
+    return _productsCollection.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .where((product) {
+            // البحث في اسم المنتج والوصف
+            return product.name.toLowerCase().contains(searchQuery) ||
+                   product.description.toLowerCase().contains(searchQuery);
+          })
+          .toList();
+    });
+  }
+
+  // البحث المتقدم في المنتجات مع فلترة حسب الفئة
+  Stream<List<Product>> searchProductsWithCategory(String query, String? categoryId) {
+    if (query.isEmpty) {
+      return Stream.value([]);
+    }
+    
+    String searchQuery = query.toLowerCase().trim();
+    
+    Query queryRef = _productsCollection;
+    if (categoryId != null && categoryId.isNotEmpty) {
+      queryRef = queryRef.where('categoryId', isEqualTo: categoryId);
+    }
+    
+    return queryRef.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .where((product) {
+            return product.name.toLowerCase().contains(searchQuery) ||
+                   product.description.toLowerCase().contains(searchQuery);
+          })
+          .toList();
+    });
+  }
+
+  // الحصول على اقتراحات البحث
+  Future<List<String>> getSearchSuggestions(String query) async {
+    if (query.isEmpty || query.length < 2) {
+      return [];
+    }
+    
+    String searchQuery = query.toLowerCase().trim();
+    
+    try {
+      final snapshot = await _productsCollection.get();
+      final suggestions = <String>{};
+      
+      for (var doc in snapshot.docs) {
+        final product = Product.fromMap(doc.data() as Map<String, dynamic>);
+        
+        // إضافة أسماء المنتجات التي تحتوي على النص المدخل
+        if (product.name.toLowerCase().contains(searchQuery)) {
+          suggestions.add(product.name);
+        }
+        
+        // إضافة كلمات من الوصف
+        final descriptionWords = product.description.toLowerCase().split(' ');
+        for (String word in descriptionWords) {
+          if (word.contains(searchQuery) && word.length > 2) {
+            suggestions.add(word);
+          }
+        }
+      }
+      
+      // ترتيب الاقتراحات وإرجاع أفضل 5
+      final sortedSuggestions = suggestions.toList()
+        ..sort((a, b) => a.length.compareTo(b.length));
+      
+      return sortedSuggestions.take(5).toList();
+    } catch (e) {
+      print('Error getting search suggestions: $e');
+      return [];
+    }
+  }
 }
