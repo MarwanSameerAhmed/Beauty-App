@@ -7,12 +7,7 @@ class SectionTitleNonSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 16,
-        right: 24,
-        top: 10,
-        bottom: 10,
-      ),
+      padding: const EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
       child: Align(
         alignment: Alignment.centerRight,
         child: Text(
@@ -22,6 +17,13 @@ class SectionTitleNonSliver extends StatelessWidget {
             fontSize: 22,
             color: Colors.black,
             fontWeight: FontWeight.w900,
+            shadows: [
+              Shadow(
+                color: Colors.black26,
+                blurRadius: 30,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
         ),
       ),

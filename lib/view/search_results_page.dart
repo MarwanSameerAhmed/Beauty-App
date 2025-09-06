@@ -58,7 +58,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           body: Column(
             children: [
               // Custom Header
-              CustomAdminHeader(
+              const CustomAdminHeader(
                 title: 'البحث',
                 subtitle: 'ابحث عن منتجاتك المفضلة',
               ),
@@ -158,19 +158,19 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                     }
 
                     if (snapshot.hasError) {
-                      return Center(
+                      return const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.error_outline,
                               size: 64,
                               color: Colors.red,
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             Text(
                               'حدث خطأ أثناء البحث',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.black87,
                                 fontFamily: 'Tajawal',
@@ -182,29 +182,29 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                     }
 
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(
+                      return const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.search_off,
                               size: 64,
                               color: Colors.grey,
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             Text(
                               'لم يتم العثور على منتجات',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
                                 fontFamily: 'Tajawal',
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               'جرب البحث بكلمات مختلفة',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey,
                                 fontFamily: 'Tajawal',
@@ -252,24 +252,29 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
-                                  childAspectRatio: 0.75,
-                                  crossAxisSpacing: 15,
-                                  mainAxisSpacing: 15,
+                                  childAspectRatio: 0.8,
+                                  crossAxisSpacing: 9,
+                                  mainAxisSpacing: 9,
                                 ),
                             itemCount: products.length,
                             itemBuilder: (context, index) {
                               final product = products[index];
-                              return ProductCard(
-                                product: product,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ProductDetailsPage(product: product),
-                                    ),
-                                  );
-                                },
+                              return Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: ProductCard(
+                                  product: product,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            ProductDetailsPage(
+                                              product: product,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                ),
                               );
                             },
                           ),

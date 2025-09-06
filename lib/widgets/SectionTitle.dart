@@ -23,6 +23,13 @@ class Sectiontitle extends StatelessWidget {
               fontSize: 22,
               color: Colors.black,
               fontWeight: FontWeight.w900,
+              shadows: [
+                Shadow(
+                  color: Colors.black26,
+                  blurRadius: 30,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
           ),
         ),

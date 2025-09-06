@@ -96,17 +96,19 @@ class _HomescreenuiState extends State<Homescreenui> {
               ),
 
               // Search Bar and Search Icon
-              SliverToBoxAdapter(child: Searchbar()),
+              const SliverToBoxAdapter(child: Searchbar()),
 
-              Sectiontitle(Title: 'جديدنا'),
+              const Sectiontitle(Title: 'جديدنا'),
 
               // Carousel Section
-              SliverToBoxAdapter(child: ProductCarousel()),
+              const SliverToBoxAdapter(child: ProductCarousel()),
 
               // Ads Section
               SliverToBoxAdapter(child: _buildAdsSection()),
 
-              Sectiontitle(Title: 'الأكثر مبيعاً'),
+              const SliverToBoxAdapter(child: SizedBox(height: 10)),
+
+              const Sectiontitle(Title: 'الأكثر مبيعاً'),
 
               // Products Section
               _buildProductsSection(),
@@ -170,7 +172,7 @@ class _HomescreenuiState extends State<Homescreenui> {
                     ad.imageUrl,
                     fit: BoxFit.cover,
                     width: double.infinity,
-                    height: 150,
+                    height: 180,
                   ),
                 ),
               ),
