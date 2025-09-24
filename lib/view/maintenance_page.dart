@@ -325,9 +325,9 @@ class _MaintenancePageState extends State<MaintenancePage>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 5.0),
-                    child: const Icon(
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 5.0),
+                    child: Icon(
                       Icons.access_time,
                       color: Colors.black54,
                       size: 20,
@@ -417,67 +417,67 @@ class _MaintenancePageState extends State<MaintenancePage>
     );
   }
 
-  Widget _buildRefreshButton() {
-    return ScaleTransition(
-      scale: _pulseAnimation,
-      child: GestureDetector(
-        onTap: () async {
-          await _remoteConfigService.fetchConfig();
-          if (_remoteConfigService.isAppEnabled) {
-            // App is enabled again, navigate back
-            if (mounted) {
-              Navigator.of(context).pushReplacementNamed('/');
-            }
-          }
-        },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(25),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 15,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RotationTransition(
-                    turns: _rotateAnimation,
-                    child: const Icon(
-                      Icons.refresh,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'إعادة المحاولة',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontFamily: 'Tajawal',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildRefreshButton() {
+  //   return ScaleTransition(
+  //     scale: _pulseAnimation,
+  //     child: GestureDetector(
+  //       onTap: () async {
+  //         await _remoteConfigService.fetchConfig();
+  //         if (_remoteConfigService.isAppEnabled) {
+  //           // App is enabled again, navigate back
+  //           if (mounted) {
+  //             Navigator.of(context).pushReplacementNamed('/');
+  //           }
+  //         }
+  //       },
+  //       child: ClipRRect(
+  //         borderRadius: BorderRadius.circular(25),
+  //         child: BackdropFilter(
+  //           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+  //           child: Container(
+  //             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+  //             decoration: BoxDecoration(
+  //               color: Colors.white.withOpacity(0.2),
+  //               borderRadius: BorderRadius.circular(25),
+  //               border: Border.all(
+  //                 color: Colors.white.withOpacity(0.3),
+  //                 width: 2,
+  //               ),
+  //               boxShadow: [
+  //                 BoxShadow(
+  //                   color: Colors.black.withOpacity(0.1),
+  //                   blurRadius: 15,
+  //                   spreadRadius: 2,
+  //                 ),
+  //               ],
+  //             ),
+  //             child: Row(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 RotationTransition(
+  //                   turns: _rotateAnimation,
+  //                   child: const Icon(
+  //                     Icons.refresh,
+  //                     color: Colors.white,
+  //                     size: 24,
+  //                   ),
+  //                 ),
+  //                 const SizedBox(width: 12),
+  //                 const Text(
+  //                   'إعادة المحاولة',
+  //                   style: TextStyle(
+  //                     fontSize: 16,
+  //                     fontWeight: FontWeight.bold,
+  //                     color: Colors.white,
+  //                     fontFamily: 'Tajawal',
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }

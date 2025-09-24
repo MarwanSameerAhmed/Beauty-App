@@ -146,7 +146,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   Widget _buildAnimatedBackground() {
     return Stack(
       children: [
-        // Floating circles with different sizes and animations
+        // Magical floating orbs with glow effects
         Positioned(
           top: 80,
           left: 30,
@@ -158,15 +158,38 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 child: ScaleTransition(
                   scale: _pulseAnimation,
                   child: Container(
-                    width: 100,
-                    height: 100,
+                    width: 120,
+                    height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
+                      gradient: RadialGradient(
                         colors: [
+                          const Color(0xFF52002C).withOpacity(0.4),
                           const Color(0xFFF9D5D3).withOpacity(0.3),
-                          const Color(0xFFFFE4E1).withOpacity(0.2),
+                          Colors.transparent,
                         ],
+                        stops: const [0.0, 0.7, 1.0],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF52002C).withOpacity(0.3),
+                          blurRadius: (40.0).clamp(0.0, 100.0).abs(),
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: Container(
+                      margin: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            const Color(0xFFF9D5D3).withOpacity(0.8),
+                            const Color(0xFFFFE4E1).withOpacity(0.6),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -176,9 +199,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         ),
 
+        // Sparkling diamond shape with rotation
         Positioned(
-          top: 200,
-          right: 50,
+          top: 180,
+          right: 40,
           child: AnimatedBuilder(
             animation: _floatingAnimation,
             builder: (context, child) {
@@ -187,15 +211,42 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 child: RotationTransition(
                   turns: _rotateAnimation,
                   child: Container(
-                    width: 60,
-                    height: 60,
+                    width: 80,
+                    height: 80,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(20),
                       gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: [
+                          const Color(0xFF52002C).withOpacity(0.6),
                           const Color(0xFFD47FA6).withOpacity(0.4),
                           const Color(0xFFC15C5C).withOpacity(0.3),
                         ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFD47FA6).withOpacity(0.5),
+                          blurRadius: (25.0).clamp(0.0, 100.0).abs(),
+                          spreadRadius: 5,
+                        ),
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.3),
+                          blurRadius: (10.0).clamp(0.0, 100.0).abs(),
+                          offset: const Offset(-5, -5),
+                        ),
+                      ],
+                    ),
+                    child: Container(
+                      margin: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.4),
+                            Colors.white.withOpacity(0.1),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -205,6 +256,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         ),
 
+        // Glowing crystal with inner light
         Positioned(
           bottom: 200,
           left: 80,
@@ -216,17 +268,95 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 child: ScaleTransition(
                   scale: _pulseAnimation,
                   child: Container(
-                    width: 80,
-                    height: 80,
+                    width: 100,
+                    height: 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
+                      gradient: RadialGradient(
                         colors: [
-                          Colors.white.withOpacity(0.2),
-                          Colors.white.withOpacity(0.1),
+                          Colors.white.withOpacity(0.6),
+                          const Color(0xFFF9D5D3).withOpacity(0.4),
+                          Colors.transparent,
                         ],
+                        stops: const [0.0, 0.6, 1.0],
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.4),
+                          blurRadius: (30.0).clamp(0.0, 100.0).abs(),
+                          spreadRadius: 8,
+                        ),
+                      ],
                     ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+
+        // Additional floating particles
+        Positioned(
+          top: 300,
+          left: 200,
+          child: AnimatedBuilder(
+            animation: _rotateAnimation,
+            builder: (context, child) {
+              return Transform.rotate(
+                angle: _rotateAnimation.value * 6.28,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF52002C).withOpacity(0.5),
+                        const Color(0xFFD47FA6).withOpacity(0.3),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF52002C).withOpacity(0.3),
+                        blurRadius: (15.0).clamp(0.0, 100.0).abs(),
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+
+        // Floating star particles
+        Positioned(
+          bottom: 350,
+          right: 100,
+          child: AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return ScaleTransition(
+                scale: _pulseAnimation,
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.8),
+                        const Color(0xFFF9D5D3).withOpacity(0.4),
+                        Colors.transparent,
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.6),
+                        blurRadius: (20.0).clamp(0.0, 100.0).abs(),
+                        spreadRadius: 3,
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -239,80 +369,179 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   Widget _buildGlassMorphismBottomNav() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF9D5D3).withOpacity(0.8),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.2), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 30,
-                spreadRadius: 5,
-              ),
-            ],
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Stack(
+        children: [
+          // Ethereal outer glow
+          Container(
+            height: 90,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF52002C).withOpacity(0.3),
+                  blurRadius: (80.0).clamp(0.0, 100.0).abs(),
+                  spreadRadius: 20,
+                ),
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.5),
+                  blurRadius: (40.0).clamp(0.0, 100.0).abs(),
+                  spreadRadius: 8,
+                ),
+              ],
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              OnboardingNavButton(
-                text: 'تخطي',
-                isPrimary: false,
-                onPressed: () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setBool('onboarding_complete', true);
-                  if (!mounted) return;
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignupUi()),
-                  );
-                },
-              ),
-
-              // Animated dots indicator
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
+          // Main navigation card
+          ClipRRect(
+            borderRadius: BorderRadius.circular(50),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              child: Container(
+                height: 90,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(50),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.35),
+                      const Color(0xFFF9D5D3).withOpacity(0.2),
+                      const Color(0xFF52002C).withOpacity(0.1),
+                      Colors.white.withOpacity(0.25),
+                    ],
+                    stops: const [0.0, 0.3, 0.7, 1.0],
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.5),
+                    width: 2,
+                  ),
                 ),
-                child: Row(
-                  children: List.generate(
-                    demoData.length,
-                    (index) => DotIndicator(isActive: index == _pageIndex),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.06,
+                    vertical: MediaQuery.of(context).size.height * 0.02,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(48),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withOpacity(0.15),
+                        Colors.transparent,
+                        Colors.white.withOpacity(0.08),
+                      ],
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      // Skip button
+                      Expanded(
+                        flex: 3,
+                        child: OnboardingNavButton(
+                          text: 'تخطي',
+                          isPrimary: false,
+                          onPressed: () async {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setBool('onboarding_complete', true);
+                            if (!mounted) return;
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SignupUi(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      // Dots indicator
+                      Expanded(
+                        flex: 2,
+                        child: Center(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  MediaQuery.of(context).size.width * 0.015,
+                              vertical:
+                                  MediaQuery.of(context).size.height * 0.008,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.3),
+                                  const Color(0xFFF9D5D3).withOpacity(0.2),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.4),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.white.withOpacity(0.3),
+                                  blurRadius: (10.0).clamp(0.0, 100.0).abs(),
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(
+                                  demoData.length,
+                                  (index) => DotIndicator(
+                                    isActive: index == _pageIndex,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      // Next/Start button
+                      Expanded(
+                        flex: 3,
+                        child: OnboardingNavButton(
+                          text: _pageIndex == demoData.length - 1
+                              ? 'لنبدأ'
+                              : 'التالي',
+                          onPressed: () async {
+                            if (_pageIndex == demoData.length - 1) {
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setBool('onboarding_complete', true);
+                              if (!mounted) return;
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginUi(),
+                                ),
+                              );
+                            } else {
+                              _pageController.nextPage(
+                                duration: const Duration(milliseconds: 600),
+                                curve: Curves.easeInOutCubic,
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-
-              OnboardingNavButton(
-                text: _pageIndex == demoData.length - 1 ? 'لنبدأ' : 'التالي',
-                onPressed: () async {
-                  if (_pageIndex == demoData.length - 1) {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('onboarding_complete', true);
-                    if (!mounted) return;
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginUi()),
-                    );
-                  } else {
-                    _pageController.nextPage(
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.easeInOutCubic,
-                    );
-                  }
-                },
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -374,7 +603,7 @@ class _OnboardingSlideState extends State<OnboardingSlide> {
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFFD47FA6).withOpacity(0.4),
-                        blurRadius: 30,
+                        blurRadius: (30.0).clamp(0.0, 100.0).abs(),
                         spreadRadius: 10,
                       ),
                     ],
@@ -392,37 +621,114 @@ class _OnboardingSlideState extends State<OnboardingSlide> {
 
         const SizedBox(height: 50),
 
-        // Enhanced glass morphism content container
+        // Magical floating content card with ethereal effects
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(35),
-            child: Container(
-              padding: const EdgeInsets.all(32.0),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    const Color(0xFFF9D5D3).withOpacity(0.8),
-                    const Color(0xFFFFE4E1).withOpacity(0.8),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Stack(
+            children: [
+              // Outer glow effect
+              Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(45),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF52002C).withOpacity(0.2),
+                      blurRadius: (60.0).clamp(0.0, 100.0).abs(),
+                      spreadRadius: 15,
+                    ),
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.4),
+                      blurRadius: (30.0).clamp(0.0, 100.0).abs(),
+                      spreadRadius: 5,
+                    ),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(35),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 7,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 30,
-                    offset: const Offset(0, 15),
-                  ),
-                ],
               ),
-              child: _buildAnimatedContent(),
-            ),
+              // Main card with layered effects
+              ClipRRect(
+                borderRadius: BorderRadius.circular(45),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                  child: Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(45),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withOpacity(0.4),
+                          const Color(0xFFF9D5D3).withOpacity(0.25),
+                          const Color(0xFF52002C).withOpacity(0.08),
+                          Colors.white.withOpacity(0.15),
+                        ],
+                        stops: const [0.0, 0.3, 0.7, 1.0],
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.6),
+                        width: 2.5,
+                      ),
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(40.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(42),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white.withOpacity(0.1),
+                            Colors.transparent,
+                            Colors.white.withOpacity(0.05),
+                          ],
+                        ),
+                      ),
+                      child: _buildAnimatedContent(),
+                    ),
+                  ),
+                ),
+              ),
+              // Floating light particles
+              Positioned(
+                top: 20,
+                right: 30,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.6),
+                        blurRadius: (15.0).clamp(0.0, 100.0).abs(),
+                        spreadRadius: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 30,
+                left: 40,
+                child: Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFF9D5D3).withOpacity(0.9),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFF9D5D3).withOpacity(0.5),
+                        blurRadius: (12.0).clamp(0.0, 100.0).abs(),
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -437,23 +743,59 @@ class _OnboardingSlideState extends State<OnboardingSlide> {
           child: Text(
             widget.content.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+            style: TextStyle(
+              fontSize: (MediaQuery.of(context).size.width * 0.07).clamp(
+                16.0,
+                32.0,
+              ),
+              fontWeight: FontWeight.w900,
+              fontFamily: 'Tajawal',
+              color: const Color(0xFF52002C),
+              letterSpacing: 0.5,
+              shadows: [
+                Shadow(
+                  color: Colors.white.withOpacity(0.8),
+                  blurRadius: (15.0).clamp(0.0, 100.0).abs(),
+                  offset: const Offset(0, 3),
+                ),
+                Shadow(
+                  color: const Color(0xFF52002C).withOpacity(0.2),
+                  blurRadius: (8.0).clamp(0.0, 100.0).abs(),
+
+                  offset: const Offset(2, 2),
+                ),
+              ],
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.025),
         _buildAnimatedWidget(
           delay: const Duration(milliseconds: 500),
-          child: Text(
-            widget.content.description,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 17,
-              color: Colors.black.withOpacity(0.8),
-              height: 1.5,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.04,
+            ),
+            child: Text(
+              widget.content.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: (MediaQuery.of(context).size.width * 0.045).clamp(
+                  14.0,
+                  20.0,
+                ),
+                fontFamily: 'Tajawal',
+                color: const Color(0xFF52002C).withOpacity(0.85),
+                height: 2.0,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+                shadows: [
+                  Shadow(
+                    color: Colors.white.withOpacity(0.6),
+                    blurRadius: (8.0).clamp(0.0, 100.0).abs(),
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -495,30 +837,53 @@ class DotIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOutCubic,
-      margin: const EdgeInsets.symmetric(horizontal: 6.0),
-      height: isActive ? 12 : 8,
-      width: isActive ? 32 : 8,
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeInOutBack,
+      margin: const EdgeInsets.symmetric(horizontal: 1.0),
+      height: isActive ? 10 : 6,
+      width: isActive ? 20 : 6,
       decoration: BoxDecoration(
         gradient: isActive
-            ? const LinearGradient(
-                colors: [Color(0xFFD47FA6), Color(0xFFC15C5C)],
+            ? LinearGradient(
+                colors: [
+                  const Color(0xFF52002C),
+                  const Color(0xFFD47FA6),
+                  const Color(0xFFC15C5C),
+                ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               )
-            : null,
-        color: isActive ? null : Colors.white.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(12),
+            : LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.6),
+                  Colors.white.withOpacity(0.3),
+                ],
+              ),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: Colors.white.withOpacity(isActive ? 0.6 : 0.3),
+          width: isActive ? 1.5 : 1,
+        ),
         boxShadow: isActive
             ? [
                 BoxShadow(
-                  color: const Color(0xFFD47FA6).withOpacity(0.4),
-                  blurRadius: 8,
-                  spreadRadius: 2,
+                  color: const Color(0xFF52002C).withOpacity(0.4),
+                  blurRadius: (12.0).clamp(0.0, 100.0).abs(),
+                  spreadRadius: 3,
+                ),
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.4),
+                  blurRadius: (6.0).clamp(0.0, 100.0).abs(),
+                  offset: const Offset(0, -2),
                 ),
               ]
-            : null,
+            : [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.2),
+                  blurRadius: (6.0).clamp(0.0, 100.0).abs(),
+                  spreadRadius: 1,
+                ),
+              ],
       ),
     );
   }
@@ -549,44 +914,74 @@ class OnboardingNavButton extends StatelessWidget {
         child: GestureDetector(
           onTap: onPressed,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.06,
+              vertical: MediaQuery.of(context).size.height * 0.02,
+            ),
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 0.06,
+              maxHeight: MediaQuery.of(context).size.height * 0.08,
+            ),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFD47FA6), Color(0xFFC15C5C)],
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF52002C),
+                  const Color(0xFFD47FA6),
+                  const Color(0xFFC15C5C),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(
+                MediaQuery.of(context).size.width * 0.08,
+              ),
               border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 1.5,
+                color: Colors.white.withOpacity(0.4),
+                width: 2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFD47FA6).withOpacity(0.4),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
+                  color: const Color(0xFF52002C).withOpacity(0.4),
+                  blurRadius: (20.0).clamp(0.0, 100.0).abs(),
+                  spreadRadius: 2,
+                  offset: const Offset(0, 10),
                 ),
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.2),
-                  blurRadius: 5,
-                  offset: const Offset(0, -2),
+                  color: Colors.white.withOpacity(0.3),
+                  blurRadius: (10.0).clamp(0.0, 100.0).abs(),
+                  offset: const Offset(0, -3),
+                ),
+                BoxShadow(
+                  color: const Color(0xFFD47FA6).withOpacity(0.3),
+                  blurRadius: (15.0).clamp(0.0, 100.0).abs(),
+                  spreadRadius: 1,
                 ),
               ],
             ),
             child: Text(
               text,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+              style: TextStyle(
+                fontSize: (MediaQuery.of(context).size.width * 0.035).clamp(
+                  11.0,
+                  16.0,
+                ),
+                fontWeight: FontWeight.w700,
                 color: Colors.white,
                 fontFamily: 'Tajawal',
+                letterSpacing: 0.5,
                 shadows: [
                   Shadow(
-                    color: Colors.black26,
-                    blurRadius: 2,
-                    offset: Offset(0, 1),
+                    color: Colors.black.withOpacity(0.4),
+                    blurRadius: (4.0).clamp(0.0, 100.0).abs(),
+
+                    offset: const Offset(0, 2),
+                  ),
+                  Shadow(
+                    color: const Color(0xFF52002C).withOpacity(0.3),
+                    blurRadius: (8.0).clamp(0.0, 100.0).abs(),
+                    offset: const Offset(1, 1),
                   ),
                 ],
               ),
@@ -595,22 +990,60 @@ class OnboardingNavButton extends StatelessWidget {
         ),
       );
     } else {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-        ),
-        child: GestureDetector(
-          onTap: onPressed,
-          child: Text(
-            text,
-            style: TextStyle(
-              color: Colors.black.withOpacity(0.7),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Tajawal',
+      return GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.05,
+            vertical: MediaQuery.of(context).size.height * 0.015,
+          ),
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height * 0.05,
+            maxHeight: MediaQuery.of(context).size.height * 0.07,
+          ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withOpacity(0.3),
+                Colors.white.withOpacity(0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(
+              MediaQuery.of(context).size.width * 0.06,
+            ),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.4),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withOpacity(0.2),
+                blurRadius: (10.0).clamp(0.0, 100.0).abs(),
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: const Color(0xFF52002C).withOpacity(0.8),
+                fontSize: (MediaQuery.of(context).size.width * 0.035).clamp(
+                  10.0,
+                  16.0,
+                ),
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Tajawal',
+                letterSpacing: 0.3,
+                shadows: [
+                  Shadow(
+                    color: Colors.white.withOpacity(0.6),
+                    blurRadius: (3.0).clamp(0.0, 100.0).abs(),
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

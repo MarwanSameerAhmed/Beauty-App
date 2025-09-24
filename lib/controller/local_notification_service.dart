@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/material.dart';
 
 class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -8,7 +9,7 @@ class LocalNotificationService {
   static void initialize() {
     // Initialization settings for Android
     const InitializationSettings initializationSettings = InitializationSettings(
-      android: AndroidInitializationSettings("@mipmap/ic_launcher"),
+      android: AndroidInitializationSettings("@drawable/ic_notification"),
       iOS: DarwinInitializationSettings(),
     );
 
@@ -20,12 +21,14 @@ class LocalNotificationService {
       final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
       const NotificationDetails notificationDetails = NotificationDetails(
-        android: AndroidNotificationDetails(
+        android: const AndroidNotificationDetails(
           "beauty_app_channel", // Channel ID
           "Beauty App Channel", // Channel Name
           channelDescription: "This is our channel for notifications",
           importance: Importance.max,
           priority: Priority.high,
+          icon: "@drawable/ic_notification", // Custom notification icon
+          color: Color(0xFF52002C), // Brand color
         ),
         iOS: DarwinNotificationDetails(),
       );

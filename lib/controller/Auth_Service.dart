@@ -189,9 +189,10 @@ class AuthService {
             'user'; 
         print('User role is: $role');
         if (role == 'admin') {
-          print('User is an admin. Subscribing to new_orders topic...');
+          print('User is an admin. Subscribing to admin topics...');
           await FirebaseMessaging.instance.subscribeToTopic('new_orders');
-          print('>>> SUCCESS: Admin user subscribed to new_orders topic.');
+          await FirebaseMessaging.instance.subscribeToTopic('admin_notifications');
+          print('>>> SUCCESS: Admin user subscribed to admin topics.');
         } else {
           print('User is not an admin, no topic subscription needed.');
         }
