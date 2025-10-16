@@ -837,53 +837,20 @@ class DotIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOutBack,
-      margin: const EdgeInsets.symmetric(horizontal: 1.0),
-      height: isActive ? 10 : 6,
-      width: isActive ? 20 : 6,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      margin: const EdgeInsets.symmetric(horizontal: 2.0),
+      height: 8,
+      width: isActive ? 24 : 8,
       decoration: BoxDecoration(
-        gradient: isActive
-            ? LinearGradient(
-                colors: [
-                  const Color(0xFF52002C),
-                  const Color(0xFFD47FA6),
-                  const Color(0xFFC15C5C),
-                ],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              )
-            : LinearGradient(
-                colors: [
-                  Colors.white.withOpacity(0.6),
-                  Colors.white.withOpacity(0.3),
-                ],
-              ),
-        borderRadius: BorderRadius.circular(15),
+        color: isActive 
+            ? const Color(0xFF52002C)
+            : Colors.white.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(4),
         border: Border.all(
-          color: Colors.white.withOpacity(isActive ? 0.6 : 0.3),
-          width: isActive ? 1.5 : 1,
+          color: Colors.white.withOpacity(0.8),
+          width: 1,
         ),
-        boxShadow: isActive
-            ? [
-                BoxShadow(
-                  color: const Color(0xFF52002C).withOpacity(0.4),
-                  blurRadius: (12.0).clamp(0.0, 100.0).abs(),
-                  spreadRadius: 3,
-                ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.4),
-                  blurRadius: (6.0).clamp(0.0, 100.0).abs(),
-                  offset: const Offset(0, -2),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.2),
-                  blurRadius: (6.0).clamp(0.0, 100.0).abs(),
-                  spreadRadius: 1,
-                ),
-              ],
       ),
     );
   }
@@ -916,19 +883,18 @@ class OnboardingNavButton extends StatelessWidget {
           child: Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(
-              horizontal: MediaQuery.of(context).size.width * 0.06,
-              vertical: MediaQuery.of(context).size.height * 0.02,
+              horizontal: MediaQuery.of(context).size.width * 0.04,
+              vertical: MediaQuery.of(context).size.height * 0.018,
             ),
             constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height * 0.06,
-              maxHeight: MediaQuery.of(context).size.height * 0.08,
+              minHeight: MediaQuery.of(context).size.height * 0.055,
             ),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [
-                  const Color(0xFF52002C),
-                  const Color(0xFFD47FA6),
-                  const Color(0xFFC15C5C),
+                  Color(0xFF52002C),
+                  Color(0xFFD47FA6),
+                  Color(0xFFC15C5C),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -963,9 +929,9 @@ class OnboardingNavButton extends StatelessWidget {
               text,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: (MediaQuery.of(context).size.width * 0.035).clamp(
-                  11.0,
-                  16.0,
+                fontSize: (MediaQuery.of(context).size.width * 0.038).clamp(
+                  12.0,
+                  17.0,
                 ),
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
@@ -995,12 +961,11 @@ class OnboardingNavButton extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.05,
-            vertical: MediaQuery.of(context).size.height * 0.015,
+            horizontal: MediaQuery.of(context).size.width * 0.04,
+            vertical: MediaQuery.of(context).size.height * 0.016,
           ),
           constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height * 0.05,
-            maxHeight: MediaQuery.of(context).size.height * 0.07,
+            minHeight: MediaQuery.of(context).size.height * 0.055,
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -1029,8 +994,8 @@ class OnboardingNavButton extends StatelessWidget {
               text,
               style: TextStyle(
                 color: const Color(0xFF52002C).withOpacity(0.8),
-                fontSize: (MediaQuery.of(context).size.width * 0.035).clamp(
-                  10.0,
+                fontSize: (MediaQuery.of(context).size.width * 0.037).clamp(
+                  11.0,
                   16.0,
                 ),
                 fontWeight: FontWeight.w600,
