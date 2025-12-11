@@ -47,5 +47,36 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		
+		<!-- Camera and Photo Library Permissions -->
+		<key>NSCameraUsageDescription</key>
+		<string>يحتاج التطبيق للكاميرا لالتقاط صور المنتجات والإعلانات</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>يحتاج التطبيق للوصول للمعرض لاختيار الصور</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>يحتاج التطبيق لحفظ الصور في المعرض</string>
+		
+		<!-- Network and Internet Permissions -->
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+		</dict>
+		
+		<!-- File Access Permission -->
+		<key>NSDocumentsFolderUsageDescription</key>
+		<string>يحتاج التطبيق للوصول للملفات لحفظ الفواتير</string>
+		
+		<!-- Background Modes for Notifications -->
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>remote-notification</string>
+			<string>background-fetch</string>
+			<string>background-processing</string>
+		</array>
+		
+		<!-- Notification Settings -->
+		<key>NSUserNotificationAlertStyle</key>
+		<string>alert</string>
 	</dict>
 </plist>

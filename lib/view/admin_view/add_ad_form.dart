@@ -1,12 +1,11 @@
-import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:test_pro/controller/ads_service.dart';
 import 'package:test_pro/controller/company_service.dart';
 import 'package:test_pro/model/ad.dart';
 import 'package:test_pro/controller/image_service.dart';
+import 'package:test_pro/controller/universal_image_picker.dart';
 import 'package:test_pro/model/company.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/buttonsWidgets.dart';
@@ -29,9 +28,8 @@ class _AddAdFormState extends State<AddAdForm> {
   bool get _isEditing => widget.ad != null;
 
   String _selectedShape = 'rectangle';
-  List<File> _imageFiles = [];
+  List<ImagePickerResult> _selectedImages = [];
   String? _existingImageUrl;
-  final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
   List<Company> _companies = [];
   Company? _selectedCompany;
@@ -63,20 +61,45 @@ class _AddAdFormState extends State<AddAdForm> {
   }
 
   Future<void> _pickImage() async {
-    if (_isEditing) { // In edit mode, only allow picking one image
-      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        setState(() {
-          _imageFiles = [File(pickedFile.path)];
-        });
+    try {
+      if (_isEditing) {
+        // في وضع التعديل، اختيار صورة واحدة فقط
+        final result = await UniversalImagePicker.pickSingleImage();
+        if (result != null && result.isValid && result.isSupportedFormat) {
+          if (!result.isSizeAcceptable) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('حجم الصورة كبير جداً. يجب أن يكون أقل من 5 ميجابايت')),
+            );
+            return;
+          }
+          setState(() {
+            _selectedImages = [result];
+          });
+        }
+      } else {
+        // في وضع الإضافة، اختيار صور متعددة
+        final results = await UniversalImagePicker.pickMultipleImages();
+        if (results.isNotEmpty) {
+          // التحقق من صحة جميع الصور
+          final validImages = results.where((img) => 
+            img.isValid && img.isSupportedFormat && img.isSizeAcceptable
+          ).toList();
+          
+          if (validImages.length != results.length) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('تم تجاهل بعض الصور غير المدعومة أو الكبيرة الحجم')),
+            );
+          }
+          
+          setState(() {
+            _selectedImages = validImages;
+          });
+        }
       }
-    } else { // In add mode, allow picking multiple images
-      final List<XFile> pickedFiles = await _picker.pickMultiImage();
-      if (pickedFiles.isNotEmpty) {
-        setState(() {
-          _imageFiles = pickedFiles.map((file) => File(file.path)).toList();
-        });
-      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطأ في اختيار الصور: $e')),
+      );
     }
   }
 
@@ -87,13 +110,13 @@ class _AddAdFormState extends State<AddAdForm> {
     }
 
     if (!_isEditing) {
-      if (_selectedShape == 'square' && _imageFiles.length != 2) {
+      if (_selectedShape == 'square' && _selectedImages.length != 2) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('الرجاء اختيار صورتين للإعلان المربع')),
         );
         return;
       }
-      if (_selectedShape == 'rectangle' && _imageFiles.length != 1) {
+      if (_selectedShape == 'rectangle' && _selectedImages.length != 1) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('الرجاء اختيار صورة واحدة للإعلان المستطيل')),
         );
@@ -101,7 +124,7 @@ class _AddAdFormState extends State<AddAdForm> {
       }
     }
 
-    if (_imageFiles.isEmpty && !_isEditing) {
+    if (_selectedImages.isEmpty && !_isEditing) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء اختيار صورة للإعلان')));
         return;
     }
@@ -111,8 +134,8 @@ class _AddAdFormState extends State<AddAdForm> {
     try {
       if (_isEditing) {
         String imageUrl = _existingImageUrl ?? '';
-        if (_imageFiles.isNotEmpty) {
-          final compressedImage = await ImageService.compressImage(_imageFiles.first);
+        if (_selectedImages.isNotEmpty) {
+          final compressedImage = await ImageService.compressImageBytes(_selectedImages.first.bytes);
           if (compressedImage == null) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('فشل ضغط الصورة. يرجى المحاولة مرة أخرى.')),
@@ -131,8 +154,8 @@ class _AddAdFormState extends State<AddAdForm> {
         );
         await _adsService.updateAd(ad);
       } else {
-        for (var imageFile in _imageFiles) {
-          final compressedImage = await ImageService.compressImage(imageFile);
+        for (var selectedImage in _selectedImages) {
+          final compressedImage = await ImageService.compressImageBytes(selectedImage.bytes);
           if (compressedImage == null) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('فشل ضغط الصورة. يرجى المحاولة مرة أخرى.')),
@@ -173,18 +196,19 @@ class _AddAdFormState extends State<AddAdForm> {
   }
 
   Widget buildImageWidget() {
-    if (_imageFiles.isNotEmpty) {
+    if (_selectedImages.isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(14.0),
         child: GridView.builder(
+          shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 4,
             mainAxisSpacing: 4,
           ),
-          itemCount: _imageFiles.length,
+          itemCount: _selectedImages.length,
           itemBuilder: (context, index) {
-            return Image.file(_imageFiles[index], fit: BoxFit.cover);
+            return Image.memory(_selectedImages[index].bytes, fit: BoxFit.cover);
           },
         ),
       );
@@ -368,7 +392,7 @@ class _AddAdFormState extends State<AddAdForm> {
             if (value != null) {
               setState(() {
                 _selectedShape = value;
-                _imageFiles.clear(); // Clear images when shape changes
+                _selectedImages.clear(); // Clear images when shape changes
               });
             }
           },

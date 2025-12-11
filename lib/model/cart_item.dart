@@ -24,6 +24,7 @@ class CartItem {
       description: product.description,
       images: product.images,
       quantity: 1,
+      price: product.price, // إضافة السعر من المنتج
     );
   }
 

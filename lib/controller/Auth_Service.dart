@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:test_pro/model/userAccount.dart';
 import 'package:firebase_messaging/firebase_messaging.dart'; // For FCM Token
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:test_pro/config/web_config.dart';
 
 // A special class to indicate a new user from Google sign-in
 class NewGoogleUser {
@@ -11,7 +13,12 @@ class NewGoogleUser {
 }
 
 class AuthService {
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  // Configure GoogleSignIn for web and mobile
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: kIsWeb 
+        ? WebConfig.googleClientId // Web client ID from config
+        : null, // Use default for mobile
+  );
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -74,8 +81,11 @@ class AuthService {
 
   Future<Object?> signInWithGoogle() async {
     try {
-      // Ensure the user is signed out from any previous session to allow account switching.
-      await _googleSignIn.signOut();
+      // For web, we don't need to sign out first as it causes issues
+      if (!kIsWeb) {
+        await _googleSignIn.signOut();
+      }
+      
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         return 'تم إلغاء تسجيل الدخول.';
@@ -83,6 +93,12 @@ class AuthService {
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+      
+      // Check if we have the required tokens
+      if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+        return 'فشل في الحصول على بيانات المصادقة من جوجل.';
+      }
+      
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -110,8 +126,22 @@ class AuthService {
       }
       return 'حدث خطأ غير متوقع.';
     } on FirebaseAuthException catch (e) {
-      return e.message ?? 'فشل تسجيل الدخول باستخدام جوجل.';
+      print('Firebase Auth Error: ${e.code} - ${e.message}');
+      switch (e.code) {
+        case 'popup-closed-by-user':
+          return 'تم إغلاق نافذة تسجيل الدخول.';
+        case 'popup-blocked':
+          return 'تم حظر نافذة تسجيل الدخول. يرجى السماح بالنوافذ المنبثقة.';
+        case 'network-request-failed':
+          return 'فشل الاتصال بالإنترنت. يرجى المحاولة مرة أخرى.';
+        default:
+          return e.message ?? 'فشل تسجيل الدخول باستخدام جوجل.';
+      }
     } catch (e) {
+      print('Google Sign-In Error: $e');
+      if (e.toString().contains('popup_closed_by_user')) {
+        return 'تم إغلاق نافذة تسجيل الدخول.';
+      }
       return 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
     }
   }
@@ -163,6 +193,12 @@ class AuthService {
 
   Future<void> _saveDeviceToken(String uid) async {
     try {
+      // Skip FCM token for web as it requires different setup
+      if (kIsWeb) {
+        print('Skipping FCM token for web platform');
+        return;
+      }
+      
       String? fcmToken = await FirebaseMessaging.instance.getToken();
       if (fcmToken != null) {
         await _firestore.collection('users').doc(uid).update({

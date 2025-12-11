@@ -3,12 +3,16 @@ class CarouselAd {
   final String imageUrl;
   final String companyId;
   final String companyName;
+  final int order; // ترتيب العرض في السلايدر
+  final bool isVisible; // مخفي أم ظاهر
 
   CarouselAd({
     required this.id, 
     required this.imageUrl,
     required this.companyId,
     required this.companyName,
+    this.order = 0,
+    this.isVisible = true,
   });
 
   factory CarouselAd.fromMap(Map<String, dynamic> data) {
@@ -17,6 +21,8 @@ class CarouselAd {
       imageUrl: data['imageUrl'] ?? '',
       companyId: data['companyId'] ?? '',
       companyName: data['companyName'] ?? '',
+      order: data['order'] ?? 0,
+      isVisible: data['isVisible'] ?? true,
     );
   }
 
@@ -26,6 +32,8 @@ class CarouselAd {
       'imageUrl': imageUrl,
       'companyId': companyId,
       'companyName': companyName,
+      'order': order,
+      'isVisible': isVisible,
     };
   }
 }

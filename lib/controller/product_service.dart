@@ -85,6 +85,19 @@ class ProductService {
     });
   }
 
+  // جلب جميع المنتجات كـ Future للاستخدام في الفواتير
+  Future<List<Product>> getAllProducts() async {
+    try {
+      final querySnapshot = await _productsCollection.get();
+      return querySnapshot.docs.map((doc) {
+        return Product.fromMap(doc.data() as Map<String, dynamic>);
+      }).toList();
+    } catch (e) {
+      print('Error fetching all products: $e');
+      return [];
+    }
+  }
+
   Future<Product?> getProductById(String id) async {
     try {
       final docSnapshot = await _productsCollection.doc(id).get();

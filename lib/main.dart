@@ -1,6 +1,6 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -41,10 +41,20 @@ Future<void> main() async {
       webProvider: ReCaptchaV3Provider('your-recaptcha-v3-site-key'),
     );
   } else {
-    await FirebaseAppCheck.instance.activate(
-      androidProvider: AndroidProvider.debug,
-      appleProvider: AppleProvider.debug,
-    );
+    // For production use
+    if (kDebugMode) {
+      // Debug mode - for development only
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: AndroidProvider.debug,
+        appleProvider: AppleProvider.debug,
+      );
+    } else {
+      // Production mode - for App Store release
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: AndroidProvider.playIntegrity,
+        appleProvider: AppleProvider.appAttest,
+      );
+    }
   }
 
   final prefs = await SharedPreferences.getInstance();
@@ -52,10 +62,20 @@ Future<void> main() async {
 
   LocalNotificationService.initialize();
 
+  // Set up Firebase Messaging background handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Handle foreground messages
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     if (message.notification != null) {
       LocalNotificationService.display(message);
     }
+  });
+
+  // Handle notification taps when app is in background
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    print('Message clicked: ${message.messageId}');
+    // Handle navigation based on message data
   });
 
   await initializeDateFormatting('ar', null);

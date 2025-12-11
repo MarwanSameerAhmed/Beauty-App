@@ -139,12 +139,26 @@ class _HomescreenuiState extends State<Homescreenui> {
         }
 
         final ads = snapshot.data!;
+        
+        // فلترة الإعلانات الظاهرة فقط وترتيبها
+        final visibleAds = ads
+            .where((ad) => ad.isVisible)
+            .toList()
+          ..sort((a, b) => a.order.compareTo(b.order));
+
+        if (visibleAds.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
         final List<Widget> adWidgets = [];
 
-        final rectangleAds = ads
+        // تقسيم الإعلانات حسب النوع والموضع
+        final rectangleAds = visibleAds
             .where((ad) => ad.shapeType == 'rectangle')
             .toList();
-        final squareAds = ads.where((ad) => ad.shapeType == 'square').toList();
+        final squareAds = visibleAds
+            .where((ad) => ad.shapeType == 'square')
+            .toList();
 
         // Build rectangle ads
         for (var ad in rectangleAds) {
@@ -225,13 +239,34 @@ class _HomescreenuiState extends State<Homescreenui> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (adWidgets.isNotEmpty)
-              const SectionTitleNonSliver(title: 'عروض خاصة'),
+            if (adWidgets.isNotEmpty) ...[
+              // عنوان ديناميكي حسب نوع الإعلانات
+              SectionTitleNonSliver(
+                title: _getAdsSectionTitle(visibleAds),
+              ),
+            ],
             ...adWidgets,
           ],
         );
       },
     );
+  }
+
+  String _getAdsSectionTitle(List<Ad> ads) {
+    // تحديد العنوان حسب مواضع الإعلانات
+    final hasTopAds = ads.any((ad) => ad.position == 'top');
+    final hasMiddleAds = ads.any((ad) => ad.position == 'middle');
+    final hasBottomAds = ads.any((ad) => ad.position == 'bottom');
+    
+    if (hasTopAds && hasMiddleAds && hasBottomAds) {
+      return 'عروض وإعلانات';
+    } else if (hasTopAds) {
+      return 'عروض مميزة';
+    } else if (hasBottomAds) {
+      return 'عروض إضافية';
+    } else {
+      return 'عروض خاصة';
+    }
   }
 
   Widget _buildProductsSection() {

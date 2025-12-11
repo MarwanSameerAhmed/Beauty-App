@@ -1,7 +1,7 @@
 import 'dart:ui';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
 import 'package:test_pro/widgets/loader.dart';
@@ -12,6 +12,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:test_pro/controller/notification_service.dart';
+import 'package:test_pro/controller/company_settings_service.dart';
 
 class CustomerOrderDetailsPage extends StatefulWidget {
   final DocumentSnapshot order;
@@ -801,7 +802,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
     }
   }
 
-  void _showInvoiceOptionsDialog(File pdfFile) {
+  void _showInvoiceOptionsDialog(dynamic pdfFile) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -921,7 +922,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                           Expanded(
                             child: _buildActionButton(
                               icon: Icons.share_rounded,
-                              label: 'مشاركة',
+                              label: 'مشاركة الفاتورة',
                               color: const Color(0xFF25D366),
                               onPressed: () async {
                                 Navigator.of(context).pop();
@@ -937,7 +938,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                           Expanded(
                             child: _buildActionButton(
                               icon: Icons.send_rounded,
-                              label: 'للمتجر',
+                              label: 'مراسلة المتجر',
                               color: const Color(0xFF52002C),
                               onPressed: () async {
                                 Navigator.of(context).pop();
@@ -982,7 +983,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
     );
   }
 
-  Future<void> _sendPdfToWhatsApp(File pdfFile) async {
+  Future<void> _sendPdfToWhatsApp(dynamic pdfFile) async {
     try {
       // Show loading
       showDialog(
@@ -1038,7 +1039,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
     }
   }
 
-  void _showWhatsAppSendOptions(File pdfFile, String message) {
+  void _showWhatsAppSendOptions(dynamic pdfFile, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1130,8 +1131,9 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                               onPressed: () async {
                                 Navigator.of(context).pop();
 
-                                // Open WhatsApp with message
-                                const String businessPhone = '967779836590';
+                                // جلب رقم الواتس من الإعدادات
+                                final companySettings = CompanySettingsService();
+                                final businessPhone = await companySettings.getWhatsappNumber();
                                 final String whatsappUrl =
                                     'https://wa.me/$businessPhone?text=${Uri.encodeComponent(message)}';
 
@@ -1181,22 +1183,34 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
 
               const SizedBox(height: 10),
 
-              // Option 2: Share menu
+              // Option 2: Share menu / Download for web
               Container(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     Navigator.of(context).pop();
-                    await Share.shareXFiles(
-                      [XFile(pdfFile.path)],
-                      text: message,
-                      subject: 'فاتورة طلب رقم: ${widget.order.id}',
-                    );
+                    if (kIsWeb) {
+                      // For web: download PDF
+                      await PdfInvoiceService.shareInvoice(pdfFile, orderNumber: widget.order.id, totalPrice: _totalPrice);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('تم تحميل الفاتورة بنجاح! يمكنك الآن إرسالها عبر أي تطبيق تريده.'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      // For mobile: use share menu
+                      await Share.shareXFiles(
+                        [XFile(pdfFile.path)],
+                        text: message,
+                        subject: 'فاتورة طلب رقم: ${widget.order.id}',
+                      );
+                    }
                   },
-                  icon: const Icon(Icons.share, color: Colors.white),
-                  label: const Text(
-                    'اختيار من قائمة التطبيقات',
-                    style: TextStyle(
+                  icon: Icon(kIsWeb ? Icons.download : Icons.share, color: Colors.white),
+                  label: Text(
+                    kIsWeb ? 'تحميل الفاتورة للجهاز' : 'اختيار من قائمة التطبيقات',
+                    style: const TextStyle(
                       fontFamily: 'Tajawal',
                       color: Colors.white,
                     ),
@@ -1223,7 +1237,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
     );
   }
 
-  void _showPersistentFileReminder(File pdfFile) {
+  void _showPersistentFileReminder(dynamic pdfFile) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1296,19 +1310,30 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             Navigator.of(context).pop();
-                            await Share.shareXFiles([XFile(pdfFile.path)]);
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('تم إرسال ملف الفاتورة بنجاح!'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
+                            if (kIsWeb) {
+                              // For web: download PDF
+                              await PdfInvoiceService.shareInvoice(pdfFile, orderNumber: widget.order.id, totalPrice: _totalPrice);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('تم تحميل ملف الفاتورة بنجاح!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } else {
+                              // For mobile: share file
+                              await Share.shareXFiles([XFile(pdfFile.path)]);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('تم إرسال ملف الفاتورة بنجاح!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
                           },
-                          icon: const Icon(Icons.send, color: Colors.white),
-                          label: const Text(
-                            'إرسال ملف الفاتورة الآن',
-                            style: TextStyle(
+                          icon: Icon(kIsWeb ? Icons.download : Icons.send, color: Colors.white),
+                          label: Text(
+                            kIsWeb ? 'تحميل ملف الفاتورة الآن' : 'إرسال ملف الفاتورة الآن',
+                            style: const TextStyle(
                               fontFamily: 'Tajawal',
                               color: Colors.white,
                               fontSize: 16,

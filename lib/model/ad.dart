@@ -4,6 +4,9 @@ class Ad {
   final String shapeType;
   final String companyId;
   final String companyName;
+  final int order; // ترتيب العرض
+  final bool isVisible; // مخفي أم ظاهر
+  final String position; // 'top', 'middle', 'bottom'
 
   Ad({
     required this.id,
@@ -11,6 +14,9 @@ class Ad {
     required this.shapeType,
     required this.companyId,
     required this.companyName,
+    this.order = 0,
+    this.isVisible = true,
+    this.position = 'middle',
   });
 
   factory Ad.fromMap(Map<String, dynamic> data) {
@@ -20,6 +26,9 @@ class Ad {
       shapeType: data['shapeType'] ?? 'rectangle',
       companyId: data['companyId'] ?? '',
       companyName: data['companyName'] ?? '',
+      order: data['order'] ?? 0,
+      isVisible: data['isVisible'] ?? true,
+      position: data['position'] ?? 'middle',
     );
   }
 
@@ -30,6 +39,9 @@ class Ad {
       'shapeType': shapeType,
       'companyId': companyId,
       'companyName': companyName,
+      'order': order,
+      'isVisible': isVisible,
+      'position': position,
     };
   }
 }

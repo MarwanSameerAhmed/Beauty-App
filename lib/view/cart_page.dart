@@ -42,6 +42,7 @@ class _CartPageState extends State<CartPage> {
             'name': item.name,
             'quantity': item.quantity,
             'imageUrl': item.images.first,
+            'originalPrice': item.price, // إضافة السعر الأصلي
           },
         )
         .toList();

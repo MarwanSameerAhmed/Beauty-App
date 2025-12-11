@@ -1,9 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:test_pro/controller/carousel_ad_service.dart';
 import 'package:test_pro/controller/image_service.dart';
 import 'package:test_pro/controller/company_service.dart';
+import 'package:test_pro/controller/universal_image_picker.dart';
 import 'package:test_pro/model/carousel_ad.dart';
 import 'package:test_pro/model/company.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
@@ -23,8 +22,7 @@ class AddCarouselAdForm extends StatefulWidget {
 class _AddCarouselAdFormState extends State<AddCarouselAdForm> {
   final CarouselAdService _carouselAdService = CarouselAdService();
   final CompanyService _companyService = CompanyService();
-  File? _imageFile;
-  final ImagePicker _picker = ImagePicker();
+  ImagePickerResult? _selectedImage;
   bool _isLoading = false;
   List<Company> _companies = [];
   Company? _selectedCompany;
@@ -63,11 +61,23 @@ class _AddCarouselAdFormState extends State<AddCarouselAdForm> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+    try {
+      final result = await UniversalImagePicker.pickSingleImage();
+      if (result != null && result.isValid && result.isSupportedFormat) {
+        if (!result.isSizeAcceptable) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('حجم الصورة كبير جداً. يجب أن يكون أقل من 5 ميجابايت')),
+          );
+          return;
+        }
+        setState(() {
+          _selectedImage = result;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطأ في اختيار الصورة: $e')),
+      );
     }
   }
 
@@ -103,7 +113,7 @@ class _AddCarouselAdFormState extends State<AddCarouselAdForm> {
 
   Future<void> _submit() async {
     // في وضع التعديل، لا نحتاج صورة جديدة إذا لم يتم اختيارها
-    if (_imageFile == null && !_isEditing) {
+    if (_selectedImage == null && !_isEditing) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء اختيار صورة للإعلان')));
       return;
     }
@@ -119,8 +129,8 @@ class _AddCarouselAdFormState extends State<AddCarouselAdForm> {
       String imageUrl = _existingImageUrl ?? '';
       
       // رفع صورة جديدة فقط إذا تم اختيارها
-      if (_imageFile != null) {
-        final compressedImage = await ImageService.compressImage(_imageFile!);
+      if (_selectedImage != null) {
+        final compressedImage = await ImageService.compressImageBytes(_selectedImage!.bytes);
         if (compressedImage == null) {
           throw Exception('فشل ضغط الصورة');
         }
@@ -187,10 +197,10 @@ class _AddCarouselAdFormState extends State<AddCarouselAdForm> {
                               borderRadius: BorderRadius.circular(15.0),
                               border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
                             ),
-                            child: _imageFile != null
+                            child: _selectedImage != null
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(14.0),
-                                    child: Image.file(_imageFile!, fit: BoxFit.cover, width: double.infinity),
+                                    child: Image.memory(_selectedImage!.bytes, fit: BoxFit.cover, width: double.infinity),
                                   )
                                 : _isEditing && _existingImageUrl != null
                                     ? ClipRRect(

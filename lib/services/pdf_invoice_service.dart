@@ -1,10 +1,13 @@
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html';
+import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:printing/printing.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:cross_file/cross_file.dart';
+import 'package:path_provider/path_provider.dart';
 
 class PdfInvoiceService {
   // Helper function to ensure Arabic text is properly handled
@@ -13,7 +16,7 @@ class PdfInvoiceService {
     return text.replaceAll(RegExp(r'[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF\u0020-\u007F]'), '');
   }
 
-  static Future<File> generateInvoice({
+  static Future<dynamic> generateInvoice({
     required List<Map<String, dynamic>> items,
     required double totalPrice,
     required String customerName,
@@ -87,15 +90,24 @@ class PdfInvoiceService {
       ),
     );
 
-    // Save PDF to device
-    final output = await getTemporaryDirectory();
-    final file = File('${output.path}/invoice_$orderNumber.pdf');
-    await file.writeAsBytes(await pdf.save());
+    // Generate PDF bytes
+    final pdfBytes = await pdf.save();
     
-    return file;
+    if (kIsWeb) {
+      // For web: return bytes directly for download
+      return pdfBytes;
+    } else {
+      // For mobile: save to file
+      final output = await getTemporaryDirectory();
+      final file = File('${output.path}/invoice_$orderNumber.pdf');
+      await file.writeAsBytes(pdfBytes);
+      return file;
+    }
   }
 
   static pw.Widget _buildHeader(pw.Font boldFont, pw.Font regularFont) {
+    // استخدام رقم الهاتف الافتراضي - سيتم تحديثه لاحقاً
+    const companyPhone = '0554055582';
     return pw.Container(
       padding: const pw.EdgeInsets.all(20),
       decoration: pw.BoxDecoration(
@@ -134,7 +146,7 @@ class PdfInvoiceService {
                 ),
               ),
               pw.Text(
-                _processArabicText('جوال: 0554055582'),
+                _processArabicText('جوال: $companyPhone'),
                 style: pw.TextStyle(
                   font: regularFont,
                   fontSize: 12,
@@ -345,8 +357,33 @@ class PdfInvoiceService {
     );
   }
 
-  static Future<void> shareInvoice(File pdfFile, {String? orderNumber, double? totalPrice}) async {
-    final String message = '''🧾 *فاتورة طلب*
+  // Web-specific function to download PDF
+  static void downloadPdfWeb(Uint8List pdfBytes, String fileName) {
+    if (!kIsWeb) {
+      debugPrint('downloadPdfWeb يعمل فقط على الويب');
+      return;
+    }
+    
+    // على الويب، استخدام printing package بدلاً من html
+    try {
+      Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdfBytes,
+      );
+    } catch (e) {
+      debugPrint('خطأ في تحميل PDF: $e');
+    }
+  }
+
+  static Future<void> shareInvoice(dynamic pdfFile, {String? orderNumber, double? totalPrice}) async {
+    if (kIsWeb) {
+      // For web: download the PDF directly
+      if (pdfFile is Uint8List) {
+        final fileName = 'invoice_${orderNumber ?? DateTime.now().millisecondsSinceEpoch}.pdf';
+        downloadPdfWeb(pdfFile, fileName);
+      }
+    } else {
+      // For mobile: use share functionality
+      final String message = '''🧾 *فاتورة طلب*
 
 📋 رقم الطلب: ${orderNumber ?? 'غير محدد'}
 💰 المبلغ الإجمالي: ${totalPrice?.toStringAsFixed(2) ?? '0.00'} ر.س
@@ -355,18 +392,32 @@ class PdfInvoiceService {
 
 شكراً لكم 🙏''';
 
-    // Share file with message text together
-    await Share.shareXFiles(
-      [XFile(pdfFile.path)],
-      text: message,
-      subject: 'فاتورة طلب رقم: ${orderNumber ?? 'غير محدد'}',
-    );
+      if (pdfFile is File) {
+        await Share.shareXFiles(
+          [XFile(pdfFile.path)],
+          text: message,
+          subject: 'فاتورة طلب رقم: ${orderNumber ?? 'غير محدد'}',
+        );
+      }
+    }
   }
 
-  static Future<void> printInvoice(File pdfFile) async {
-    final bytes = await pdfFile.readAsBytes();
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => bytes,
-    );
+  static Future<void> printInvoice(dynamic pdfFile) async {
+    if (kIsWeb) {
+      // For web: open print dialog
+      if (pdfFile is Uint8List) {
+        await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => pdfFile,
+        );
+      }
+    } else {
+      // For mobile: print from file
+      if (pdfFile is File) {
+        final bytes = await pdfFile.readAsBytes();
+        await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => bytes,
+        );
+      }
+    }
   }
 }

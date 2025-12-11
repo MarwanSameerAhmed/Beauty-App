@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -64,6 +61,15 @@ class DefaultFirebaseOptions {
     projectId: 'beauty-app-84d57',
     storageBucket: 'beauty-app-84d57.firebasestorage.app',
     iosBundleId: 'com.example.testPro',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCqujdBUgeRsGXpzeiRX2RFbSnB1MzIP-A',
+    appId: '1:677899943891:web:b815cbc2a327b1df34b926',
+    messagingSenderId: '677899943891',
+    projectId: 'beauty-app-84d57',
+    authDomain: 'beauty-app-84d57.firebaseapp.com',
+    storageBucket: 'beauty-app-84d57.firebasestorage.app',
   );
 
 }

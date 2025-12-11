@@ -1,10 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:test_pro/controller/company_service.dart';
 import 'package:test_pro/controller/category_service.dart';
 import 'package:test_pro/controller/product_service.dart';
 import 'package:test_pro/controller/image_service.dart';
+import 'package:test_pro/controller/universal_image_picker.dart';
 import 'package:test_pro/model/company.dart';
 import 'package:test_pro/model/categorys.dart';
 import 'package:test_pro/model/product.dart';
@@ -40,8 +39,8 @@ class _AddProductUiState extends State<AddProductUi> {
   int _currentStep = 0;
 
   // State for Images
-  File? _mainImageFile;
-  List<File> _otherImageFiles = [];
+  ImagePickerResult? _mainImage;
+  List<ImagePickerResult> _otherImages = [];
   List<String> _existingImageUrls = [];
   List<String> _uploadedImageUrls = [];
 
@@ -122,26 +121,46 @@ class _AddProductUiState extends State<AddProductUi> {
   }
 
   Future<void> _pickMainImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-    );
-    if (pickedFile != null) {
-      setState(() {
-        _mainImageFile = File(pickedFile.path);
-      });
+    try {
+      final result = await UniversalImagePicker.pickSingleImage();
+      if (result != null && result.isValid && result.isSupportedFormat) {
+        if (!result.isSizeAcceptable) {
+          _showErrorSnackBar('حجم الصورة كبير جداً. يجب أن يكون أقل من 5 ميجابايت');
+          return;
+        }
+        setState(() {
+          _mainImage = result;
+        });
+      }
+    } catch (e) {
+      _showErrorSnackBar('خطأ في اختيار الصورة: $e');
     }
   }
 
   Future<void> _pickOtherImages() async {
-    final pickedFiles = await ImagePicker().pickMultiImage();
-    setState(() {
-      _otherImageFiles = pickedFiles.map((file) => File(file.path)).toList();
-    });
+    try {
+      final results = await UniversalImagePicker.pickMultipleImages();
+      if (results.isNotEmpty) {
+        final validImages = results.where((img) => 
+          img.isValid && img.isSupportedFormat && img.isSizeAcceptable
+        ).toList();
+        
+        if (validImages.length != results.length) {
+          _showErrorSnackBar('تم تجاهل بعض الصور غير المدعومة أو الكبيرة الحجم');
+        }
+        
+        setState(() {
+          _otherImages = validImages;
+        });
+      }
+    } catch (e) {
+      _showErrorSnackBar('خطأ في اختيار الصور: $e');
+    }
   }
 
   Future<void> _handleNextStep() async {
     if (_currentStep == 0) {
-      if (_mainImageFile == null && !_isEditing) {
+      if (_mainImage == null && !_isEditing) {
         _showErrorSnackBar('الرجاء اختيار صورة أساسية للمنتج.');
         return;
       }
@@ -149,14 +168,14 @@ class _AddProductUiState extends State<AddProductUi> {
       setState(() => _isUploading = true);
 
       try {
-        List<File> allImages = [];
-        if (_mainImageFile != null) allImages.add(_mainImageFile!);
-        allImages.addAll(_otherImageFiles);
+        List<ImagePickerResult> allImages = [];
+        if (_mainImage != null) allImages.add(_mainImage!);
+        allImages.addAll(_otherImages);
 
         if (allImages.isNotEmpty) {
           List<Uint8List> compressedImages = [];
-          for (var imgFile in allImages) {
-            final compressed = await ImageService.compressImage(imgFile);
+          for (var imageResult in allImages) {
+            final compressed = await ImageService.compressImageBytes(imageResult.bytes);
             if (compressed != null) {
               compressedImages.add(compressed);
             }
@@ -459,13 +478,13 @@ class _AddProductUiState extends State<AddProductUi> {
   Widget _buildMainImagePicker() {
     return _buildImagePickerContainer(
       onTap: _pickMainImage,
-      child: _mainImageFile == null && _existingImageUrls.isEmpty
+      child: _mainImage == null && _existingImageUrls.isEmpty
           ? _buildPlaceholder('اختر الصورة الأساسية')
           : ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: _mainImageFile != null
-                  ? Image.file(
-                      _mainImageFile!,
+              child: _mainImage != null
+                  ? Image.memory(
+                      _mainImage!.bytes,
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: double.infinity,
@@ -483,25 +502,25 @@ class _AddProductUiState extends State<AddProductUi> {
   Widget _buildOtherImagesPicker() {
     return _buildImagePickerContainer(
       onTap: _pickOtherImages,
-      child: _otherImageFiles.isEmpty && (_existingImageUrls.length <= 1)
+      child: _otherImages.isEmpty && (_existingImageUrls.length <= 1)
           ? _buildPlaceholder('اختر صورًا إضافية')
           : GridView.builder(
               padding: const EdgeInsets.all(8),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
+                crossAxisCount: 2,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
-              itemCount: _otherImageFiles.isNotEmpty
-                  ? _otherImageFiles.length
+              itemCount: _otherImages.isNotEmpty
+                  ? _otherImages.length
                   : (_existingImageUrls.length > 1
                         ? _existingImageUrls.length - 1
                         : 0),
               itemBuilder: (context, index) {
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: _otherImageFiles.isNotEmpty
-                      ? Image.file(_otherImageFiles[index], fit: BoxFit.contain)
+                  child: _otherImages.isNotEmpty
+                      ? Image.memory(_otherImages[index].bytes, fit: BoxFit.contain)
                       : Image.network(
                           _existingImageUrls[index + 1],
                           fit: BoxFit.contain,

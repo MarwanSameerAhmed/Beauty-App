@@ -5,12 +5,15 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:test_pro/controller/Auth_Service.dart';
 import 'package:test_pro/model/userAccount.dart';
+import 'package:test_pro/view/admin_view/create_invoice_page.dart';
 import 'package:test_pro/view/auth_Ui/loginUi.dart';
 import 'package:test_pro/view/admin_view/manage_ads_screen.dart';
 import 'package:test_pro/view/admin_view/manage_categories_screen.dart';
 import 'package:test_pro/view/admin_view/manage_companies_screen.dart';
 import 'package:test_pro/view/admin_view/manage_products_screen.dart';
 import 'package:test_pro/view/admin_view/manage_carousel_ads_screen.dart';
+import 'package:test_pro/view/admin_view/company_settings_page.dart';
+import 'package:test_pro/view/admin_view/ads_layout_manager.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/elegant_dialog.dart';
 
@@ -71,8 +74,8 @@ class _DashboardUiState extends State<DashboardUi> {
                         _buildModernDashboardCard(
                           context,
                           icon: Ionicons.business_outline,
-                          title: 'إدارة الشركات',
-                          subtitle: 'إضافة، تعديل، وحذف الشركات',
+                          title: 'الماركات',
+                          subtitle: 'إضافة، تعديل، وحذف الماركات',
                           delay: const Duration(milliseconds: 200),
                           cardType: 'company',
                         ),
@@ -98,7 +101,7 @@ class _DashboardUiState extends State<DashboardUi> {
                         _buildModernDashboardCard(
                           context,
                           icon: Ionicons.megaphone_outline,
-                          title: 'إدارة الإعلانات',
+                          title: 'البانر المتحرك',
                           subtitle: 'إنشاء وتعديل الإعلانات',
                           delay: const Duration(milliseconds: 500),
                           cardType: 'ad',
@@ -107,10 +110,37 @@ class _DashboardUiState extends State<DashboardUi> {
                         _buildModernDashboardCard(
                           context,
                           icon: Ionicons.images_outline,
-                          title: 'إدارة إعلانات الكاروسيل',
+                          title: 'البانر المتحرك',
                           subtitle: 'تغيير صور الكاروسيل في الرئيسية',
                           delay: const Duration(milliseconds: 600),
                           cardType: 'carousel_ad',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildModernDashboardCard(
+                          context,
+                          icon: Ionicons.receipt_outline,
+                          title: 'إنشاء فاتورة',
+                          subtitle: 'اختيار منتجات وتسعيرها وإرسال فاتورة',
+                          delay: const Duration(milliseconds: 700),
+                          cardType: 'invoice',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildModernDashboardCard(
+                          context,
+                          icon: Ionicons.grid_outline,
+                          title: 'إدارة مواضع الإعلانات',
+                          subtitle: 'تحكم في ترتيب وإخفاء الإعلانات والبانرات',
+                          delay: const Duration(milliseconds: 750),
+                          cardType: 'ads_layout',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildModernDashboardCard(
+                          context,
+                          icon: Ionicons.settings_outline,
+                          title: 'إعدادات الشركة',
+                          subtitle: 'تحديث رقم الهاتف ومعلومات الشركة',
+                          delay: const Duration(milliseconds: 800),
+                          cardType: 'settings',
                         ),
                       ],
                     ),
@@ -200,6 +230,15 @@ class _DashboardUiState extends State<DashboardUi> {
         break;
       case 'carousel_ad':
         page = ManageCarouselAdsScreen();
+        break;
+      case 'invoice':
+        page = const CreateInvoicePage();
+        break;
+      case 'ads_layout':
+        page = const AdsLayoutManager();
+        break;
+      case 'settings':
+        page = const CompanySettingsPage();
         break;
       default:
         return;

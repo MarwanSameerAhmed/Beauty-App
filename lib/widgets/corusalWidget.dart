@@ -42,7 +42,17 @@ class _ProductCarouselState extends State<ProductCarousel> {
           return const SizedBox.shrink(); // Don't show if no ads
         }
 
-        final ads = snapshot.data!;
+        // فلترة البانرات الظاهرة فقط وترتيبها
+        final visibleCarouselAds = snapshot.data!
+            .where((ad) => ad.isVisible)
+            .toList()
+          ..sort((a, b) => a.order.compareTo(b.order));
+
+        if (visibleCarouselAds.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final ads = visibleCarouselAds;
 
         return Column(
           children: [

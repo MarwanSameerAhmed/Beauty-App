@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CLIENT_ID</key>
+	<string>677899943891-3brjn65v46vplgat2u5f9g19f1shhsf4.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.677899943891-3brjn65v46vplgat2u5f9g19f1shhsf4</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>677899943891-n47g27l0i2onikaca1aos9q56l95jg7t.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyD14UjDNACNNl6kG4Qq-MwA-1advmR0BDY</string>
 	<key>GCM_SENDER_ID</key>
@@ -9,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.testPro</string>
+	<string>com.glamify.beautyapp</string>
 	<key>PROJECT_ID</key>
 	<string>beauty-app-84d57</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:677899943891:ios:36dd9c5d7232bca534b926</string>
+	<string>1:677899943891:ios:cbf0d57927d2dd8f34b926</string>
 </dict>
 </plist>

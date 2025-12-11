@@ -7,13 +7,24 @@ class LocalNotificationService {
       FlutterLocalNotificationsPlugin();
 
   static void initialize() {
-    // Initialization settings for Android
+    // Initialization settings for Android and iOS
     const InitializationSettings initializationSettings = InitializationSettings(
       android: AndroidInitializationSettings("@drawable/ic_notification"),
-      iOS: DarwinInitializationSettings(),
+      iOS: DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+        requestCriticalPermission: false,
+      ),
     );
 
-    _notificationsPlugin.initialize(initializationSettings);
+    _notificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Handle notification tap
+        print('Notification tapped: ${response.payload}');
+      },
+    );
   }
 
   static void display(RemoteMessage message) async {
@@ -30,7 +41,13 @@ class LocalNotificationService {
           icon: "@drawable/ic_notification", // Custom notification icon
           color: Color(0xFF52002C), // Brand color
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          sound: 'default',
+          badgeNumber: 1,
+        ),
       );
 
       await _notificationsPlugin.show(
