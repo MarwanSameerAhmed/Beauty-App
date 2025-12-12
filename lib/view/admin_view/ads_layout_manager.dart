@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:test_pro/model/ad.dart';
 import 'package:test_pro/model/carousel_ad.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
+import 'package:test_pro/model/ads_section_settings.dart';
+import 'package:test_pro/controller/ads_section_settings_service.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
 
 class AdsLayoutManager extends StatefulWidget {
@@ -18,6 +20,8 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
   late TabController _tabController;
   List<Ad> _ads = [];
   List<CarouselAd> _carouselAds = [];
+  List<AdsSectionSettings> _sections = [];
+  final AdsSectionSettingsService _sectionService = AdsSectionSettingsService();
   bool _isLoading = true;
 
   @override
@@ -36,6 +40,9 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
   Future<void> _loadAds() async {
     setState(() => _isLoading = true);
     try {
+      // جلب الأقسام أولاً
+      await _loadSections();
+      
       // جلب الإعلانات الثابتة
       final adsSnapshot = await FirebaseFirestore.instance
           .collection('ads')
@@ -45,8 +52,20 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
           .map((doc) => Ad.fromMap({...doc.data(), 'id': doc.id}))
           .toList();
       
-      // ترتيب الإعلانات حسب order (الافتراضي 0)
-      _ads.sort((a, b) => a.order.compareTo(b.order));
+      // ترتيب الإعلانات حسب القسم ثم حسب order
+      _ads.sort((a, b) {
+        // أولاً ترتيب حسب القسم
+        final sectionA = _sections.firstWhere((s) => s.id == a.sectionId, 
+            orElse: () => _sections.first);
+        final sectionB = _sections.firstWhere((s) => s.id == b.sectionId, 
+            orElse: () => _sections.first);
+        
+        final sectionComparison = sectionA.order.compareTo(sectionB.order);
+        if (sectionComparison != 0) return sectionComparison;
+        
+        // ثم ترتيب حسب order داخل القسم
+        return a.order.compareTo(b.order);
+      });
       
       print('🔍 Loaded ${_ads.length} ads');
 
@@ -71,6 +90,27 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
     }
   }
 
+  Future<void> _loadSections() async {
+    try {
+      final sectionsSnapshot = await FirebaseFirestore.instance
+          .collection('ads_section_settings')
+          .orderBy('order')
+          .get();
+      
+      _sections = sectionsSnapshot.docs
+          .map((doc) => AdsSectionSettings.fromMap({...doc.data(), 'id': doc.id}))
+          .toList();
+      
+      // إذا لم توجد أقسام، إنشاء الأقسام الافتراضية
+      if (_sections.isEmpty) {
+        await _sectionService.initializeDefaultSections();
+        await _loadSections(); // إعادة تحميل بعد الإنشاء
+      }
+    } catch (e) {
+      print('Error loading sections: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -86,29 +126,93 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
                   subtitle: 'تحكم في ترتيب وإخفاء الإعلانات والبانرات',
                 ),
                 
-                // التبويبات
+                // التبويبات المحسنة
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicator: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: const Color(0xFF52002C),
-                    ),
-                    labelColor: Colors.white,
-                    unselectedLabelColor: const Color(0xFF52002C),
-                    labelStyle: const TextStyle(
-                      fontFamily: 'Tajawal',
-                      fontWeight: FontWeight.bold,
-                    ),
-                    tabs: const [
-                      Tab(text: 'الإعلانات الثابتة'),
-                      Tab(text: 'البانر المتحرك'),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
                     ],
+                    border: Border.all(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: TabBar(
+                        controller: _tabController,
+                        indicator: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF52002C),
+                              Color(0xFF7A0039),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF52002C).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        labelColor: Colors.white,
+                        unselectedLabelColor: const Color(0xFF52002C),
+                        labelStyle: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        dividerColor: Colors.transparent,
+                        tabs: [
+                          Tab(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.view_module_outlined,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text('الإعلانات الثابتة'),
+                              ],
+                            ),
+                          ),
+                          Tab(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.slideshow_outlined,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text('البانر المتحرك'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
 
@@ -156,7 +260,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'اسحب الإعلانات لإعادة ترتيبها، واستخدم المفاتيح لإخفائها أو إظهارها',
+                    'الإعلانات منظمة حسب الأقسام. يمكنك سحب الإعلانات داخل كل قسم أو نقلها بين الأقسام',
                     style: TextStyle(
                       fontFamily: 'Tajawal',
                       color: Colors.blue,
@@ -168,7 +272,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
             ),
           ),
 
-          // قائمة الإعلانات القابلة للسحب
+          // عرض الإعلانات حسب الأقسام
           Expanded(
             child: _ads.isEmpty
                 ? const Center(
@@ -201,16 +305,438 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
                       ],
                     ),
                   )
-                : ReorderableListView.builder(
-                    itemCount: _ads.length,
-                    onReorder: (oldIndex, newIndex) => _reorderStaticAds(oldIndex, newIndex),
-                    itemBuilder: (context, index) {
-                      final ad = _ads[index];
-                      return _buildAdCard(ad, index);
-                    },
-                  ),
+                : _buildSectionizedAdsView(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSectionizedAdsView() {
+    return ListView.builder(
+      itemCount: _sections.length,
+      itemBuilder: (context, sectionIndex) {
+        final section = _sections[sectionIndex];
+        final sectionAds = _ads.where((ad) => ad.sectionId == section.id).toList();
+        
+        return Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.white.withOpacity(0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // عنوان القسم
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF52002C).withOpacity(0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _getSectionIcon(section.position),
+                      color: const Color(0xFF52002C),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        section.title,
+                        style: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF52002C),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF52002C),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${sectionAds.length}',
+                        style: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // إعلانات القسم
+              if (sectionAds.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(30),
+                  child: const Center(
+                    child: Text(
+                      'لا توجد إعلانات في هذا القسم',
+                      style: TextStyle(
+                        fontFamily: 'Tajawal',
+                        color: Colors.grey,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: sectionAds.length,
+                  onReorder: (oldIndex, newIndex) => _reorderAdsInSection(section.id, oldIndex, newIndex),
+                  itemBuilder: (context, index) {
+                    final ad = sectionAds[index];
+                    return _buildSectionAdCard(ad, section, index);
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  IconData _getSectionIcon(String position) {
+    switch (position) {
+      case 'top':
+        return Icons.keyboard_arrow_up;
+      case 'bottom':
+        return Icons.keyboard_arrow_down;
+      default:
+        return Icons.remove;
+    }
+  }
+
+  void _reorderAdsInSection(String sectionId, int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex--;
+      
+      // الحصول على إعلانات القسم
+      final sectionAds = _ads.where((ad) => ad.sectionId == sectionId).toList();
+      
+      if (oldIndex < sectionAds.length && newIndex < sectionAds.length) {
+        // إعادة ترتيب الإعلانات داخل القسم
+        final movedAd = sectionAds.removeAt(oldIndex);
+        sectionAds.insert(newIndex, movedAd);
+        
+        // تحديث order للإعلانات في القسم
+        for (int i = 0; i < sectionAds.length; i++) {
+          sectionAds[i] = sectionAds[i].copyWith(order: i);
+        }
+        
+        // تحديث القائمة الرئيسية
+        _ads.removeWhere((ad) => ad.sectionId == sectionId);
+        _ads.addAll(sectionAds);
+        
+        // إعادة ترتيب القائمة الرئيسية
+        _sortAds();
+      }
+    });
+    
+    // حفظ التغييرات في قاعدة البيانات
+    _saveAdsOrder();
+  }
+
+  Widget _buildSectionAdCard(Ad ad, AdsSectionSettings section, int index) {
+    return Card(
+      key: ValueKey(ad.id),
+      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(15),
+            leading: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  ad.imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                    );
+                  },
+                ),
+              ),
+            ),
+            title: Text(
+              ad.companyName,
+              style: const TextStyle(
+                fontFamily: 'Tajawal',
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 5),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: ad.shapeType == 'rectangle' ? Colors.blue : Colors.green,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        ad.shapeType == 'rectangle' ? 'مستطيل' : 'مربع',
+                        style: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                    
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'الترتيب: ${index + 1}',
+                          style: TextStyle(
+                            fontFamily: 'Tajawal',
+                            color: Colors.grey.shade700,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // زر إخفاء/إظهار الإعلان
+                IconButton(
+                  onPressed: () => _toggleAdVisibility(ad),
+                  icon: Icon(
+                    ad.isVisible ? Icons.visibility : Icons.visibility_off,
+                    color: ad.isVisible ? const Color(0xFF52002C) : Colors.grey,
+                  ),
+                  tooltip: ad.isVisible ? 'إخفاء الإعلان' : 'إظهار الإعلان',
+                ),
+                // زر نقل إلى قسم آخر
+                IconButton(
+                  onPressed: () => _showMoveSectionDialog(ad),
+                  icon: const Icon(Icons.swap_horiz, color: Color(0xFF52002C)),
+                  tooltip: 'نقل إلى قسم آخر',
+                ),
+                // أيقونة السحب
+                const Icon(
+                  Icons.drag_handle,
+                  color: Color(0xFF52002C),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMoveSectionDialog(Ad ad) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'نقل الإعلان إلى قسم آخر',
+            style: TextStyle(fontFamily: 'Tajawal'),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _sections.map((section) {
+              final isCurrentSection = section.id == ad.sectionId;
+              return ListTile(
+                leading: Icon(
+                  _getSectionIcon(section.position),
+                  color: isCurrentSection ? Colors.grey : const Color(0xFF52002C),
+                ),
+                title: Text(
+                  section.title,
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    color: isCurrentSection ? Colors.grey : Colors.black,
+                  ),
+                ),
+                subtitle: Text(
+                  isCurrentSection ? 'القسم الحالي' : 'انقر للنقل',
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                enabled: !isCurrentSection,
+                onTap: isCurrentSection ? null : () {
+                  _moveAdToSection(ad, section.id);
+                  Navigator.of(context).pop();
+                },
+              );
+            }).toList(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'إلغاء',
+                style: TextStyle(fontFamily: 'Tajawal'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _moveAdToSection(Ad ad, String newSectionId) {
+    setState(() {
+      // تحديث sectionId للإعلان
+      final updatedAd = ad.copyWith(sectionId: newSectionId);
+      
+      // استبدال الإعلان في القائمة
+      final index = _ads.indexWhere((a) => a.id == ad.id);
+      if (index != -1) {
+        _ads[index] = updatedAd;
+      }
+      
+      // إعادة ترتيب القائمة
+      _sortAds();
+    });
+    
+    // حفظ التغييرات في قاعدة البيانات
+    _saveAdSection(ad.id, newSectionId);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم نقل الإعلان بنجاح'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _sortAds() {
+    _ads.sort((a, b) {
+      // أولاً ترتيب حسب القسم
+      final sectionA = _sections.firstWhere((s) => s.id == a.sectionId, 
+          orElse: () => _sections.first);
+      final sectionB = _sections.firstWhere((s) => s.id == b.sectionId, 
+          orElse: () => _sections.first);
+      
+      final sectionComparison = sectionA.order.compareTo(sectionB.order);
+      if (sectionComparison != 0) return sectionComparison;
+      
+      // ثم ترتيب حسب order داخل القسم
+      return a.order.compareTo(b.order);
+    });
+  }
+
+  Future<void> _saveAdsOrder() async {
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      
+      for (final ad in _ads) {
+        final docRef = FirebaseFirestore.instance.collection('ads').doc(ad.id);
+        batch.update(docRef, {'order': ad.order});
+      }
+      
+      await batch.commit();
+    } catch (e) {
+      print('Error saving ads order: $e');
+    }
+  }
+
+  Future<void> _saveAdSection(String adId, String sectionId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('ads')
+          .doc(adId)
+          .update({'sectionId': sectionId});
+    } catch (e) {
+      print('Error saving ad section: $e');
+    }
+  }
+
+  void _toggleAdVisibility(Ad ad) {
+    final newVisibility = !ad.isVisible;
+    
+    setState(() {
+      final index = _ads.indexWhere((a) => a.id == ad.id);
+      if (index != -1) {
+        _ads[index] = ad.copyWith(isVisible: newVisibility);
+      }
+    });
+    
+    // حفظ التغيير في قاعدة البيانات
+    FirebaseFirestore.instance
+        .collection('ads')
+        .doc(ad.id)
+        .update({'isVisible': newVisibility});
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(newVisibility ? 'تم إظهار الإعلان' : 'تم إخفاء الإعلان'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _toggleCarouselAdVisibility(String carouselAdId, bool isVisible) {
+    setState(() {
+      final index = _carouselAds.indexWhere((ad) => ad.id == carouselAdId);
+      if (index != -1) {
+        _carouselAds[index] = _carouselAds[index].copyWith(isVisible: isVisible);
+      }
+    });
+    
+    // حفظ التغيير في قاعدة البيانات
+    FirebaseFirestore.instance
+        .collection('carousel_ads')
+        .doc(carouselAdId)
+        .update({'isVisible': isVisible});
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(isVisible ? 'تم إظهار البانر' : 'تم إخفاء البانر'),
+        backgroundColor: Colors.green,
       ),
     );
   }
@@ -294,102 +820,6 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
     );
   }
 
-  Widget _buildAdCard(Ad ad, int index) {
-    return Card(
-      key: ValueKey(ad.id),
-      margin: const EdgeInsets.only(bottom: 10),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: ad.isVisible 
-                  ? Colors.white.withOpacity(0.9)
-                  : Colors.grey.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Row(
-              children: [
-                // صورة الإعلان
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    image: DecorationImage(
-                      image: NetworkImage(ad.imageUrl),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(width: 15),
-                
-                // معلومات الإعلان
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ad.companyName,
-                        style: const TextStyle(
-                          fontFamily: 'Tajawal',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        'الموضع: ${_getPositionText(ad.position)}',
-                        style: TextStyle(
-                          fontFamily: 'Tajawal',
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // أدوات التحكم
-                Column(
-                  children: [
-                    // مفتاح الإخفاء/الإظهار
-                    Switch(
-                      value: ad.isVisible,
-                      onChanged: (value) => _toggleAdVisibility(ad.id, value),
-                      activeColor: const Color(0xFF52002C),
-                    ),
-                    
-                    // قائمة اختيار الموضع
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.location_on, color: Color(0xFF52002C)),
-                      onSelected: (position) => _changeAdPosition(ad.id, position),
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'top', child: Text('أعلى')),
-                        const PopupMenuItem(value: 'middle', child: Text('وسط')),
-                        const PopupMenuItem(value: 'bottom', child: Text('أسفل')),
-                      ],
-                    ),
-                  ],
-                ),
-                
-                // أيقونة السحب
-                const Icon(
-                  Icons.drag_handle,
-                  color: Color(0xFF52002C),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildCarouselAdCard(CarouselAd carouselAd, int index) {
     return Card(
@@ -483,14 +913,6 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
     }
   }
 
-  void _reorderStaticAds(int oldIndex, int newIndex) {
-    setState(() {
-      if (newIndex > oldIndex) newIndex--;
-      final ad = _ads.removeAt(oldIndex);
-      _ads.insert(newIndex, ad);
-    });
-    _updateAdsOrder();
-  }
 
   void _reorderCarouselAds(int oldIndex, int newIndex) {
     setState(() {
@@ -555,81 +977,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
     }
   }
 
-  Future<void> _toggleAdVisibility(String adId, bool isVisible) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('ads')
-          .doc(adId)
-          .update({'isVisible': isVisible});
-      
-      setState(() {
-        final index = _ads.indexWhere((ad) => ad.id == adId);
-        if (index != -1) {
-          _ads[index] = Ad(
-            id: _ads[index].id,
-            imageUrl: _ads[index].imageUrl,
-            shapeType: _ads[index].shapeType,
-            companyId: _ads[index].companyId,
-            companyName: _ads[index].companyName,
-            order: _ads[index].order,
-            isVisible: isVisible,
-            position: _ads[index].position,
-          );
-        }
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isVisible ? 'تم إظهار الإعلان' : 'تم إخفاء الإعلان'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطأ في تحديث الإعلان: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 
-  Future<void> _toggleCarouselAdVisibility(String adId, bool isVisible) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('carousel_ads')
-          .doc(adId)
-          .update({'isVisible': isVisible});
-      
-      setState(() {
-        final index = _carouselAds.indexWhere((ad) => ad.id == adId);
-        if (index != -1) {
-          _carouselAds[index] = CarouselAd(
-            id: _carouselAds[index].id,
-            imageUrl: _carouselAds[index].imageUrl,
-            companyId: _carouselAds[index].companyId,
-            companyName: _carouselAds[index].companyName,
-            order: _carouselAds[index].order,
-            isVisible: isVisible,
-          );
-        }
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isVisible ? 'تم إظهار البانر' : 'تم إخفاء البانر'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطأ في تحديث البانر: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 
   Future<void> _changeAdPosition(String adId, String position) async {
     try {

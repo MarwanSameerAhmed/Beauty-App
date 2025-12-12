@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:test_pro/controller/ads_service.dart';
 import 'package:test_pro/controller/company_service.dart';
+import 'package:test_pro/controller/ads_section_settings_service.dart';
 import 'package:test_pro/model/ad.dart';
+import 'package:test_pro/model/ads_section_settings.dart';
 import 'package:test_pro/controller/image_service.dart';
 import 'package:test_pro/controller/universal_image_picker.dart';
 import 'package:test_pro/model/company.dart';
@@ -24,6 +26,7 @@ class AddAdForm extends StatefulWidget {
 class _AddAdFormState extends State<AddAdForm> {
   final AdsService _adsService = AdsService();
   final CompanyService _companyService = CompanyService();
+  final AdsSectionSettingsService _sectionService = AdsSectionSettingsService();
   
   bool get _isEditing => widget.ad != null;
 
@@ -33,16 +36,50 @@ class _AddAdFormState extends State<AddAdForm> {
   bool _isLoading = false;
   List<Company> _companies = [];
   Company? _selectedCompany;
+  List<AdsSectionSettings> _sections = [];
+  AdsSectionSettings? _selectedSection;
 
   @override
   void initState() {
     super.initState();
     _fetchCompanies();
+    _fetchSections();
     if (_isEditing) {
       final ad = widget.ad!;
       _selectedShape = ad.shapeType;
       _existingImageUrl = ad.imageUrl;
+      // البحث عن القسم المحدد للإعلان
+      _findSelectedSection(ad.sectionId);
     }
+  }
+
+  Future<void> _fetchSections() async {
+    _sectionService.getSectionSettings().listen((sections) {
+      if (mounted) {
+        setState(() {
+          _sections = sections;
+          // إذا لم يكن هناك قسم محدد، اختر الأول
+          if (_selectedSection == null && _sections.isNotEmpty) {
+            _selectedSection = _sections.first;
+          }
+        });
+      }
+    });
+  }
+
+  void _findSelectedSection(String sectionId) {
+    // سيتم تحديد القسم عند جلب الأقسام
+    Future.delayed(const Duration(milliseconds: 500), () {
+      final section = _sections.firstWhere(
+        (s) => s.id == sectionId,
+        orElse: () => _sections.isNotEmpty ? _sections.first : AdsSectionSettings.getDefaultSettings().first,
+      );
+      if (mounted) {
+        setState(() {
+          _selectedSection = section;
+        });
+      }
+    });
   }
 
   Future<void> _fetchCompanies() async {
@@ -172,6 +209,7 @@ class _AddAdFormState extends State<AddAdForm> {
             imageUrl: imageUrl,
             companyId: _selectedCompany!.id,
             companyName: _selectedCompany!.name,
+            sectionId: _selectedSection?.id ?? 'middle_section',
           );
           await _adsService.addAd(newAd);
         }
@@ -286,6 +324,8 @@ class _AddAdFormState extends State<AddAdForm> {
                                 const SizedBox(height: 24),
                                 _buildCompanyDropdown(),
                                 const SizedBox(height: 24),
+                                _buildSectionDropdown(),
+                                const SizedBox(height: 24),
                                 _buildImagePickerSection(),
                                 const SizedBox(height: 32),
                                 if (_isLoading)
@@ -393,6 +433,58 @@ class _AddAdFormState extends State<AddAdForm> {
               setState(() {
                 _selectedShape = value;
                 _selectedImages.clear(); // Clear images when shape changes
+              });
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(15.0),
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<AdsSectionSettings>(
+          value: _selectedSection,
+          isExpanded: true,
+          dropdownColor: const Color(0xFFC15C5C).withOpacity(0.9),
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+          hint: const Text(
+            'اختر القسم',
+            style: TextStyle(
+              fontFamily: 'Tajawal',
+              color: Colors.black54,
+            ),
+          ),
+          style: const TextStyle(
+            color: Colors.white,
+            fontFamily: 'Tajawal',
+            fontSize: 16,
+          ),
+          items: _sections
+              .map(
+                (section) => DropdownMenuItem(
+                  value: section,
+                  child: Text(
+                    section.title,
+                    style: const TextStyle(
+                      fontFamily: 'Tajawal',
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _selectedSection = value;
               });
             }
           },

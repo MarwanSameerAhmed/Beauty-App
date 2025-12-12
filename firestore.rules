@@ -67,5 +67,17 @@ service cloud.firestore {
       // Allow read and write for all authenticated users
       allow read, write: if request.auth != null;
     }
+
+    // Ads section settings collection
+    match /ads_section_settings/{sectionId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Product section items collection
+    match /product_section_items/{itemId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
   }
 }

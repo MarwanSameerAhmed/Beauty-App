@@ -2,6 +2,7 @@ import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:test_pro/controller/carousel_ad_service.dart';
 import 'package:test_pro/model/carousel_ad.dart';
+import 'package:test_pro/widgets/ad_loading_skeleton.dart';
 import 'package:test_pro/widgets/loader.dart';
 import 'package:test_pro/view/company_products_page.dart';
 import 'dart:ui';
@@ -112,46 +113,14 @@ class _ProductCarouselState extends State<ProductCarousel> {
                           ),
                           child: Stack(
                             children: [
-                              // الصورة الرئيسية
+                              // الصورة الرئيسية مع مؤشر التحميل الأنيق
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(18),
-                                child: Image.network(
-                                  ad.imageUrl,
-                                  fit: BoxFit.cover,
+                                child: AdImageWithLoading(
+                                  imageUrl: ad.imageUrl,
                                   width: double.infinity,
                                   height: double.infinity,
-                                  loadingBuilder:
-                                      (
-                                        BuildContext context,
-                                        Widget child,
-                                        ImageChunkEvent? loadingProgress,
-                                      ) {
-                                        if (loadingProgress == null)
-                                          return child;
-                                        return const Center(child: Loader());
-                                      },
-                                  errorBuilder:
-                                      (
-                                        BuildContext context,
-                                        Object exception,
-                                        StackTrace? stackTrace,
-                                      ) {
-                                        return Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.withOpacity(0.3),
-                                            borderRadius: BorderRadius.circular(
-                                              18,
-                                            ),
-                                          ),
-                                          child: const Center(
-                                            child: Icon(
-                                              Icons.error_outline,
-                                              color: Colors.grey,
-                                              size: 40,
-                                            ),
-                                          ),
-                                        );
-                                      },
+                                  isRectangle: true,
                                 ),
                               ),
 

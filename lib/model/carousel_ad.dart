@@ -36,4 +36,22 @@ class CarouselAd {
       'isVisible': isVisible,
     };
   }
+
+  CarouselAd copyWith({
+    String? id,
+    String? imageUrl,
+    String? companyId,
+    String? companyName,
+    int? order,
+    bool? isVisible,
+  }) {
+    return CarouselAd(
+      id: id ?? this.id,
+      imageUrl: imageUrl ?? this.imageUrl,
+      companyId: companyId ?? this.companyId,
+      companyName: companyName ?? this.companyName,
+      order: order ?? this.order,
+      isVisible: isVisible ?? this.isVisible,
+    );
+  }
 }

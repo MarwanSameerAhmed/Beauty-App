@@ -7,6 +7,7 @@ class Ad {
   final int order; // ترتيب العرض
   final bool isVisible; // مخفي أم ظاهر
   final String position; // 'top', 'middle', 'bottom'
+  final String sectionId; // معرف القسم الذي ينتمي إليه الإعلان
 
   Ad({
     required this.id,
@@ -17,6 +18,7 @@ class Ad {
     this.order = 0,
     this.isVisible = true,
     this.position = 'middle',
+    this.sectionId = 'middle_section', // القيمة الافتراضية
   });
 
   factory Ad.fromMap(Map<String, dynamic> data) {
@@ -29,19 +31,42 @@ class Ad {
       order: data['order'] ?? 0,
       isVisible: data['isVisible'] ?? true,
       position: data['position'] ?? 'middle',
+      sectionId: data['sectionId'] ?? 'middle_section',
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'imageUrl': imageUrl,
       'shapeType': shapeType,
+      'imageUrl': imageUrl,
       'companyId': companyId,
       'companyName': companyName,
       'order': order,
       'isVisible': isVisible,
-      'position': position,
+      'sectionId': sectionId,
     };
+  }
+
+  Ad copyWith({
+    String? id,
+    String? shapeType,
+    String? imageUrl,
+    String? companyId,
+    String? companyName,
+    int? order,
+    bool? isVisible,
+    String? sectionId,
+  }) {
+    return Ad(
+      id: id ?? this.id,
+      shapeType: shapeType ?? this.shapeType,
+      imageUrl: imageUrl ?? this.imageUrl,
+      companyId: companyId ?? this.companyId,
+      companyName: companyName ?? this.companyName,
+      order: order ?? this.order,
+      isVisible: isVisible ?? this.isVisible,
+      position: this.position,
+      sectionId: sectionId ?? this.sectionId,
+    );
   }
 }

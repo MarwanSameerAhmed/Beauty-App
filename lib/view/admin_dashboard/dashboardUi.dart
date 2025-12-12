@@ -14,6 +14,7 @@ import 'package:test_pro/view/admin_view/manage_products_screen.dart';
 import 'package:test_pro/view/admin_view/manage_carousel_ads_screen.dart';
 import 'package:test_pro/view/admin_view/company_settings_page.dart';
 import 'package:test_pro/view/admin_view/ads_layout_manager.dart';
+import 'package:test_pro/view/admin_view/ads_sections_manager.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/elegant_dialog.dart';
 
@@ -136,6 +137,15 @@ class _DashboardUiState extends State<DashboardUi> {
                         const SizedBox(height: 20),
                         _buildModernDashboardCard(
                           context,
+                          icon: Ionicons.bookmark_outline,
+                          title: 'إدارة أقسام الإعلانات',
+                          subtitle: 'تخصيص أسماء الأقسام وترتيبها في الصفحة الرئيسية',
+                          delay: const Duration(milliseconds: 775),
+                          cardType: 'ads_sections',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildModernDashboardCard(
+                          context,
                           icon: Ionicons.settings_outline,
                           title: 'إعدادات الشركة',
                           subtitle: 'تحديث رقم الهاتف ومعلومات الشركة',
@@ -236,6 +246,9 @@ class _DashboardUiState extends State<DashboardUi> {
         break;
       case 'ads_layout':
         page = const AdsLayoutManager();
+        break;
+      case 'ads_sections':
+        page = const AdsSectionsManager();
         break;
       case 'settings':
         page = const CompanySettingsPage();

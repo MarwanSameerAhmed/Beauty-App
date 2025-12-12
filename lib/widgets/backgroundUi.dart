@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class FlowerBackground extends StatelessWidget {
   final Widget child;
@@ -7,6 +8,17 @@ class FlowerBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // تخصيص شريط الحالة ليتطابق مع خلفية التطبيق
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Color.fromARGB(255, 249, 237, 237), // نفس لون الخلفية
+        statusBarIconBrightness: Brightness.dark, // أيقونات داكنة للخلفية الفاتحة
+        statusBarBrightness: Brightness.light, // للـ iOS
+        systemNavigationBarColor: Color.fromARGB(255, 249, 237, 237), // شريط التنقل السفلي
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
+
     return SafeArea(
       child: Container(
         color: const Color.fromARGB(255, 249, 237, 237),

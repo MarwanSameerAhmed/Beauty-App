@@ -78,5 +78,13 @@
 		<!-- Notification Settings -->
 		<key>NSUserNotificationAlertStyle</key>
 		<string>alert</string>
+		
+		<!-- Status Bar Configuration -->
+		<key>UIStatusBarHidden</key>
+		<false/>
+		<key>UIViewControllerBasedStatusBarAppearance</key>
+		<false/>
+		<key>UIStatusBarStyle</key>
+		<string>UIStatusBarStyleDefault</string>
 	</dict>
 </plist>

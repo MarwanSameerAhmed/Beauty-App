@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_pro/controller/cart_service.dart';
@@ -23,6 +24,18 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // تخصيص شريط الحالة للتطبيق بالكامل
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Color.fromARGB(255, 249, 237, 237), // لون خلفية التطبيق
+      statusBarIconBrightness: Brightness.dark, // أيقونات داكنة
+      statusBarBrightness: Brightness.light, // للـ iOS
+      systemNavigationBarColor: Color.fromARGB(255, 249, 237, 237),
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
+  
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Request notification permissions

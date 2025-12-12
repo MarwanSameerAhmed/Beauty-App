@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:test_pro/controller/cart_service.dart';
 import 'package:test_pro/widgets/SearchBar.dart';
 import 'package:test_pro/widgets/SectionTitle.dart';
 import 'package:test_pro/widgets/loader.dart';
-import 'package:test_pro/widgets/SectionTitleNonSliver.dart';
+import 'package:test_pro/widgets/sectionTitleNonSliver.dart';
+import 'package:test_pro/widgets/ad_loading_skeleton.dart';
+import 'package:test_pro/controller/ads_section_settings_service.dart';
+import 'package:test_pro/model/ads_section_settings.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/corusalWidget.dart';
 import 'package:test_pro/widgets/infoWidget.dart';
@@ -32,11 +36,19 @@ class _HomescreenuiState extends State<Homescreenui> {
   String _imagePath = "images/0c7640ce594d7f983547e32f01ede503.jpg";
   final ProductService _productService = ProductService();
   final AdsService _adsService = AdsService();
-  late Stream<List<Ad>> _adsStream;
+  Stream<List<Ad>>? _adsStream;
+  final AdsSectionSettingsService _sectionSettingsService = AdsSectionSettingsService();
 
   @override
   void initState() {
     super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // إنشاء الأقسام الافتراضية إذا لم تكن موجودة
+    await _sectionSettingsService.initializeDefaultSections();
+    
     _loadUserData();
     _adsStream = _adsService.getAds();
   }
@@ -108,10 +120,8 @@ class _HomescreenuiState extends State<Homescreenui> {
 
               const SliverToBoxAdapter(child: SizedBox(height: 10)),
 
-              const Sectiontitle(Title: 'الأكثر مبيعاً'),
-
-              // Products Section
-              _buildProductsSection(),
+              // Product Sections
+              _buildProductSections(),
 
               // Add padding for the translucent bottom navigation bar
               const SliverToBoxAdapter(child: SizedBox(height: 85.0)),
@@ -124,7 +134,7 @@ class _HomescreenuiState extends State<Homescreenui> {
 
   Widget _buildAdsSection() {
     return StreamBuilder<List<Ad>>(
-      stream: _adsStream,
+      stream: _adsStream ?? const Stream.empty(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -150,181 +160,301 @@ class _HomescreenuiState extends State<Homescreenui> {
           return const SizedBox.shrink();
         }
 
-        final List<Widget> adWidgets = [];
+        return _buildAdsWithPositions(visibleAds);
+      },
+    );
+  }
 
-        // تقسيم الإعلانات حسب النوع والموضع
-        final rectangleAds = visibleAds
-            .where((ad) => ad.shapeType == 'rectangle')
-            .toList();
-        final squareAds = visibleAds
-            .where((ad) => ad.shapeType == 'square')
-            .toList();
-
-        // Build rectangle ads
-        for (var ad in rectangleAds) {
-          adWidgets.add(
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CompanyProductsPage(
-                      companyId: ad.companyId,
-                      companyName: ad.companyName,
-                    ),
-                  ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8.0,
-                  horizontal: 16.0,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.network(
-                    ad.imageUrl,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: 180,
-                  ),
-                ),
-              ),
-            ),
-          );
+  Widget _buildAdsWithPositions(List<Ad> visibleAds) {
+    return StreamBuilder<List<AdsSectionSettings>>(
+      stream: AdsSectionSettingsService().getSectionSettings(),
+      builder: (context, settingsSnapshot) {
+        if (settingsSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        if (!settingsSnapshot.hasData || settingsSnapshot.data!.isEmpty) {
+          return _buildDefaultAdsLayout(visibleAds);
         }
 
-        // Build square ads in a Wrap
-        if (squareAds.isNotEmpty) {
-          adWidgets.add(
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
-              ),
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: squareAds.map((ad) {
-                  final screenWidth = MediaQuery.of(context).size.width;
-                  final itemWidth = (screenWidth - 16 * 2 - 10) / 2;
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CompanyProductsPage(
-                            companyId: ad.companyId,
-                            companyName: ad.companyName,
-                          ),
-                        ),
-                      );
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Image.network(
-                        ad.imageUrl,
-                        fit: BoxFit.cover,
-                        width: itemWidth,
-                        height: itemWidth,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          );
+        final sectionSettings = settingsSnapshot.data!
+            .where((section) => section.isVisible)
+            .toList()
+          ..sort((a, b) => a.order.compareTo(b.order));
+
+        final List<Widget> allAdWidgets = [];
+
+        for (var section in sectionSettings) {
+          final sectionAds = visibleAds
+              .where((ad) => ad.sectionId == section.id)
+              .toList();
+
+          if (sectionAds.isNotEmpty) {
+            allAdWidgets.add(
+              SectionTitleNonSliver(title: section.title),
+            );
+            allAdWidgets.addAll(_buildAdsSectionWidgets(sectionAds));
+          }
         }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (adWidgets.isNotEmpty) ...[
-              // عنوان ديناميكي حسب نوع الإعلانات
-              SectionTitleNonSliver(
-                title: _getAdsSectionTitle(visibleAds),
+          children: allAdWidgets,
+        );
+      },
+    );
+  }
+
+  Widget _buildDefaultAdsLayout(List<Ad> visibleAds) {
+    // تقسيم الإعلانات حسب المواضع (النظام الافتراضي)
+    final topAds = visibleAds.where((ad) => ad.position == 'top').toList();
+    final middleAds = visibleAds.where((ad) => ad.position == 'middle').toList();
+    final bottomAds = visibleAds.where((ad) => ad.position == 'bottom').toList();
+
+    final List<Widget> allAdWidgets = [];
+
+    // إعلانات الأعلى
+    if (topAds.isNotEmpty) {
+      allAdWidgets.add(
+        const SectionTitleNonSliver(title: 'عروض مميزة'),
+      );
+      allAdWidgets.addAll(_buildAdsSectionWidgets(topAds));
+    }
+
+    // إعلانات الوسط
+    if (middleAds.isNotEmpty) {
+      allAdWidgets.add(
+        const SectionTitleNonSliver(title: 'عروض خاصة'),
+      );
+      allAdWidgets.addAll(_buildAdsSectionWidgets(middleAds));
+    }
+
+    // إعلانات الأسفل
+    if (bottomAds.isNotEmpty) {
+      allAdWidgets.add(
+        const SectionTitleNonSliver(title: 'عروض إضافية'),
+      );
+      allAdWidgets.addAll(_buildAdsSectionWidgets(bottomAds));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: allAdWidgets,
+    );
+  }
+
+  List<Widget> _buildAdsSectionWidgets(List<Ad> ads) {
+    final List<Widget> adWidgets = [];
+    
+    // تقسيم الإعلانات حسب النوع
+    final rectangleAds = ads.where((ad) => ad.shapeType == 'rectangle').toList();
+    final squareAds = ads.where((ad) => ad.shapeType == 'square').toList();
+
+    // بناء الإعلانات المستطيلة
+    for (var ad in rectangleAds) {
+      adWidgets.add(_buildRectangleAd(ad));
+    }
+
+    // بناء الإعلانات المربعة (في مجموعات من اثنين)
+    if (squareAds.isNotEmpty) {
+      adWidgets.add(_buildSquareAdsGrid(squareAds));
+    }
+
+    return adWidgets;
+  }
+
+  Widget _buildRectangleAd(Ad ad) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 8.0,
+        horizontal: 16.0,
+      ),
+      child: AdImageWithLoading(
+        imageUrl: ad.imageUrl,
+        width: double.infinity,
+        height: 180,
+        isRectangle: true,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CompanyProductsPage(
+                companyId: ad.companyId,
+                companyName: ad.companyName,
               ),
-            ],
-            ...adWidgets,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSquareAdsGrid(List<Ad> squareAds) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 8.0,
+      ),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: squareAds.map((ad) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          final itemWidth = (screenWidth - 16 * 2 - 10) / 2;
+          return AdImageWithLoading(
+            imageUrl: ad.imageUrl,
+            width: itemWidth,
+            height: itemWidth,
+            isRectangle: false,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CompanyProductsPage(
+                    companyId: ad.companyId,
+                    companyName: ad.companyName,
+                  ),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildProductSections() {
+    return FutureBuilder<List<AdsSectionSettings>>(
+      future: FirebaseFirestore.instance
+          .collection('ads_section_settings')
+          .where('type', isEqualTo: 'products')
+          .where('isVisible', isEqualTo: true)
+          .get()
+          .then((snapshot) {
+            final sections = snapshot.docs.map((doc) {
+              final data = doc.data();
+              return AdsSectionSettings(
+                id: doc.id,
+                title: data['title'] ?? '',
+                position: data['position'] ?? 'middle',
+                order: data['order'] ?? 0,
+                isVisible: data['isVisible'] ?? true,
+                type: data['type'] ?? 'products',
+                maxItems: data['maxItems'] ?? 6,
+                description: data['description'],
+              );
+            }).toList();
+            sections.sort((a, b) => a.order.compareTo(b.order));
+            return sections;
+          }),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SliverToBoxAdapter(
+            child: Center(child: Loader()),
+          );
+        }
+        
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SliverToBoxAdapter(
+            child: SizedBox.shrink(),
+          );
+        }
+
+        final productSections = snapshot.data!;
+
+        return SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final section = productSections[index];
+              return _buildProductSection(section.title, section.maxItems);
+            },
+            childCount: productSections.length,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProductSection(String title, int maxItems) {
+    return StreamBuilder<List<Product>>(
+      stream: _productService.getProducts(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(padding: EdgeInsets.all(20.0), child: Loader()),
+          );
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('لا توجد منتجات حالياً'));
+        }
+
+        final products = snapshot.data!.take(maxItems).toList();
+
+        return Column(
+          children: [
+            // عنوان القسم
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: "Tajawal",
+                    fontSize: 22,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black26,
+                        blurRadius: 30,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            // المنتجات في عرض أفقي
+            SizedBox(
+              height: 250,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                reverse: true,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                itemCount: products.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final product = products[index];
+                  return SizedBox(
+                    width: 180,
+                    child: ProductCard(
+                      product: product,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailsPage(product: product),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         );
       },
     );
   }
 
-  String _getAdsSectionTitle(List<Ad> ads) {
-    // تحديد العنوان حسب مواضع الإعلانات
-    final hasTopAds = ads.any((ad) => ad.position == 'top');
-    final hasMiddleAds = ads.any((ad) => ad.position == 'middle');
-    final hasBottomAds = ads.any((ad) => ad.position == 'bottom');
-    
-    if (hasTopAds && hasMiddleAds && hasBottomAds) {
-      return 'عروض وإعلانات';
-    } else if (hasTopAds) {
-      return 'عروض مميزة';
-    } else if (hasBottomAds) {
-      return 'عروض إضافية';
-    } else {
-      return 'عروض خاصة';
-    }
-  }
 
-  Widget _buildProductsSection() {
-    return StreamBuilder<List<Product>>(
-      stream: _productService.getProducts(), // Assuming this gets best sellers
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SliverToBoxAdapter(
-            child: Center(
-              child: Padding(padding: EdgeInsets.all(20.0), child: Loader()),
-            ),
-          );
-        }
-        if (snapshot.hasError) {
-          return SliverToBoxAdapter(
-            child: Center(child: Text('حدث خطأ: ${snapshot.error}')),
-          );
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: Center(child: Text('لا توجد منتجات حالياً')),
-          );
-        }
-
-        final products = snapshot.data!;
-
-        return SliverToBoxAdapter(
-          child: SizedBox(
-            height: 240.0,
-            child: ListView.separated(
-              reverse: true,
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              itemCount: products.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return ProductCard(
-                  width: 200.0,
-                  height: 230.0,
-                  product: product,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ProductDetailsPage(product: product),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
 }
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
