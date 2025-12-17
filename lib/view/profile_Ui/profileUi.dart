@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_pro/view/admin_view/manage_ads_screen.dart';
-import 'package:test_pro/view/auth_Ui/loginUi.dart';
+import 'package:test_pro/view/auth_Ui/login_ui.dart';
 import 'package:test_pro/view/profile_Ui/account_settings_page.dart';
 import 'package:test_pro/view/profile_Ui/help_and_support_page.dart';
 import 'package:test_pro/view/profile_Ui/privacy_policy_page.dart';

@@ -6,7 +6,7 @@ import 'package:test_pro/controller/Auth_Service.dart';
 import 'package:test_pro/view/bottomNavUi.dart';
 import 'package:test_pro/view/admin_dashboard/admin_bottom_nav_ui.dart';
 import 'package:test_pro/widgets/ElegantToast.dart';
-import 'package:test_pro/view/auth_Ui/signupUi.dart';
+import 'package:test_pro/view/auth_Ui/signup_ui.dart';
 import 'package:test_pro/widgets/FormFields.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/buttonsWidgets.dart';
@@ -359,11 +359,11 @@ class _LoginUiState extends State<LoginUi> {
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: Colors.white, width: 1),
         ),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(FontAwesome.google, color: Colors.black87, size: 22),
-            const SizedBox(width: 12),
+            Icon(FontAwesome.google, color: Colors.black87, size: 22),
+            SizedBox(width: 12),
             Flexible(
               child: Text(
                 'سجل الدخول باستخدام ',
@@ -460,7 +460,7 @@ class _LoginUiState extends State<LoginUi> {
             border: Border.all(color: Colors.white, width: 1),
           ),
           child: _isGuestLoading
-              ? const SizedBox(height: 24, width: 24, child: Loader())
+              ? const SizedBox(height: 40, width: 40, child: Loader())
               : const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

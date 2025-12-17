@@ -5,7 +5,6 @@ import 'package:test_pro/model/ad.dart';
 import 'package:test_pro/model/carousel_ad.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/model/ads_section_settings.dart';
-import 'package:test_pro/controller/ads_section_settings_service.dart';
 import 'package:test_pro/widgets/custom_admin_header.dart';
 
 class AdsLayoutManager extends StatefulWidget {
@@ -21,7 +20,6 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
   List<Ad> _ads = [];
   List<CarouselAd> _carouselAds = [];
   List<AdsSectionSettings> _sections = [];
-  final AdsSectionSettingsService _sectionService = AdsSectionSettingsService();
   bool _isLoading = true;
 
   @override
@@ -97,15 +95,14 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
           .orderBy('order')
           .get();
       
+      // فلترة أقسام الإعلانات فقط محلياً
       _sections = sectionsSnapshot.docs
           .map((doc) => AdsSectionSettings.fromMap({...doc.data(), 'id': doc.id}))
+          .where((section) => section.type == 'ads')  // فلترة محلية
           .toList();
       
-      // إذا لم توجد أقسام، إنشاء الأقسام الافتراضية
-      if (_sections.isEmpty) {
-        await _sectionService.initializeDefaultSections();
-        await _loadSections(); // إعادة تحميل بعد الإنشاء
-      }
+      // تم تعطيل إنشاء الأقسام الافتراضية التلقائي
+      // يمكن للأدمن إضافة الأقسام يدوياً من صفحة إدارة الأقسام
     } catch (e) {
       print('Error loading sections: $e');
     }
@@ -183,7 +180,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
                         ),
                         indicatorSize: TabBarIndicatorSize.tab,
                         dividerColor: Colors.transparent,
-                        tabs: [
+                        tabs: const [
                           Tab(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -192,8 +189,8 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
                                   Icons.view_module_outlined,
                                   size: 18,
                                 ),
-                                const SizedBox(width: 8),
-                                const Text('الإعلانات الثابتة'),
+                                SizedBox(width: 8),
+                                Text('الإعلانات الثابتة'),
                               ],
                             ),
                           ),
@@ -205,8 +202,8 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
                                   Icons.slideshow_outlined,
                                   size: 18,
                                 ),
-                                const SizedBox(width: 8),
-                                const Text('البانر المتحرك'),
+                                SizedBox(width: 8),
+                                Text('البانر المتحرك'),
                               ],
                             ),
                           ),
@@ -902,16 +899,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
     );
   }
 
-  String _getPositionText(String position) {
-    switch (position) {
-      case 'top':
-        return 'أعلى الصفحة';
-      case 'bottom':
-        return 'أسفل الصفحة';
-      default:
-        return 'وسط الصفحة';
-    }
-  }
+ 
 
 
   void _reorderCarouselAds(int oldIndex, int newIndex) {
@@ -923,32 +911,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
     _updateCarouselAdsOrder();
   }
 
-  Future<void> _updateAdsOrder() async {
-    try {
-      final batch = FirebaseFirestore.instance.batch();
-      
-      for (int i = 0; i < _ads.length; i++) {
-        final docRef = FirebaseFirestore.instance.collection('ads').doc(_ads[i].id);
-        batch.update(docRef, {'order': i});
-      }
-      
-      await batch.commit();
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تحديث ترتيب الإعلانات بنجاح'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطأ في تحديث الترتيب: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+ 
 
   Future<void> _updateCarouselAdsOrder() async {
     try {
@@ -979,42 +942,4 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
 
 
 
-  Future<void> _changeAdPosition(String adId, String position) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('ads')
-          .doc(adId)
-          .update({'position': position});
-      
-      setState(() {
-        final index = _ads.indexWhere((ad) => ad.id == adId);
-        if (index != -1) {
-          _ads[index] = Ad(
-            id: _ads[index].id,
-            imageUrl: _ads[index].imageUrl,
-            shapeType: _ads[index].shapeType,
-            companyId: _ads[index].companyId,
-            companyName: _ads[index].companyName,
-            order: _ads[index].order,
-            isVisible: _ads[index].isVisible,
-            position: position,
-          );
-        }
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم تغيير موضع الإعلان إلى ${_getPositionText(position)}'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطأ في تحديث الموضع: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
-  }
-}

@@ -152,8 +152,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       });
 
       // Send notification to the user
+      bool notificationSent = false;
+      String? notificationError;
+      
       try {
         final String userId = widget.order['userId'];
+        print('📤 Attempting to send notification to user: $userId');
+        
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
@@ -161,6 +166,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
         if (userDoc.exists && userDoc.data()!.containsKey('fcmToken')) {
           final String userToken = userDoc.data()!['fcmToken'];
+          print('📱 User FCM Token found: ${userToken.substring(0, 20)}...');
+          
           if (userToken.isNotEmpty) {
             await NotificationService.sendNotification(
               token: userToken,
@@ -171,23 +178,50 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   ? 'وافق المسؤول على الأسعار. يمكنك الآن تأكيد طلبك عبر واتساب.'
                   : 'قام المسؤول بتحديث أسعار طلبك. اضغط للمشاهدة.',
             );
+            notificationSent = true;
+            print('✅ Notification sent successfully');
+          } else {
+            notificationError = 'FCM Token فارغ';
+            print('⚠️ User FCM Token is empty');
           }
+        } else {
+          notificationError = 'المستخدم ليس لديه FCM Token';
+          print('⚠️ User document does not have fcmToken field');
         }
       } catch (e) {
-        print('Failed to send notification: $e');
+        notificationError = e.toString();
+        print('❌ Failed to send notification: $e');
       }
 
       if (!mounted) return;
-      Navigator.pop(context); // Dismiss loading indicator
+      Navigator.pop(context); 
+
+      // Show appropriate message based on notification status
+      String message;
+      Color backgroundColor;
+      
+      if (notificationSent) {
+        message = isFinalApproval
+            ? 'تمت الموافقة النهائية وتم إرسال الإشعار للعميل!'
+            : 'تم حفظ الأسعار وإرسال الإشعار للعميل!';
+        backgroundColor = Colors.green;
+      } else if (notificationError != null) {
+        message = isFinalApproval
+            ? 'تمت الموافقة لكن فشل إرسال الإشعار: $notificationError'
+            : 'تم حفظ الأسعار لكن فشل إرسال الإشعار: $notificationError';
+        backgroundColor = Colors.orange;
+      } else {
+        message = isFinalApproval
+            ? 'تمت الموافقة النهائية على الطلب!'
+            : 'تم حفظ الأسعار بنجاح!';
+        backgroundColor = Colors.green;
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            isFinalApproval
-                ? 'تمت الموافقة النهائية على الطلب!'
-                : 'تم حفظ الأسعار بنجاح!',
-          ),
-          backgroundColor: Colors.green,
+          content: Text(message),
+          backgroundColor: backgroundColor,
+          duration: const Duration(seconds: 4),
         ),
       );
 

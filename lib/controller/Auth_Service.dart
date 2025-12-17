@@ -191,7 +191,7 @@ class AuthService {
     }
   }
 
-  Future<void> _saveDeviceToken(String uid) async {
+  static Future<void> _saveDeviceToken(String uid) async {
     try {
       // Skip FCM token for web as it requires different setup
       if (kIsWeb) {
@@ -201,13 +201,21 @@ class AuthService {
       
       String? fcmToken = await FirebaseMessaging.instance.getToken();
       if (fcmToken != null) {
-        await _firestore.collection('users').doc(uid).update({
+        print('💾 Saving FCM Token for user: $uid');
+        print('📱 Token: ${fcmToken.substring(0, 20)}...');
+        
+        // Use set with merge to create or update the document
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'fcmToken': fcmToken,
-        });
+          'lastTokenUpdate': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        
+        print('✅ FCM Token saved successfully');
+      } else {
+        print('⚠️ FCM Token is null, skipping save');
       }
     } catch (e) {
-      print('Error saving device token: $e');
-      
+      print('❌ Error saving device token: $e');
     }
   }
 

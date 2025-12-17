@@ -6,7 +6,24 @@ class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  static void initialize() {
+  static Future<void> initialize() async {
+    // Create notification channel for Android 8.0+
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'beauty_app_channel', // Channel ID
+      'Beauty App Channel', // Channel Name
+      description: 'This is our channel for notifications',
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+      showBadge: true,
+    );
+
+    // Create the channel on the device
+    await _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
     // Initialization settings for Android and iOS
     const InitializationSettings initializationSettings = InitializationSettings(
       android: AndroidInitializationSettings("@drawable/ic_notification"),
@@ -18,7 +35,7 @@ class LocalNotificationService {
       ),
     );
 
-    _notificationsPlugin.initialize(
+    await _notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         // Handle notification tap

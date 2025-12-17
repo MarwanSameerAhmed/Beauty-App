@@ -37,7 +37,6 @@ class _HomescreenuiState extends State<Homescreenui> {
   final ProductService _productService = ProductService();
   final AdsService _adsService = AdsService();
   Stream<List<Ad>>? _adsStream;
-  final AdsSectionSettingsService _sectionSettingsService = AdsSectionSettingsService();
 
   @override
   void initState() {
@@ -46,8 +45,8 @@ class _HomescreenuiState extends State<Homescreenui> {
   }
 
   Future<void> _initializeApp() async {
-    // إنشاء الأقسام الافتراضية إذا لم تكن موجودة
-    await _sectionSettingsService.initializeDefaultSections();
+    // تم تعطيل إنشاء الأقسام الافتراضية التلقائي
+    // الأقسام تُدار من صفحة إدارة الأقسام فقط
     
     _loadUserData();
     _adsStream = _adsService.getAds();

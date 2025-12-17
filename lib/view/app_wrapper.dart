@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_pro/controller/remote_config_service.dart';
 import 'package:test_pro/view/admin_dashboard/admin_bottom_nav_ui.dart';
 import 'package:test_pro/view/bottomNavUi.dart';
-import 'package:test_pro/view/auth_Ui/loginUi.dart';
+import 'package:test_pro/view/auth_Ui/login_ui.dart';
 import 'package:test_pro/view/onboardingUi.dart';
 import 'package:test_pro/view/maintenance_page.dart';
 

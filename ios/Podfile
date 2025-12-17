@@ -48,12 +48,26 @@ post_install do |installer|
       # Disable bitcode for all targets
       config.build_settings['ENABLE_BITCODE'] = 'NO'
       
-      # Fix for Xcode 15 compatibility
+      # Fix for Xcode 15+ compatibility
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
         '$(inherited)',
         'PERMISSION_CAMERA=1',
         'PERMISSION_PHOTOS=1',
+        'PERMISSION_NOTIFICATIONS=1',
       ]
+      
+      # Fix for iOS 17+ and Xcode 15+
+      config.build_settings['DEAD_CODE_STRIPPING'] = 'YES'
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+      
+      # Fix for Firebase and Google Sign-In
+      config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
+      
+      # Fix for Swift version
+      config.build_settings['SWIFT_VERSION'] = '5.0'
+      
+      # Fix for module stability
+      config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
     end
   end
 end

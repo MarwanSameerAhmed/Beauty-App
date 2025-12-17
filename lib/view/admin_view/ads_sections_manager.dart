@@ -39,8 +39,8 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
   }
 
   Future<void> _initializeSections() async {
-    // إنشاء الأقسام الافتراضية إذا لم تكن موجودة
-    await _settingsService.initializeDefaultSections();
+    // تم تعطيل إنشاء الأقسام الافتراضية التلقائي
+    // الأدمن يضيف الأقسام يدوياً من هذه الصفحة
     _loadSections();
   }
 
@@ -127,7 +127,7 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
                         ),
                         indicatorSize: TabBarIndicatorSize.tab,
                         dividerColor: Colors.transparent,
-                        tabs: [
+                        tabs: const [
                           Tab(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -136,8 +136,8 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
                                   Icons.campaign_outlined,
                                   size: 18,
                                 ),
-                                const SizedBox(width: 8),
-                                const Text('أقسام الإعلانات'),
+                                SizedBox(width: 8),
+                                Text('أقسام الإعلانات'),
                               ],
                             ),
                           ),
@@ -149,8 +149,8 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
                                   Icons.inventory_2_outlined,
                                   size: 18,
                                 ),
-                                const SizedBox(width: 8),
-                                const Text('أقسام المنتجات'),
+                                SizedBox(width: 8),
+                                Text('أقسام المنتجات'),
                               ],
                             ),
                           ),
@@ -1170,385 +1170,20 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
       ),
     );
   }
-
-
-  void _resetToDefaults() async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'إعادة تعيين للافتراضي',
-            style: TextStyle(fontFamily: 'Tajawal'),
-          ),
-          content: const Text(
-            'هل أنت متأكد من إعادة تعيين جميع الأقسام للإعدادات الافتراضية؟ سيتم حذف جميع الأقسام المخصصة.',
-            style: TextStyle(fontFamily: 'Tajawal'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontFamily: 'Tajawal'),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  await _settingsService.initializeDefaultSections();
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم إعادة تعيين الأقسام بنجاح'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('خطأ في إعادة التعيين: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-              ),
-              child: const Text(
-                'إعادة تعيين',
-                style: TextStyle(
-                  fontFamily: 'Tajawal',
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _toggleSectionVisibility1(String sectionId, bool isVisible) {
-    _settingsService.updateSectionVisibility(sectionId, isVisible);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(isVisible ? 'تم إظهار القسم' : 'تم إخفاء القسم'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _showEditDialog1(AdsSectionSettings section) {
-    final titleController = TextEditingController(text: section.title);
-    String selectedPosition = section.position;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text(
-                'تعديل القسم',
-                style: TextStyle(fontFamily: 'Tajawal'),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'اسم القسم',
-                      labelStyle: TextStyle(fontFamily: 'Tajawal'),
-                      border: OutlineInputBorder(),
-                    ),
-                    style: const TextStyle(fontFamily: 'Tajawal'),
-                  ),
-                  const SizedBox(height: 15),
-                  DropdownButtonFormField<String>(
-                    value: selectedPosition,
-                    decoration: const InputDecoration(
-                      labelText: 'موضع القسم',
-                      labelStyle: TextStyle(fontFamily: 'Tajawal'),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'top', child: Text('أعلى الصفحة')),
-                      DropdownMenuItem(value: 'middle', child: Text('وسط الصفحة')),
-                      DropdownMenuItem(value: 'bottom', child: Text('أسفل الصفحة')),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedPosition = value!;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'إلغاء',
-                    style: TextStyle(fontFamily: 'Tajawal'),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _updateSection(section, titleController.text, selectedPosition);
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    'حفظ',
-                    style: TextStyle(fontFamily: 'Tajawal'),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _updateSection(AdsSectionSettings section, String newTitle, String newPosition) {
-    final updatedSection = section.copyWith(
-      title: newTitle,
-      position: newPosition,
-    );
-    
-    _settingsService.updateSectionSettings(updatedSection);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم تحديث القسم بنجاح'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _showAddSectionDialog1() {
-    final titleController = TextEditingController();
-    String selectedPosition = 'middle';
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text(
-                'إضافة قسم جديد',
-                style: TextStyle(fontFamily: 'Tajawal'),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'اسم القسم',
-                      labelStyle: TextStyle(fontFamily: 'Tajawal'),
-                      border: OutlineInputBorder(),
-                    ),
-                    style: const TextStyle(fontFamily: 'Tajawal'),
-                  ),
-                  const SizedBox(height: 15),
-                  DropdownButtonFormField<String>(
-                    value: selectedPosition,
-                    decoration: const InputDecoration(
-                      labelText: 'موضع القسم',
-                      labelStyle: TextStyle(fontFamily: 'Tajawal'),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'top', child: Text('أعلى الصفحة')),
-                      DropdownMenuItem(value: 'middle', child: Text('وسط الصفحة')),
-                      DropdownMenuItem(value: 'bottom', child: Text('أسفل الصفحة')),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedPosition = value!;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'إلغاء',
-                    style: TextStyle(fontFamily: 'Tajawal'),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (titleController.text.isNotEmpty) {
-                      _addNewSection(titleController.text, selectedPosition);
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: const Text(
-                    'إضافة',
-                    style: TextStyle(fontFamily: 'Tajawal'),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _addNewSection(String title, String position) {
-    final newSection = AdsSectionSettings.createNewSection(
-      title: title,
-      position: position,
-      order: _sections.length,
-    );
-    
-    _settingsService.addNewSection(newSection);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم إضافة القسم بنجاح'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  bool _isDefaultSection(String sectionId) {
-    return ['top_section', 'middle_section', 'bottom_section'].contains(sectionId);
-  }
-
-  void _showDeleteDialog(AdsSectionSettings section) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'حذف القسم',
-            style: TextStyle(fontFamily: 'Tajawal'),
-          ),
-          content: Text(
-            'هل أنت متأكد من حذف قسم "${section.title}"؟\nسيتم نقل جميع الإعلانات في هذا القسم إلى القسم الافتراضي.',
-            style: const TextStyle(fontFamily: 'Tajawal'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontFamily: 'Tajawal'),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _deleteSection(section);
-                Navigator.of(context).pop();
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text(
-                'حذف',
-                style: TextStyle(fontFamily: 'Tajawal', color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _deleteSection(AdsSectionSettings section) {
-    _settingsService.deleteSection(section.id);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('تم حذف قسم "${section.title}" بنجاح'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _resetToDefaults1() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'إعادة تعيين للافتراضي',
-            style: TextStyle(fontFamily: 'Tajawal'),
-          ),
-          content: const Text(
-            'هل أنت متأكد من إعادة تعيين جميع إعدادات الأقسام للقيم الافتراضية؟',
-            style: TextStyle(fontFamily: 'Tajawal'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontFamily: 'Tajawal'),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _settingsService.resetToDefaults();
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('تم إعادة تعيين الإعدادات بنجاح'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text(
-                'إعادة تعيين',
-                style: TextStyle(fontFamily: 'Tajawal', color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Color _getPositionColor(String position) {
-    switch (position) {
-      case 'top':
-        return Colors.green;
-      case 'bottom':
-        return Colors.blue;
-      default:
-        return const Color(0xFF52002C);
     }
-  }
 
-  IconData _getPositionIcon(String position) {
-    switch (position) {
-      case 'top':
-        return Icons.keyboard_arrow_up;
-      case 'bottom':
-        return Icons.keyboard_arrow_down;
-      default:
-        return Icons.remove;
-    }
-  }
 
-  String _getPositionText2(String position) {
-    switch (position) {
-      case 'top':
-        return 'أعلى الصفحة';
-      case 'bottom':
-        return 'أسفل الصفحة';
-      default:
-        return 'وسط الصفحة';
-    }
-  }
-}
+
+
+  
+
+ 
+
+ 
+
+ 
+
+ 
+ 
+
+

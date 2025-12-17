@@ -1,5 +1,7 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:ui';
@@ -38,8 +40,8 @@ Future<void> main() async {
   
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Request notification permissions
-  await FirebaseMessaging.instance.requestPermission(
+  // Request notification permissions with better handling
+  final NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
     alert: true,
     announcement: false,
     badge: true,
@@ -48,6 +50,19 @@ Future<void> main() async {
     provisional: false,
     sound: true,
   );
+
+  // Log permission status
+  print('🔔 Notification Permission Status: ${settings.authorizationStatus}');
+  
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    print('✅ User granted notification permissions');
+  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    print('⚠️ User granted provisional notification permissions');
+  } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
+    print('❌ User denied notification permissions');
+  } else {
+    print('⚠️ Notification permission status: ${settings.authorizationStatus}');
+  }
 
   if (kIsWeb) {
     await FirebaseAppCheck.instance.activate(
@@ -73,7 +88,7 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final bool onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
 
-  LocalNotificationService.initialize();
+  await LocalNotificationService.initialize();
 
   // Set up Firebase Messaging background handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -90,6 +105,36 @@ Future<void> main() async {
     print('Message clicked: ${message.messageId}');
     // Handle navigation based on message data
   });
+
+  // Listen for token refresh and update Firestore
+  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+    print('🔄 FCM Token refreshed: ${newToken.substring(0, 20)}...');
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && !user.isAnonymous) {
+        print('📝 Updating token in Firestore for user: ${user.uid}');
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'fcmToken': newToken,
+          'lastTokenUpdate': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        print('✅ Token updated successfully in Firestore');
+      } else {
+        print('⚠️ No authenticated user or anonymous user, skipping token update');
+      }
+    } catch (e) {
+      print('❌ Error updating token: $e');
+    }
+  });
+
+  // Handle notification tap when app was completely terminated
+  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (initialMessage != null) {
+    print('🚀 App opened from terminated state via notification');
+    print('📬 Message ID: ${initialMessage.messageId}');
+    print('📋 Data: ${initialMessage.data}');
+    // Handle navigation based on notification data
+    // You can store this message and handle it after app initialization
+  }
 
   await initializeDateFormatting('ar', null);
 

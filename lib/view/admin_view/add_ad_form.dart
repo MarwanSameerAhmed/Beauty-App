@@ -57,7 +57,8 @@ class _AddAdFormState extends State<AddAdForm> {
     _sectionService.getSectionSettings().listen((sections) {
       if (mounted) {
         setState(() {
-          _sections = sections;
+          // فلترة أقسام الإعلانات فقط
+          _sections = sections.where((section) => section.type == 'ads').toList();
           // إذا لم يكن هناك قسم محدد، اختر الأول
           if (_selectedSection == null && _sections.isNotEmpty) {
             _selectedSection = _sections.first;

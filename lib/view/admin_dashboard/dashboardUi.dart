@@ -6,7 +6,7 @@ import 'package:simple_animations/simple_animations.dart';
 import 'package:test_pro/controller/Auth_Service.dart';
 import 'package:test_pro/model/userAccount.dart';
 import 'package:test_pro/view/admin_view/create_invoice_page.dart';
-import 'package:test_pro/view/auth_Ui/loginUi.dart';
+import 'package:test_pro/view/auth_Ui/login_ui.dart';
 import 'package:test_pro/view/admin_view/manage_ads_screen.dart';
 import 'package:test_pro/view/admin_view/manage_categories_screen.dart';
 import 'package:test_pro/view/admin_view/manage_companies_screen.dart';
@@ -186,9 +186,9 @@ class _DashboardUiState extends State<DashboardUi> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'أهلاً بعودتك',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Tajawal',
                     fontSize: 20,
                     color: Colors.black54,

@@ -1,8 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:test_pro/model/ads_section_settings.dart';
-import 'package:test_pro/model/ad.dart';
-import 'package:test_pro/model/product_section_item.dart';
-import 'package:test_pro/model/product.dart';
 
 class AdsSectionSettingsService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -15,10 +12,10 @@ class AdsSectionSettingsService {
         .orderBy('order')
         .snapshots()
         .map((snapshot) {
+      // تم تعطيل إنشاء الأقسام الافتراضية التلقائي
+      // الأدمن يضيف الأقسام يدوياً من صفحة إدارة الأقسام
       if (snapshot.docs.isEmpty) {
-        // إذا لم توجد إعدادات، إنشاء الإعدادات الافتراضية
-        _createDefaultSettings();
-        return AdsSectionSettings.getDefaultSettings();
+        return <AdsSectionSettings>[];
       }
       
       return snapshot.docs

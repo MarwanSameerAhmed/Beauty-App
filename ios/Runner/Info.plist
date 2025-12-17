@@ -86,5 +86,33 @@
 		<false/>
 		<key>UIStatusBarStyle</key>
 		<string>UIStatusBarStyleDefault</string>
+		
+		<!-- Google Sign-In URL Scheme -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.677899943891-3brjn65v46vplgat2u5f9g19f1shhsf4</string>
+				</array>
+			</dict>
+		</array>
+		
+		<!-- External Apps Query Schemes -->
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>whatsapp</string>
+			<string>telprompt</string>
+			<string>tel</string>
+			<string>mailto</string>
+			<string>https</string>
+			<string>http</string>
+		</array>
+		
+		<!-- Notifications Permission -->
+		<key>NSUserNotificationsUsageDescription</key>
+		<string>يحتاج التطبيق للإشعارات لإعلامك بحالة طلباتك والعروض الجديدة</string>
 	</dict>
 </plist>
