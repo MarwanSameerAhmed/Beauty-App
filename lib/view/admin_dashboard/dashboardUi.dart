@@ -15,6 +15,7 @@ import 'package:test_pro/view/admin_view/manage_carousel_ads_screen.dart';
 import 'package:test_pro/view/admin_view/company_settings_page.dart';
 import 'package:test_pro/view/admin_view/ads_layout_manager.dart';
 import 'package:test_pro/view/admin_view/ads_sections_manager.dart';
+import 'package:test_pro/view/admin_view/home_layout_manager.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/elegant_dialog.dart';
 
@@ -128,6 +129,15 @@ class _DashboardUiState extends State<DashboardUi> {
                         const SizedBox(height: 20),
                         _buildModernDashboardCard(
                           context,
+                          icon: Ionicons.apps_outline,
+                          title: 'إدارة تخطيط الصفحة الرئيسية',
+                          subtitle: 'تحكم كامل في ترتيب الكاروسيل والإعلانات والمنتجات',
+                          delay: const Duration(milliseconds: 725),
+                          cardType: 'home_layout',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildModernDashboardCard(
+                          context,
                           icon: Ionicons.grid_outline,
                           title: 'إدارة مواضع الإعلانات',
                           subtitle: 'تحكم في ترتيب وإخفاء الإعلانات والبانرات',
@@ -138,8 +148,8 @@ class _DashboardUiState extends State<DashboardUi> {
                         _buildModernDashboardCard(
                           context,
                           icon: Ionicons.bookmark_outline,
-                          title: 'إدارة أقسام الإعلانات',
-                          subtitle: 'تخصيص أسماء الأقسام وترتيبها في الصفحة الرئيسية',
+                          title: 'إدارة الأقسام',
+                          subtitle: 'إضافة وتعديل أقسام الإعلانات والمنتجات',
                           delay: const Duration(milliseconds: 775),
                           cardType: 'ads_sections',
                         ),
@@ -243,6 +253,9 @@ class _DashboardUiState extends State<DashboardUi> {
         break;
       case 'invoice':
         page = const CreateInvoicePage();
+        break;
+      case 'home_layout':
+        page = const HomeLayoutManager();
         break;
       case 'ads_layout':
         page = const AdsLayoutManager();

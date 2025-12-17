@@ -4,11 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:test_pro/controller/cart_service.dart';
 import 'package:test_pro/widgets/SearchBar.dart';
-import 'package:test_pro/widgets/SectionTitle.dart';
 import 'package:test_pro/widgets/loader.dart';
-import 'package:test_pro/widgets/sectionTitleNonSliver.dart';
 import 'package:test_pro/widgets/ad_loading_skeleton.dart';
-import 'package:test_pro/controller/ads_section_settings_service.dart';
 import 'package:test_pro/model/ads_section_settings.dart';
 import 'package:test_pro/widgets/backgroundUi.dart';
 import 'package:test_pro/widgets/corusalWidget.dart';
@@ -109,18 +106,8 @@ class _HomescreenuiState extends State<Homescreenui> {
               // Search Bar and Search Icon
               const SliverToBoxAdapter(child: Searchbar()),
 
-              const Sectiontitle(Title: 'جديدنا'),
-
-              // Carousel Section
-              const SliverToBoxAdapter(child: ProductCarousel()),
-
-              // Ads Section
-              SliverToBoxAdapter(child: _buildAdsSection()),
-
-              const SliverToBoxAdapter(child: SizedBox(height: 10)),
-
-              // Product Sections
-              _buildProductSections(),
+              // Dynamic Layout - All Sections (Carousel, Ads, Products)
+              _buildDynamicLayout(),
 
               // Add padding for the translucent bottom navigation bar
               const SliverToBoxAdapter(child: SizedBox(height: 85.0)),
@@ -131,7 +118,183 @@ class _HomescreenuiState extends State<Homescreenui> {
     );
   }
 
+  Widget _buildDynamicLayout() {
+    return FutureBuilder<List<AdsSectionSettings>>(
+      future: FirebaseFirestore.instance
+          .collection('ads_section_settings')
+          .where('isVisible', isEqualTo: true)
+          .get()
+          .then((snapshot) {
+            final sections = snapshot.docs.map((doc) {
+              final data = doc.data();
+              return AdsSectionSettings(
+                id: doc.id,
+                title: data['title'] ?? '',
+                position: data['position'] ?? 'middle',
+                order: data['order'] ?? 0,
+                isVisible: data['isVisible'] ?? true,
+                type: data['type'] ?? 'ads',
+                maxItems: data['maxItems'] ?? 6,
+                description: data['description'],
+              );
+            }).toList();
+            sections.sort((a, b) => a.order.compareTo(b.order));
+            return sections;
+          }),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SliverToBoxAdapter(
+            child: Center(child: Loader()),
+          );
+        }
+        
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return _buildDefaultLayout();
+        }
+
+        final sections = snapshot.data!;
+
+        return SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final section = sections[index];
+              
+              // عرض العنصر حسب نوعه
+              if (section.isCarouselSection) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          section.title,
+                          style: const TextStyle(
+                            fontFamily: "Tajawal",
+                            fontSize: 22,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w900,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black26,
+                                blurRadius: 30,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const ProductCarousel(),
+                    const SizedBox(height: 10),
+                  ],
+                );
+              } else if (section.isAdsSection) {
+                return _buildAdsSectionWidget(section);
+              } else if (section.isProductsSection) {
+                return _buildProductSection(section.title, section.maxItems);
+              }
+              
+              return const SizedBox.shrink();
+            },
+            childCount: sections.length,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDefaultLayout() {
+    // التخطيط الافتراضي في حال عدم وجود أقسام
+    return SliverList(
+      delegate: SliverChildListDelegate([
+        const Padding(
+          padding: EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              'جديدنا',
+              style: TextStyle(
+                fontFamily: "Tajawal",
+                fontSize: 22,
+                color: Colors.black,
+                fontWeight: FontWeight.w900,
+                shadows: [
+                  Shadow(
+                    color: Colors.black26,
+                    blurRadius: 30,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const ProductCarousel(),
+        const SizedBox(height: 10),
+        _buildAdsSection(),
+        const SizedBox(height: 10),
+      ]),
+    );
+  }
+
+  Widget _buildAdsSectionWidget(AdsSectionSettings section) {
+    return StreamBuilder<List<Ad>>(
+      stream: _adsStream ?? const Stream.empty(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox.shrink();
+        }
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final ads = snapshot.data!;
+        final sectionAds = ads
+            .where((ad) => ad.sectionId == section.id && ad.isVisible)
+            .toList()
+          ..sort((a, b) => a.order.compareTo(b.order));
+
+        if (sectionAds.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  section.title,
+                  style: const TextStyle(
+                    fontFamily: "Tajawal",
+                    fontSize: 22,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black26,
+                        blurRadius: 30,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            ..._buildAdsSectionWidgets(sectionAds),
+            const SizedBox(height: 10),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildAdsSection() {
+    // دالة للتوافق مع التخطيط الافتراضي
     return StreamBuilder<List<Ad>>(
       stream: _adsStream ?? const Stream.empty(),
       builder: (context, snapshot) {
@@ -140,105 +303,23 @@ class _HomescreenuiState extends State<Homescreenui> {
             child: Padding(padding: EdgeInsets.all(8.0), child: Loader()),
           );
         }
-        if (snapshot.hasError) {
-          return const SizedBox.shrink();
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
           return const SizedBox.shrink();
         }
 
         final ads = snapshot.data!;
-        
-        // فلترة الإعلانات الظاهرة فقط وترتيبها
-        final visibleAds = ads
-            .where((ad) => ad.isVisible)
-            .toList()
+        final visibleAds = ads.where((ad) => ad.isVisible).toList()
           ..sort((a, b) => a.order.compareTo(b.order));
 
         if (visibleAds.isEmpty) {
           return const SizedBox.shrink();
         }
 
-        return _buildAdsWithPositions(visibleAds);
-      },
-    );
-  }
-
-  Widget _buildAdsWithPositions(List<Ad> visibleAds) {
-    return StreamBuilder<List<AdsSectionSettings>>(
-      stream: AdsSectionSettingsService().getSectionSettings(),
-      builder: (context, settingsSnapshot) {
-        if (settingsSnapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        
-        if (!settingsSnapshot.hasData || settingsSnapshot.data!.isEmpty) {
-          return _buildDefaultAdsLayout(visibleAds);
-        }
-
-        final sectionSettings = settingsSnapshot.data!
-            .where((section) => section.isVisible)
-            .toList()
-          ..sort((a, b) => a.order.compareTo(b.order));
-
-        final List<Widget> allAdWidgets = [];
-
-        for (var section in sectionSettings) {
-          final sectionAds = visibleAds
-              .where((ad) => ad.sectionId == section.id)
-              .toList();
-
-          if (sectionAds.isNotEmpty) {
-            allAdWidgets.add(
-              SectionTitleNonSliver(title: section.title),
-            );
-            allAdWidgets.addAll(_buildAdsSectionWidgets(sectionAds));
-          }
-        }
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: allAdWidgets,
+          children: _buildAdsSectionWidgets(visibleAds),
         );
       },
-    );
-  }
-
-  Widget _buildDefaultAdsLayout(List<Ad> visibleAds) {
-    // تقسيم الإعلانات حسب المواضع (النظام الافتراضي)
-    final topAds = visibleAds.where((ad) => ad.position == 'top').toList();
-    final middleAds = visibleAds.where((ad) => ad.position == 'middle').toList();
-    final bottomAds = visibleAds.where((ad) => ad.position == 'bottom').toList();
-
-    final List<Widget> allAdWidgets = [];
-
-    // إعلانات الأعلى
-    if (topAds.isNotEmpty) {
-      allAdWidgets.add(
-        const SectionTitleNonSliver(title: 'عروض مميزة'),
-      );
-      allAdWidgets.addAll(_buildAdsSectionWidgets(topAds));
-    }
-
-    // إعلانات الوسط
-    if (middleAds.isNotEmpty) {
-      allAdWidgets.add(
-        const SectionTitleNonSliver(title: 'عروض خاصة'),
-      );
-      allAdWidgets.addAll(_buildAdsSectionWidgets(middleAds));
-    }
-
-    // إعلانات الأسفل
-    if (bottomAds.isNotEmpty) {
-      allAdWidgets.add(
-        const SectionTitleNonSliver(title: 'عروض إضافية'),
-      );
-      allAdWidgets.addAll(_buildAdsSectionWidgets(bottomAds));
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: allAdWidgets,
     );
   }
 

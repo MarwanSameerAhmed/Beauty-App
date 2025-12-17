@@ -4,7 +4,7 @@ class AdsSectionSettings {
   final String title;
   final bool isVisible;
   final int order;
-  final String type; // 'ads' أو 'products'
+  final String type; // 'ads' أو 'products' أو 'carousel'
   final int maxItems; // عدد العناصر المعروضة
   final String? description; // وصف القسم (اختياري)
 
@@ -133,15 +133,36 @@ class AdsSectionSettings {
     );
   }
 
+  // إنشاء قسم كاروسيل
+  static AdsSectionSettings createCarouselSection({
+    required String title,
+    required int order,
+    String? description,
+  }) {
+    return AdsSectionSettings(
+      id: 'carousel_section',
+      position: 'top',
+      title: title,
+      isVisible: true,
+      order: order,
+      type: 'carousel',
+      maxItems: 1,
+      description: description,
+    );
+  }
+
   // التحقق من نوع القسم
   bool get isAdsSection => type == 'ads';
   bool get isProductsSection => type == 'products';
+  bool get isCarouselSection => type == 'carousel';
 
   // الحصول على أيقونة القسم
   String get sectionIcon {
     switch (type) {
       case 'products':
         return '🛍️';
+      case 'carousel':
+        return '🎠';
       case 'ads':
       default:
         return '📢';
@@ -153,6 +174,8 @@ class AdsSectionSettings {
     switch (type) {
       case 'products':
         return 'قسم منتجات';
+      case 'carousel':
+        return 'البانر المتحرك';
       case 'ads':
       default:
         return 'قسم إعلانات';
