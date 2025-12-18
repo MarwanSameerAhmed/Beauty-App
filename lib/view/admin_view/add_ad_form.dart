@@ -183,12 +183,24 @@ class _AddAdFormState extends State<AddAdForm> {
           }
           imageUrl = await _adsService.uploadImage(compressedImage);
         }
+        // التأكد من وجود sectionId صالح
+        String finalSectionId = _selectedSection?.id ?? 
+                                widget.ad!.sectionId;
+        
+        // إذا كان sectionId فارغاً، استخدم القيمة الافتراضية
+        if (finalSectionId.isEmpty) {
+          finalSectionId = _sections.isNotEmpty 
+              ? _sections.first.id 
+              : 'middle_section';
+        }
+        
         final ad = Ad(
           id: widget.ad!.id,
           shapeType: _selectedShape,
           imageUrl: imageUrl,
           companyId: _selectedCompany!.id,
           companyName: _selectedCompany!.name,
+          sectionId: finalSectionId,
         );
         await _adsService.updateAd(ad);
       } else {

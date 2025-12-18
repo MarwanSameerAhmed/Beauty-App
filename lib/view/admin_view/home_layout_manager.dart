@@ -239,73 +239,136 @@ class _HomeLayoutManagerState extends State<HomeLayoutManager> {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 4),
-                Text(
-                  section.typeDescription,
-                  style: TextStyle(
-                    fontFamily: 'Tajawal',
-                    fontSize: 14,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
+                    // نوع القسم - أكثر بروزاً
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: section.isVisible 
-                            ? Colors.green.withOpacity(0.2)
-                            : Colors.red.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        section.isVisible ? 'ظاهر' : 'مخفي',
-                        style: TextStyle(
-                          fontFamily: 'Tajawal',
-                          fontSize: 12,
-                          color: section.isVisible ? Colors.green.shade700 : Colors.red.shade700,
-                          fontWeight: FontWeight.bold,
+                        gradient: LinearGradient(
+                          colors: section.isCarouselSection 
+                              ? [Colors.purple.shade400, Colors.purple.shade600]
+                              : section.isAdsSection
+                                  ? [Colors.blue.shade400, Colors.blue.shade600]
+                                  : [Colors.orange.shade400, Colors.orange.shade600],
                         ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (section.isCarouselSection 
+                                ? Colors.purple 
+                                : section.isAdsSection 
+                                    ? Colors.blue 
+                                    : Colors.orange).withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            section.typeIcon,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            section.isCarouselSection 
+                                ? 'كاروسيل'
+                                : section.isAdsSection 
+                                    ? 'إعلانات'
+                                    : 'منتجات',
+                            style: const TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 13,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    // حالة الظهور
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: section.isVisible 
+                            ? Colors.green.withOpacity(0.15)
+                            : Colors.red.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: section.isVisible ? Colors.green : Colors.red,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            section.isVisible ? Icons.visibility : Icons.visibility_off,
+                            size: 14,
+                            color: section.isVisible ? Colors.green.shade700 : Colors.red.shade700,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            section.isVisible ? 'ظاهر' : 'مخفي',
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 12,
+                              color: section.isVisible ? Colors.green.shade700 : Colors.red.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // الترتيب
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: const Color(0xFF52002C).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'الترتيب: ${index + 1}',
-                        style: const TextStyle(
-                          fontFamily: 'Tajawal',
-                          fontSize: 12,
-                          color: Color(0xFF52002C),
-                          fontWeight: FontWeight.bold,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: const Color(0xFF52002C),
+                          width: 1.5,
                         ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.format_list_numbered,
+                            size: 14,
+                            color: Color(0xFF52002C),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${index + 1}',
+                            style: const TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 12,
+                              color: Color(0xFF52002C),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ],
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    section.isVisible ? Icons.visibility : Icons.visibility_off,
-                    color: section.isVisible ? Colors.green : Colors.grey,
-                  ),
-                  onPressed: () => _toggleVisibility(section),
-                ),
-                if (!section.isCarouselSection)
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _deleteSection(section),
-                  ),
-              ],
+            trailing: IconButton(
+              icon: Icon(
+                section.isVisible ? Icons.visibility : Icons.visibility_off,
+                color: section.isVisible ? Colors.green : Colors.grey,
+              ),
+              onPressed: () => _toggleVisibility(section),
             ),
           ),
         ),
@@ -348,62 +411,6 @@ class _HomeLayoutManagerState extends State<HomeLayoutManager> {
             backgroundColor: Colors.red,
           ),
         );
-      }
-    }
-  }
-
-  Future<void> _deleteSection(AdsSectionSettings section) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(
-          'تأكيد الحذف',
-          style: TextStyle(fontFamily: 'Tajawal'),
-        ),
-        content: Text(
-          'هل أنت متأكد من حذف "${section.title}"؟',
-          style: const TextStyle(fontFamily: 'Tajawal'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'إلغاء',
-              style: TextStyle(fontFamily: 'Tajawal'),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'حذف',
-              style: TextStyle(fontFamily: 'Tajawal', color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      try {
-        await _settingsService.deleteSection(section.id);
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم حذف القسم بنجاح'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('خطأ في حذف القسم: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
       }
     }
   }

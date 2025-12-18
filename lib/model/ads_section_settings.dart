@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class AdsSectionSettings {
   final String id;
   final String position; // 'top', 'middle', 'bottom'
@@ -166,6 +168,19 @@ class AdsSectionSettings {
       case 'ads':
       default:
         return '📢';
+    }
+  }
+
+  // الحصول على أيقونة نوع القسم
+  IconData get typeIcon {
+    switch (type) {
+      case 'products':
+        return Icons.shopping_bag;
+      case 'carousel':
+        return Icons.view_carousel;
+      case 'ads':
+      default:
+        return Icons.campaign;
     }
   }
 

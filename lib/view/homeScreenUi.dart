@@ -119,28 +119,11 @@ class _HomescreenuiState extends State<Homescreenui> {
   }
 
   Widget _buildDynamicLayout() {
-    return FutureBuilder<List<AdsSectionSettings>>(
-      future: FirebaseFirestore.instance
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
           .collection('ads_section_settings')
           .where('isVisible', isEqualTo: true)
-          .get()
-          .then((snapshot) {
-            final sections = snapshot.docs.map((doc) {
-              final data = doc.data();
-              return AdsSectionSettings(
-                id: doc.id,
-                title: data['title'] ?? '',
-                position: data['position'] ?? 'middle',
-                order: data['order'] ?? 0,
-                isVisible: data['isVisible'] ?? true,
-                type: data['type'] ?? 'ads',
-                maxItems: data['maxItems'] ?? 6,
-                description: data['description'],
-              );
-            }).toList();
-            sections.sort((a, b) => a.order.compareTo(b.order));
-            return sections;
-          }),
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SliverToBoxAdapter(
@@ -148,11 +131,29 @@ class _HomescreenuiState extends State<Homescreenui> {
           );
         }
         
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        if (snapshot.hasError) {
+          return _buildDefaultLayout();
+        }
+        
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return _buildDefaultLayout();
         }
 
-        final sections = snapshot.data!;
+        final sections = snapshot.data!.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return AdsSectionSettings(
+            id: doc.id,
+            title: data['title'] ?? '',
+            position: data['position'] ?? 'middle',
+            order: data['order'] ?? 0,
+            isVisible: data['isVisible'] ?? true,
+            type: data['type'] ?? 'ads',
+            maxItems: data['maxItems'] ?? 6,
+            description: data['description'],
+          );
+        }).toList();
+        
+        sections.sort((a, b) => a.order.compareTo(b.order));
 
         return SliverList(
           delegate: SliverChildBuilderDelegate(
@@ -241,12 +242,13 @@ class _HomescreenuiState extends State<Homescreenui> {
 
   Widget _buildAdsSectionWidget(AdsSectionSettings section) {
     return StreamBuilder<List<Ad>>(
-      stream: _adsStream ?? const Stream.empty(),
+      stream: _adsService.getAds(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();
         }
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+        
+        if (snapshot.hasError || !snapshot.hasData) {
           return const SizedBox.shrink();
         }
 
@@ -256,11 +258,62 @@ class _HomescreenuiState extends State<Homescreenui> {
             .toList()
           ..sort((a, b) => a.order.compareTo(b.order));
 
+        // عرض القسم حتى لو كان فارغاً (لأغراض التطوير والاختبار)
         if (sectionAds.isEmpty) {
-          return const SizedBox.shrink();
+          return Column(
+            key: ValueKey('empty_${section.id}'),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    section.title,
+                    style: const TextStyle(
+                      fontFamily: "Tajawal",
+                      fontSize: 22,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w900,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black26,
+                          blurRadius: 30,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: const Text(
+                    'لا توجد إعلانات في هذا القسم بعد',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Tajawal',
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          );
         }
 
         return Column(
+          key: ValueKey('section_${section.id}'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(

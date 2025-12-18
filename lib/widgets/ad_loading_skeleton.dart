@@ -174,7 +174,7 @@ class _AdImageWithLoadingState extends State<AdImageWithLoading>
   }
 
   void _onImageLoaded() {
-    if (!_imageLoaded) {
+    if (!_imageLoaded && mounted) {
       setState(() {
         _imageLoaded = true;
       });
