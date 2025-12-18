@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:test_pro/controller/notification_service.dart';
-import 'package:test_pro/services/pdf_invoice_service.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/loader.dart';
-import 'package:test_pro/widgets/elegant_dialog.dart';
+import 'package:glamify/controller/notification_service.dart';
+import 'package:glamify/services/pdf_invoice_service.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/loader.dart';
+import '../../utils/logger.dart';
+import 'package:glamify/widgets/elegant_dialog.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final DocumentSnapshot order;
@@ -157,7 +158,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       
       try {
         final String userId = widget.order['userId'];
-        print('📤 Attempting to send notification to user: $userId');
+        AppLogger.info('Attempting to send notification to user', tag: 'ORDER_DETAILS', data: {'userId': userId});
         
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
@@ -166,7 +167,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
         if (userDoc.exists && userDoc.data()!.containsKey('fcmToken')) {
           final String userToken = userDoc.data()!['fcmToken'];
-          print('📱 User FCM Token found: ${userToken.substring(0, 20)}...');
+          AppLogger.debug('User FCM Token found', tag: 'ORDER_DETAILS', data: {'tokenPrefix': userToken.substring(0, 20)});
           
           if (userToken.isNotEmpty) {
             await NotificationService.sendNotification(
@@ -179,18 +180,18 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   : 'قام المسؤول بتحديث أسعار طلبك. اضغط للمشاهدة.',
             );
             notificationSent = true;
-            print('✅ Notification sent successfully');
+            AppLogger.info('Notification sent successfully', tag: 'ORDER_DETAILS');
           } else {
             notificationError = 'FCM Token فارغ';
-            print('⚠️ User FCM Token is empty');
+            AppLogger.warning('User FCM Token is empty', tag: 'ORDER_DETAILS');
           }
         } else {
           notificationError = 'المستخدم ليس لديه FCM Token';
-          print('⚠️ User document does not have fcmToken field');
+          AppLogger.warning('User document does not have fcmToken field', tag: 'ORDER_DETAILS');
         }
       } catch (e) {
         notificationError = e.toString();
-        print('❌ Failed to send notification: $e');
+        AppLogger.error('Failed to send notification', tag: 'ORDER_DETAILS', error: e);
       }
 
       if (!mounted) return;
@@ -277,7 +278,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             customerEmail = userData['email'] ?? 'غير محدد';
           }
         } catch (e) {
-          print('Error fetching user data: $e');
+          AppLogger.error('Error fetching user data', tag: 'ORDER_DETAILS', error: e);
         }
       }
 

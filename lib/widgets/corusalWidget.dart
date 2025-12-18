@@ -1,10 +1,10 @@
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:test_pro/controller/carousel_ad_service.dart';
-import 'package:test_pro/model/carousel_ad.dart';
-import 'package:test_pro/widgets/ad_loading_skeleton.dart';
-import 'package:test_pro/widgets/loader.dart';
-import 'package:test_pro/view/company_products_page.dart';
+import 'package:glamify/controller/carousel_ad_service.dart';
+import 'package:glamify/model/carousel_ad.dart';
+import 'package:glamify/widgets/ad_loading_skeleton.dart';
+import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/view/company_products_page.dart';
 import 'dart:ui';
 
 class ProductCarousel extends StatefulWidget {

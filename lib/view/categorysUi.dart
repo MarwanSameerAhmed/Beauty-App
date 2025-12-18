@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:test_pro/controller/category_service.dart';
-import 'package:test_pro/controller/product_service.dart';
-import 'package:test_pro/model/categorys.dart';
-import 'package:test_pro/model/product.dart';
-import 'package:test_pro/widgets/CategorySectionUi.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_Header_user.dart';
-import 'package:test_pro/widgets/loader.dart';
-import 'package:test_pro/widgets/product_card.dart';
-import 'package:test_pro/widgets/productDetails.dart';
+import 'package:glamify/controller/category_service.dart';
+import 'package:glamify/controller/product_service.dart';
+import 'package:glamify/model/categorys.dart';
+import 'package:glamify/model/product.dart';
+import 'package:glamify/widgets/CategorySectionUi.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_Header_user.dart';
+import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/widgets/product_card.dart';
+import 'package:glamify/widgets/productDetails.dart';
 
 class Categorys extends StatefulWidget {
   const Categorys({super.key});

@@ -9,19 +9,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_pro/controller/cart_service.dart';
-import 'package:test_pro/firebase_options.dart';
-import 'package:test_pro/view/app_wrapper.dart';
-import 'package:test_pro/controller/local_notification_service.dart'; // For foreground notifications
-import 'package:test_pro/controller/remote_config_service.dart';
+import 'package:glamify/controller/cart_service.dart';
+import 'package:glamify/firebase_options.dart';
+import 'package:glamify/view/app_wrapper.dart';
+import 'package:glamify/controller/local_notification_service.dart'; // For foreground notifications
+import 'package:glamify/controller/remote_config_service.dart';
+import 'package:glamify/config/app_config.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:test_pro/controller/connectivity_service.dart';
+import 'package:glamify/controller/connectivity_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print("Handling a background message: ${message.messageId}");
+  // Handling a background message: ${message.messageId}
 }
 
 Future<void> main() async {
@@ -40,8 +41,8 @@ Future<void> main() async {
   
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Request notification permissions with better handling
-  final NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
+  // Request notification permissions
+  await FirebaseMessaging.instance.requestPermission(
     alert: true,
     announcement: false,
     badge: true,
@@ -50,19 +51,6 @@ Future<void> main() async {
     provisional: false,
     sound: true,
   );
-
-  // Log permission status
-  print('🔔 Notification Permission Status: ${settings.authorizationStatus}');
-  
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    print('✅ User granted notification permissions');
-  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-    print('⚠️ User granted provisional notification permissions');
-  } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
-    print('❌ User denied notification permissions');
-  } else {
-    print('⚠️ Notification permission status: ${settings.authorizationStatus}');
-  }
 
   if (kIsWeb) {
     await FirebaseAppCheck.instance.activate(
@@ -102,38 +90,30 @@ Future<void> main() async {
 
   // Handle notification taps when app is in background
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    print('Message clicked: ${message.messageId}');
     // Handle navigation based on message data
   });
 
   // Listen for token refresh and update Firestore
   FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-    print('🔄 FCM Token refreshed: ${newToken.substring(0, 20)}...');
+    // FCM Token refreshed
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null && !user.isAnonymous) {
-        print('📝 Updating token in Firestore for user: ${user.uid}');
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'fcmToken': newToken,
           'lastTokenUpdate': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-        print('✅ Token updated successfully in Firestore');
-      } else {
-        print('⚠️ No authenticated user or anonymous user, skipping token update');
       }
     } catch (e) {
-      print('❌ Error updating token: $e');
+      // Error updating token
     }
   });
 
   // Handle notification tap when app was completely terminated
   final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (initialMessage != null) {
-    print('🚀 App opened from terminated state via notification');
-    print('📬 Message ID: ${initialMessage.messageId}');
-    print('📋 Data: ${initialMessage.data}');
+    // App opened from terminated state via notification
     // Handle navigation based on notification data
-    // You can store this message and handle it after app initialization
   }
 
   await initializeDateFormatting('ar', null);
@@ -141,6 +121,9 @@ Future<void> main() async {
   // Initialize Remote Config
   final remoteConfigService = RemoteConfigService();
   await remoteConfigService.initialize();
+
+  // Initialize AppConfig for secure API keys
+  await AppConfig.instance.initialize();
 
   final connectivityService = ConnectivityService();
   final initialConnectivity = await connectivityService.checkConnectivity();
@@ -179,7 +162,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'تطبيق ميك أب',
+      title: 'Glamify',
       theme: ThemeData(fontFamily: 'Tajawal'),
       home: ConnectivityWrapper(
         child: AppWrapper(

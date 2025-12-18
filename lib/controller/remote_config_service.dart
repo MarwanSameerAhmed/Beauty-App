@@ -38,20 +38,18 @@ class RemoteConfigService {
       // Fetch and activate
       await _remoteConfig.fetchAndActivate();
       
-      print('🔧 Remote Config initialized successfully');
-      print('🔧 App enabled: ${_remoteConfig.getBool(_appEnabledKey)}');
-      print('🔧 Maintenance title: ${_remoteConfig.getString(_maintenanceTitleKey)}');
+      // Remote Config initialized successfully
     } catch (e) {
-      print('❌ Error initializing Remote Config: $e');
+      // Error initializing Remote Config: $e
     }
   }
   
   Future<void> fetchConfig() async {
     try {
       await _remoteConfig.fetchAndActivate();
-      print('🔄 Remote Config fetched - App enabled: ${_remoteConfig.getBool(_appEnabledKey)}');
+      // Remote Config fetched
     } catch (e) {
-      print('❌ Error fetching Remote Config: $e');
+      // Error fetching Remote Config: $e
     }
   }
   

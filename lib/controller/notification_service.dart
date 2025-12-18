@@ -33,15 +33,12 @@ class NotificationService {
       );
 
       if (response.statusCode == 200) {
-        print('Notification sent successfully.');
+        // Notification sent successfully
       } else {
-        print(
-          'Failed to send notification. Status code: ${response.statusCode}',
-        );
-        print('Response body: ${response.body}');
+        // Failed to send notification. Status code: ${response.statusCode}
       }
     } catch (e) {
-      print('An error occurred while sending the notification: $e');
+      // An error occurred while sending the notification: $e
     }
   }
 
@@ -53,7 +50,7 @@ class NotificationService {
     required String body,
   }) async {
     final url = Uri.parse(_sendTopicNotificationUrl);
-    print('Attempting to send notification to topic: $topic at URL: $url');
+    // Attempting to send notification to topic: $topic
 
     try {
       final response = await http.post(
@@ -63,17 +60,17 @@ class NotificationService {
       );
 
       if (response.statusCode == 200) {
-        print('Topic notification request sent successfully to Vercel.');
+        // Topic notification request sent successfully to Vercel
         return null; // Success
       } else {
         final error =
             'Failed with status ${response.statusCode}: ${response.body}';
-        print(error);
+        // Failed with status code
         return error; // Failure
       }
     } catch (e) {
       final error = 'CRITICAL ERROR sending topic notification: $e';
-      print(error);
+      // CRITICAL ERROR sending topic notification
       return error; // Failure
     }
   }

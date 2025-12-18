@@ -1,22 +1,14 @@
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
-import 'package:test_pro/model/product.dart';
+import 'package:glamify/model/product.dart';
+import 'image_upload_service.dart';
 
 class ProductService {
   final CollectionReference _productsCollection = FirebaseFirestore.instance
       .collection('products');
 
-  // معلومات ImageKit
-  final String imageKitEndpoint =
-      "https://upload.imagekit.io/api/v1/files/upload";
-  final String imageKitPublicKey =
-      "public_DGaQn58MnRn4ACgF1gggQOeRynU="; // ضع مفتاحك هنا
-  final String imageKitPrivateKey =
-      "private_VDQdsQtRYRJ17dC1c0UVukm/WxU="; // فقط للسيرفر إذا احتجت
-  final String imageKitFolder = "/products"; // فولدر مخصص للصور
+  // فولدر مخصص للصور
+  static const String _imageFolder = "/products";
 
   // إضافة منتج جديد
   Future<void> addProduct(Product product) async {
@@ -25,55 +17,22 @@ class ProductService {
       product.id = docRef.id;
       await docRef.set(product.toMap());
     } catch (e) {
-      print('Error adding product: $e');
+      // Error adding product: $e
       rethrow;
     }
   }
 
-  // رفع صور إلى ImageKit
+  // رفع صور إلى ImageKit باستخدام الخدمة المركزية الآمنة
   Future<List<String>> uploadImages(List<Uint8List> imageBytesList) async {
-    List<String> imageUrls = [];
-
-    for (var imageBytes in imageBytesList) {
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      int expiry =
-          (DateTime.now().millisecondsSinceEpoch / 1000).round() +
-          60 * 5; // 5 دقائق
-      String token = DateTime.now().millisecondsSinceEpoch
-          .toString(); // يمكن استخدام UUID هنا
-
-      // إنشاء التوقيع
-      var key = utf8.encode(imageKitPrivateKey);
-      var bytes = utf8.encode(token + expiry.toString());
-      var hmacSha1 = Hmac(sha1, key);
-      var digest = hmacSha1.convert(bytes);
-      String signature = digest.toString();
-
-      var request = http.MultipartRequest('POST', Uri.parse(imageKitEndpoint));
-
-      // إضافة الحقول المطلوبة للمصادقة
-      request.fields['publicKey'] = imageKitPublicKey;
-      request.fields['signature'] = signature;
-      request.fields['expire'] = expiry.toString();
-      request.fields['token'] = token;
-      request.fields['fileName'] = fileName;
-      request.fields['folder'] = imageKitFolder;
-      request.files.add(http.MultipartFile.fromBytes('file', imageBytes, filename: '$fileName.jpg'));
-
-      var response = await request.send();
-      var respStr = await response.stream.bytesToString();
-
-      if (response.statusCode == 200) {
-        var data = jsonDecode(respStr);
-        imageUrls.add(data['url']); // URL النهائي من ImageKit
-      } else {
-        // طباعة الاستجابة من السيرفر لتسهيل تصحيح الأخطاء
-        print('فشل رفع الصورة. الاستجابة: $respStr');
-        throw Exception("فشل رفع الصورة: ${response.statusCode}");
-      }
+    try {
+      return await ImageUploadService.instance.uploadMultipleImages(
+        imageBytesList, 
+        _imageFolder,
+      );
+    } catch (e) {
+      // Error uploading product images: $e
+      throw Exception('فشل رفع صور المنتج: ${e.toString()}');
     }
-
-    return imageUrls;
   }
 
   // جلب المنتجات
@@ -93,7 +52,7 @@ class ProductService {
         return Product.fromMap(doc.data() as Map<String, dynamic>);
       }).toList();
     } catch (e) {
-      print('Error fetching all products: $e');
+      // Error fetching all products: $e
       return [];
     }
   }
@@ -107,7 +66,7 @@ class ProductService {
         return null;
       }
     } catch (e) {
-      print('Error fetching product by ID: $e');
+      // Error fetching product by ID: $e
       return null;
     }
   }
@@ -153,7 +112,7 @@ class ProductService {
     try {
       await _productsCollection.doc(product.id).update(product.toMap());
     } catch (e) {
-      print('Error updating product: $e');
+      // Error updating product: $e
       rethrow;
     }
   }
@@ -161,10 +120,10 @@ class ProductService {
   // حذف منتج
   Future<void> deleteProduct(String productId) async {
     try {
-      // TODO: Implement image deletion from ImageKit if possible
+      // Image deletion from ImageKit not implemented yet
       await _productsCollection.doc(productId).delete();
     } catch (e) {
-      print('Error deleting product: $e');
+      // Error deleting product: $e
       rethrow;
     }
   }
@@ -249,7 +208,7 @@ class ProductService {
       
       return sortedSuggestions.take(5).toList();
     } catch (e) {
-      print('Error getting search suggestions: $e');
+      // Error getting search suggestions: $e
       return [];
     }
   }

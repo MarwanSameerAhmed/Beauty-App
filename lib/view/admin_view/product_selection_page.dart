@@ -1,12 +1,13 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/controller/product_service.dart';
-import 'package:test_pro/model/ads_section_settings.dart';
-import 'package:test_pro/model/product.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/loader.dart';
+import '../../model/product.dart';
+import '../../model/ads_section_settings.dart';
+import '../../widgets/backgroundUi.dart';
+import '../../controller/product_service.dart';
+import '../../utils/logger.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/loader.dart';
 
 class ProductSelectionPage extends StatefulWidget {
   final AdsSectionSettings section;
@@ -56,40 +57,40 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
 
   Future<void> _loadSelectedProducts() async {
     try {
-      print('🔍 محاولة تحميل المنتجات المختارة للقسم: ${widget.section.id}');
+      AppLogger.debug('محاولة تحميل المنتجات المختارة', tag: 'PRODUCT_SELECTION', data: {'sectionId': widget.section.id});
       final snapshot = await FirebaseFirestore.instance
           .collection('product_section_items')
           .where('sectionId', isEqualTo: widget.section.id)
           .orderBy('order')
           .get();
       
-      print('📦 تم العثور على ${snapshot.docs.length} عنصر في قاعدة البيانات');
+      AppLogger.info('تم العثور على عناصر في قاعدة البيانات', tag: 'PRODUCT_SELECTION', data: {'count': snapshot.docs.length});
       
       List<Product> selectedProducts = [];
       
       for (var doc in snapshot.docs) {
         final data = doc.data();
         final productId = data['productId'];
-        print('🔍 البحث عن المنتج: $productId');
+        AppLogger.debug('البحث عن المنتج', tag: 'PRODUCT_SELECTION', data: {'productId': productId});
         
         // البحث عن المنتج في قائمة جميع المنتجات المحملة مسبقاً
         final productIndex = _allProducts.indexWhere((p) => p.id == productId);
         
         if (productIndex != -1) {
           selectedProducts.add(_allProducts[productIndex]);
-          print('✅ تم العثور على المنتج: ${_allProducts[productIndex].name}');
+          AppLogger.info('تم العثور على المنتج', tag: 'PRODUCT_SELECTION', data: {'productName': _allProducts[productIndex].name});
         } else {
-          print('❌ لم يتم العثور على المنتج: $productId');
+          AppLogger.warning('لم يتم العثور على المنتج', tag: 'PRODUCT_SELECTION', data: {'productId': productId});
         }
       }
       
-      print('📋 إجمالي المنتجات المختارة: ${selectedProducts.length}');
+      AppLogger.info('إجمالي المنتجات المختارة', tag: 'PRODUCT_SELECTION', data: {'totalSelected': selectedProducts.length});
       
       setState(() {
         _selectedProducts = selectedProducts;
       });
     } catch (e) {
-      print('❌ خطأ في تحميل المنتجات المختارة: $e');
+      AppLogger.error('خطأ في تحميل المنتجات المختارة', tag: 'PRODUCT_SELECTION', error: e);
     }
   }
 
@@ -535,7 +536,7 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
     });
 
     try {
-      print('💾 بدء حفظ ${_selectedProducts.length} منتج للقسم: ${widget.section.id}');
+      AppLogger.info('بدء حفظ المنتجات', tag: 'PRODUCT_SELECTION', data: {'count': _selectedProducts.length, 'sectionId': widget.section.id});
       
       // حذف المنتجات الموجودة مسبقاً لهذا القسم
       final existingItems = await FirebaseFirestore.instance
@@ -546,7 +547,7 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
       for (var doc in existingItems.docs) {
         await doc.reference.delete();
       }
-      print('🗑️ تم حذف ${existingItems.docs.length} عنصر موجود مسبقاً');
+      AppLogger.info('تم حذف عناصر موجودة مسبقاً', tag: 'PRODUCT_SELECTION', data: {'deletedCount': existingItems.docs.length});
       
       // إضافة المنتجات المختارة الجديدة
       for (int i = 0; i < _selectedProducts.length; i++) {
@@ -559,10 +560,10 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
           'order': i,
           'createdAt': FieldValue.serverTimestamp(),
         });
-        print('✅ تم حفظ المنتج: ${product.name}');
+        AppLogger.debug('تم حفظ المنتج', tag: 'PRODUCT_SELECTION', data: {'productName': product.name});
       }
       
-      print('🎉 تم حفظ جميع المنتجات بنجاح');
+      AppLogger.info('تم حفظ جميع المنتجات بنجاح', tag: 'PRODUCT_SELECTION');
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -573,7 +574,7 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
 
       Navigator.of(context).pop();
     } catch (e) {
-      print('❌ خطأ في حفظ المنتجات: $e');
+      AppLogger.error('خطأ في حفظ المنتجات', tag: 'PRODUCT_SELECTION', error: e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('خطأ في حفظ التغييرات: $e'),

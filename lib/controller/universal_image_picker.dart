@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import '../utils/logger.dart';
 import 'dart:io' as io;
 
 class UniversalImagePicker {
@@ -43,7 +44,7 @@ class UniversalImagePicker {
         }
       }
     } catch (e) {
-      debugPrint('خطأ في اختيار الصورة: $e');
+      AppLogger.error('خطأ في اختيار الصورة', tag: 'IMAGE_PICKER', error: e);
     }
     return null;
   }
@@ -88,7 +89,7 @@ class UniversalImagePicker {
         }
       }
     } catch (e) {
-      debugPrint('خطأ في اختيار الصور: $e');
+      AppLogger.error('خطأ في اختيار الصور', tag: 'IMAGE_PICKER', error: e);
     }
     
     return results;
@@ -97,7 +98,7 @@ class UniversalImagePicker {
   /// التقاط صورة بالكاميرا (للموبايل فقط)
   static Future<ImagePickerResult?> captureImage() async {
     if (kIsWeb) {
-      debugPrint('الكاميرا غير مدعومة على الويب');
+      AppLogger.warning('الكاميرا غير مدعومة على الويب', tag: 'IMAGE_PICKER');
       return null;
     }
 
@@ -117,7 +118,7 @@ class UniversalImagePicker {
         );
       }
     } catch (e) {
-      debugPrint('خطأ في التقاط الصورة: $e');
+      AppLogger.error('خطأ في التقاط الصورة', tag: 'IMAGE_PICKER', error: e);
     }
     return null;
   }

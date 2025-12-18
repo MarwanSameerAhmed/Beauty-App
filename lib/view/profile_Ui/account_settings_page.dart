@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:test_pro/controller/Auth_Service.dart';
+import 'package:glamify/controller/Auth_Service.dart';
 import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:test_pro/model/userAccount.dart';
-import 'package:test_pro/view/auth_Ui/login_ui.dart';
-import 'package:test_pro/widgets/buttonsWidgets.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/model/userAccount.dart';
+import 'package:glamify/view/auth_Ui/login_ui.dart';
+import 'package:glamify/widgets/buttonsWidgets.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/loader.dart';
 
 class AccountSettingsPage extends StatefulWidget {
   const AccountSettingsPage({super.key});

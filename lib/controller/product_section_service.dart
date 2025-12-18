@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/model/product_section_item.dart';
-import 'package:test_pro/model/product.dart';
+import 'package:glamify/model/product_section_item.dart';
+import 'package:glamify/model/product.dart';
 
 class ProductSectionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -44,7 +44,7 @@ class ProductSectionService {
             });
           }
         } catch (e) {
-          print('Error fetching product ${item.productId}: $e');
+          // Error fetching product ${item.productId}: $e
         }
       }
       
@@ -98,9 +98,9 @@ class ProductSectionService {
           .doc(item.id)
           .set(item.toMap());
       
-      print('✅ تم إضافة المنتج إلى القسم بنجاح');
+      // تم إضافة المنتج إلى القسم بنجاح
     } catch (e) {
-      print('❌ خطأ في إضافة المنتج إلى القسم: $e');
+      // خطأ في إضافة المنتج إلى القسم: $e
       rethrow;
     }
   }
@@ -113,9 +113,9 @@ class ProductSectionService {
           .doc(itemId)
           .delete();
       
-      print('✅ تم إزالة المنتج من القسم بنجاح');
+      // تم إزالة المنتج من القسم بنجاح
     } catch (e) {
-      print('❌ خطأ في إزالة المنتج من القسم: $e');
+      // خطأ في إزالة المنتج من القسم: $e
       rethrow;
     }
   }
@@ -135,9 +135,9 @@ class ProductSectionService {
       }
       
       await batch.commit();
-      print('✅ تم تحديث ترتيب المنتجات بنجاح');
+      // تم تحديث ترتيب المنتجات بنجاح
     } catch (e) {
-      print('❌ خطأ في تحديث ترتيب المنتجات: $e');
+      // خطأ في تحديث ترتيب المنتجات: $e
       rethrow;
     }
   }
@@ -153,9 +153,9 @@ class ProductSectionService {
         'updatedAt': DateTime.now(),
       });
       
-      print('✅ تم تحديث حالة ظهور المنتج');
+      // تم تحديث حالة ظهور المنتج
     } catch (e) {
-      print('❌ خطأ في تحديث حالة ظهور المنتج: $e');
+      // خطأ في تحديث حالة ظهور المنتج: $e
       rethrow;
     }
   }
@@ -186,9 +186,9 @@ class ProductSectionService {
         'updatedAt': DateTime.now(),
       });
       
-      print('✅ تم نقل المنتج إلى القسم الجديد');
+      // تم نقل المنتج إلى القسم الجديد
     } catch (e) {
-      print('❌ خطأ في نقل المنتج: $e');
+      // خطأ في نقل المنتج: $e
       rethrow;
     }
   }
@@ -236,9 +236,9 @@ class ProductSectionService {
       }
       
       await batch.commit();
-      print('✅ تم مسح جميع منتجات القسم');
+      // تم مسح جميع منتجات القسم
     } catch (e) {
-      print('❌ خطأ في مسح منتجات القسم: $e');
+      // خطأ في مسح منتجات القسم: $e
       rethrow;
     }
   }
@@ -262,7 +262,7 @@ class ProductSectionService {
         'hidden': totalItems - visibleItems,
       };
     } catch (e) {
-      print('❌ خطأ في الحصول على إحصائيات القسم: $e');
+      // خطأ في الحصول على إحصائيات القسم: $e
       return {'total': 0, 'visible': 0, 'hidden': 0};
     }
   }

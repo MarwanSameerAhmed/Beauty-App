@@ -1,11 +1,12 @@
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:test_pro/view/admin_view/order_details_page.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_Header_user.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/view/admin_view/order_details_page.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_Header_user.dart';
+import 'package:glamify/widgets/loader.dart';
 import 'package:intl/intl.dart';
+import '../../utils/logger.dart';
 
 class CustomerOrdersPage extends StatefulWidget {
   const CustomerOrdersPage({Key? key}) : super(key: key);
@@ -324,7 +325,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
         };
       }
     } catch (e) {
-      debugPrint('Error fetching user data: $e');
+      AppLogger.error('Error fetching user data', tag: 'CUSTOMER_ORDERS', error: e);
     }
     return {'name': 'غير معروف', 'role': 'غير محدد'};
   }

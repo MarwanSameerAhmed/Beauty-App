@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_pro/model/userAccount.dart';
+import 'package:glamify/model/userAccount.dart';
 import 'package:simple_animations/simple_animations.dart';
-import 'package:test_pro/controller/Auth_Service.dart';
-import 'package:test_pro/view/bottomNavUi.dart';
-import 'package:test_pro/view/admin_dashboard/admin_bottom_nav_ui.dart';
-import 'package:test_pro/widgets/ElegantToast.dart';
-import 'package:test_pro/view/auth_Ui/signup_ui.dart';
-import 'package:test_pro/widgets/FormFields.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/buttonsWidgets.dart';
+import 'package:glamify/controller/Auth_Service.dart';
+import 'package:glamify/view/bottomNavUi.dart';
+import 'package:glamify/view/admin_dashboard/admin_bottom_nav_ui.dart';
+import 'package:glamify/widgets/ElegantToast.dart';
+import 'package:glamify/view/auth_Ui/signup_ui.dart';
+import 'package:glamify/widgets/FormFields.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/buttonsWidgets.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:test_pro/widgets/loader.dart';
-import 'package:test_pro/view/auth_Ui/complete_profile_ui.dart';
+import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/view/auth_Ui/complete_profile_ui.dart';
 
 class LoginUi extends StatefulWidget {
   const LoginUi({super.key});

@@ -1,11 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/model/ad.dart';
-import 'package:test_pro/model/carousel_ad.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/model/ads_section_settings.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
+import '../../model/ad.dart';
+import '../../model/carousel_ad.dart';
+import '../../model/ads_section_settings.dart';
+import '../../widgets/backgroundUi.dart';
+import '../../widgets/custom_admin_header.dart';
+import '../../utils/logger.dart';
 
 class AdsLayoutManager extends StatefulWidget {
   const AdsLayoutManager({super.key});
@@ -65,7 +66,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
         return a.order.compareTo(b.order);
       });
       
-      print('🔍 Loaded ${_ads.length} ads');
+      AppLogger.info('Loaded ads', tag: 'ADS_LAYOUT', data: {'count': _ads.length});
 
       // جلب البانر المتحرك
       final carouselSnapshot = await FirebaseFirestore.instance
@@ -79,10 +80,10 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
       // ترتيب البانر المتحرك حسب order (الافتراضي 0)
       _carouselAds.sort((a, b) => a.order.compareTo(b.order));
       
-      print('🔍 Loaded ${_carouselAds.length} carousel ads');
+      AppLogger.info('Loaded carousel ads', tag: 'ADS_LAYOUT', data: {'count': _carouselAds.length});
 
     } catch (e) {
-      print('Error loading ads: $e');
+      AppLogger.error('Error loading ads', tag: 'ADS_LAYOUT', error: e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -104,7 +105,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
       // تم تعطيل إنشاء الأقسام الافتراضية التلقائي
       // يمكن للأدمن إضافة الأقسام يدوياً من صفحة إدارة الأقسام
     } catch (e) {
-      print('Error loading sections: $e');
+      AppLogger.error('Error loading sections', tag: 'ADS_LAYOUT', error: e);
     }
   }
 
@@ -677,7 +678,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
       
       await batch.commit();
     } catch (e) {
-      print('Error saving ads order: $e');
+      AppLogger.error('Error saving ads order', tag: 'ADS_LAYOUT', error: e);
     }
   }
 
@@ -688,7 +689,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
           .doc(adId)
           .update({'sectionId': sectionId});
     } catch (e) {
-      print('Error saving ad section: $e');
+      AppLogger.error('Error saving ad section', tag: 'ADS_LAYOUT', error: e);
     }
   }
 

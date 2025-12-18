@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/model/categorys.dart';
+import 'package:glamify/model/categorys.dart';
+import '../utils/logger.dart';
 
 class CategoryService {
   final CollectionReference _categoriesCollection = FirebaseFirestore.instance
@@ -11,7 +12,7 @@ class CategoryService {
       category.id = docRef.id;
       await docRef.set(category.toMap());
     } catch (e) {
-      print('Error adding category: $e');
+      AppLogger.error('Error adding category', tag: 'CATEGORY', error: e);
       rethrow;
     }
   }
@@ -35,7 +36,7 @@ class CategoryService {
     try {
       await _categoriesCollection.doc(category.id).update(category.toMap());
     } catch (e) {
-      print('Error updating category: $e');
+      AppLogger.error('Error updating category', tag: 'CATEGORY', error: e);
       rethrow;
     }
   }
@@ -44,7 +45,7 @@ class CategoryService {
     try {
       await _categoriesCollection.doc(categoryId).delete();
     } catch (e) {
-      print('Error deleting category: $e');
+      AppLogger.error('Error deleting category', tag: 'CATEGORY', error: e);
       rethrow;
     }
   }

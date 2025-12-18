@@ -2,7 +2,8 @@ import 'dart:io' if (dart.library.html) 'dart:html';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:test_pro/controller/web_image_service.dart';
+import '../utils/logger.dart';
+import 'package:glamify/controller/web_image_service.dart';
 
 class ImageService {
   /// ضغط الصورة - متوافق مع الويب والموبايل
@@ -23,7 +24,7 @@ class ImageService {
         return result;
       }
     } catch (e) {
-      debugPrint('فشل ضغط الصورة: $e');
+      AppLogger.error('فشل ضغط الصورة', tag: 'IMAGE_SERVICE', error: e);
       return null;
     }
   }
@@ -45,7 +46,7 @@ class ImageService {
         return result;
       }
     } catch (e) {
-      debugPrint('فشل ضغط بيانات الصورة: $e');
+      AppLogger.error('فشل ضغط بيانات الصورة', tag: 'IMAGE_SERVICE', error: e);
       return null;
     }
   }

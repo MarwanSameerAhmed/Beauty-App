@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_animations/simple_animations.dart';
-import 'package:test_pro/controller/Auth_Service.dart';
-import 'package:test_pro/model/userAccount.dart';
-import 'package:test_pro/view/bottomNavUi.dart';
-import 'package:test_pro/widgets/FormFields.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/buttonsWidgets.dart';
-import 'package:test_pro/widgets/ElegantToast.dart';
+import 'package:glamify/controller/Auth_Service.dart';
+import 'package:glamify/model/userAccount.dart';
+import 'package:glamify/view/bottomNavUi.dart';
+import 'package:glamify/view/legal/privacy_policy_page.dart';
+import 'package:glamify/view/legal/terms_of_service_page.dart';
+import 'package:glamify/widgets/FormFields.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/buttonsWidgets.dart';
+import 'package:glamify/widgets/ElegantToast.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
 class SignupUi extends StatefulWidget {
@@ -131,6 +133,8 @@ class _SignupUiState extends State<SignupUi> {
                                 isLoading: _isLoading,
                                 onPressed: _onRegisterPressed,
                               ),
+                              const SizedBox(height: 20),
+                              _buildLegalLinks(),
                             ],
                           ),
                         ),
@@ -281,6 +285,88 @@ class _SignupUiState extends State<SignupUi> {
               ],
             )
           : const SizedBox.shrink(key: ValueKey('empty')),
+    );
+  }
+
+  Widget _buildLegalLinks() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'بإنشاء حساب، فإنك توافق على:',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              fontFamily: 'Tajawal',
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PrivacyPolicyPage(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'سياسة الخصوصية',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF52002C),
+                    fontFamily: 'Tajawal',
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              Text(
+                ' و ',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  fontFamily: 'Tajawal',
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TermsOfServicePage(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'شروط الخدمة',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF52002C),
+                    fontFamily: 'Tajawal',
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

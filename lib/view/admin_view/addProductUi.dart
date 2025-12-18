@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:test_pro/controller/company_service.dart';
-import 'package:test_pro/controller/category_service.dart';
-import 'package:test_pro/controller/product_service.dart';
-import 'package:test_pro/controller/image_service.dart';
-import 'package:test_pro/controller/universal_image_picker.dart';
-import 'package:test_pro/model/company.dart';
-import 'package:test_pro/model/categorys.dart';
-import 'package:test_pro/model/product.dart';
-import 'package:test_pro/widgets/FormFields.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/controller/company_service.dart';
+import 'package:glamify/controller/category_service.dart';
+import 'package:glamify/controller/product_service.dart';
+import 'package:glamify/controller/image_service.dart';
+import 'package:glamify/controller/universal_image_picker.dart';
+import 'package:glamify/model/company.dart';
+import 'package:glamify/model/categorys.dart';
+import 'package:glamify/model/product.dart';
+import 'package:glamify/widgets/FormFields.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/loader.dart';
 import 'dart:ui';
-import 'package:test_pro/widgets/buttonsWidgets.dart';
+import 'package:glamify/widgets/buttonsWidgets.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'dart:typed_data';
-import 'package:test_pro/widgets/ElegantToast.dart';
+import 'package:glamify/widgets/ElegantToast.dart';
 
 class AddProductUi extends StatefulWidget {
   final Product? product;

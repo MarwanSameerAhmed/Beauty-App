@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:test_pro/view/search_results_page.dart';
-import 'package:test_pro/controller/product_service.dart';
+import 'package:glamify/view/search_results_page.dart';
+import 'package:glamify/controller/product_service.dart';
 
 class Searchbar extends StatefulWidget {
   const Searchbar({super.key});

@@ -1,11 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:test_pro/view/admin_dashboard/dashboardUi.dart';
-import 'package:test_pro/view/admin_view/customer_orders_page.dart';
-import 'package:test_pro/view/profile_Ui/profileUi.dart';
+import 'package:glamify/view/admin_dashboard/dashboardUi.dart';
+import 'package:glamify/view/admin_view/customer_orders_page.dart';
+import 'package:glamify/view/profile_Ui/profileUi.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:test_pro/controller/order_status_service.dart';
+import 'package:glamify/controller/order_status_service.dart';
 
 class AdminBottomNav extends StatefulWidget {
   const AdminBottomNav({Key? key}) : super(key: key);

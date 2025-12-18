@@ -2,11 +2,11 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:test_pro/view/auth_Ui/login_ui.dart';
-import 'package:test_pro/view/customer_order_details_page.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_Header_user.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/view/auth_Ui/login_ui.dart';
+import 'package:glamify/view/customer_order_details_page.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_Header_user.dart';
+import 'package:glamify/widgets/loader.dart';
 
 class MyOrdersPage extends StatefulWidget {
   const MyOrdersPage({Key? key}) : super(key: key);

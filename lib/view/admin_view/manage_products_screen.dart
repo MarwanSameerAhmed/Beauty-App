@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:simple_animations/simple_animations.dart';
-import 'package:test_pro/controller/product_service.dart';
-import 'package:test_pro/model/product.dart';
-import 'package:test_pro/view/admin_view/addProductUi.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/controller/product_service.dart';
+import 'package:glamify/model/product.dart';
+import 'package:glamify/view/admin_view/addProductUi.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/loader.dart';
 
 class ManageProductsScreen extends StatefulWidget {
   const ManageProductsScreen({super.key});

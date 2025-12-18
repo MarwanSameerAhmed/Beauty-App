@@ -47,7 +47,6 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
-		
 		<!-- Camera and Photo Library Permissions -->
 		<key>NSCameraUsageDescription</key>
 		<string>يحتاج التطبيق للكاميرا لالتقاط صور المنتجات والإعلانات</string>
@@ -55,30 +54,49 @@
 		<string>يحتاج التطبيق للوصول للمعرض لاختيار الصور</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
 		<string>يحتاج التطبيق لحفظ الصور في المعرض</string>
-		
 		<!-- Network and Internet Permissions -->
 		<key>NSAppTransportSecurity</key>
 		<dict>
 			<key>NSAllowsArbitraryLoads</key>
-			<true/>
+			<false/>
+			<key>NSExceptionDomains</key>
+			<dict>
+				<key>upload.imagekit.io</key>
+				<dict>
+					<key>NSExceptionAllowsInsecureHTTPLoads</key>
+					<false/>
+					<key>NSExceptionMinimumTLSVersion</key>
+					<string>TLSv1.2</string>
+					<key>NSExceptionRequiresForwardSecrecy</key>
+					<false/>
+				</dict>
+				<key>firebase.googleapis.com</key>
+				<dict>
+					<key>NSExceptionAllowsInsecureHTTPLoads</key>
+					<false/>
+					<key>NSExceptionRequiresForwardSecrecy</key>
+					<false/>
+				</dict>
+				<key>firestore.googleapis.com</key>
+				<dict>
+					<key>NSExceptionAllowsInsecureHTTPLoads</key>
+					<false/>
+					<key>NSExceptionRequiresForwardSecrecy</key>
+					<false/>
+				</dict>
+			</dict>
 		</dict>
-		
 		<!-- File Access Permission -->
 		<key>NSDocumentsFolderUsageDescription</key>
 		<string>يحتاج التطبيق للوصول للملفات لحفظ الفواتير</string>
-		
 		<!-- Background Modes for Notifications -->
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>remote-notification</string>
-			<string>background-fetch</string>
-			<string>background-processing</string>
 		</array>
-		
 		<!-- Notification Settings -->
 		<key>NSUserNotificationAlertStyle</key>
 		<string>alert</string>
-		
 		<!-- Status Bar Configuration -->
 		<key>UIStatusBarHidden</key>
 		<false/>
@@ -86,7 +104,6 @@
 		<false/>
 		<key>UIStatusBarStyle</key>
 		<string>UIStatusBarStyleDefault</string>
-		
 		<!-- Google Sign-In URL Scheme -->
 		<key>CFBundleURLTypes</key>
 		<array>
@@ -99,7 +116,6 @@
 				</array>
 			</dict>
 		</array>
-		
 		<!-- External Apps Query Schemes -->
 		<key>LSApplicationQueriesSchemes</key>
 		<array>
@@ -110,7 +126,6 @@
 			<string>https</string>
 			<string>http</string>
 		</array>
-		
 		<!-- Notifications Permission -->
 		<key>NSUserNotificationsUsageDescription</key>
 		<string>يحتاج التطبيق للإشعارات لإعلامك بحالة طلباتك والعروض الجديدة</string>

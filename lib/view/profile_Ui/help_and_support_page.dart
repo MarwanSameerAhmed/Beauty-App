@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/elegant_dialog.dart';
-import 'package:test_pro/widgets/FormFields.dart';
-import 'package:test_pro/widgets/buttonsWidgets.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/elegant_dialog.dart';
+import 'package:glamify/widgets/FormFields.dart';
+import 'package:glamify/widgets/buttonsWidgets.dart';
 
 class HelpAndSupportPage extends StatefulWidget {
   const HelpAndSupportPage({super.key});

@@ -39,7 +39,7 @@ class LocalNotificationService {
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         // Handle notification tap
-        print('Notification tapped: ${response.payload}');
+        // Notification tapped: ${response.payload}
       },
     );
   }
@@ -74,7 +74,7 @@ class LocalNotificationService {
         notificationDetails,
       );
     } catch (e) {
-      print('Error displaying notification: $e');
+      // Error displaying notification: $e
     }
   }
 }

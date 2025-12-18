@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:test_pro/controller/remote_config_service.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
+import 'package:glamify/controller/remote_config_service.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
 
 class MaintenancePage extends StatefulWidget {
   const MaintenancePage({super.key});

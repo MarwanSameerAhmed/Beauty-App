@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_pro/view/auth_Ui/login_ui.dart';
-import 'package:test_pro/view/auth_Ui/signup_ui.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
+import 'package:glamify/view/auth_Ui/login_ui.dart';
+import 'package:glamify/view/auth_Ui/signup_ui.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'dart:async';
 

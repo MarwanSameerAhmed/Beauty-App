@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:simple_animations/simple_animations.dart';
-import 'package:test_pro/controller/category_service.dart';
-import 'package:test_pro/model/categorys.dart';
-import 'package:test_pro/widgets/FormFields.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/buttonsWidgets.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
+import 'package:glamify/controller/category_service.dart';
+import 'package:glamify/model/categorys.dart';
+import 'package:glamify/widgets/FormFields.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/buttonsWidgets.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
 
 class AddCategoryForm extends StatefulWidget {
   final Category? category;

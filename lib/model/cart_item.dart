@@ -1,4 +1,4 @@
-import 'package:test_pro/model/product.dart';
+import 'package:glamify/model/product.dart';
 
 class CartItem {
   final String productId;

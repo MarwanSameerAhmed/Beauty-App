@@ -1,13 +1,15 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/controller/ads_section_settings_service.dart';
-import 'package:test_pro/model/ads_section_settings.dart';
-import 'package:test_pro/view/admin_view/product_selection_page.dart';
-import 'package:test_pro/view/admin_view/section_preview_page.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/controller/ads_section_settings_service.dart';
+import '../../model/ads_section_settings.dart';
+import '../../widgets/backgroundUi.dart';
+import '../../widgets/custom_admin_header.dart';
+import '../../widgets/loader.dart';
+import 'product_selection_page.dart';
+import '../../utils/logger.dart';
+import 'package:glamify/view/admin_view/section_preview_page.dart';
+
 
 class ProductSectionManagementPage extends StatefulWidget {
   const ProductSectionManagementPage({Key? key}) : super(key: key);
@@ -31,15 +33,15 @@ class _ProductSectionManagementPageState extends State<ProductSectionManagementP
 
   Future<int> _getProductCountForSection(String sectionId) async {
     try {
-      print('🔍 محاولة تحميل عدد المنتجات للقسم: $sectionId');
+      AppLogger.debug('محاولة تحميل عدد المنتجات', tag: 'PRODUCT_SECTION', data: {'sectionId': sectionId});
       final snapshot = await FirebaseFirestore.instance
           .collection('product_section_items')
           .where('sectionId', isEqualTo: sectionId)
           .get();
-      print('✅ تم تحميل ${snapshot.docs.length} منتج للقسم: $sectionId');
+      AppLogger.info('تم تحميل عدد المنتجات', tag: 'PRODUCT_SECTION', data: {'count': snapshot.docs.length, 'sectionId': sectionId});
       return snapshot.docs.length;
     } catch (e) {
-      print('❌ خطأ في تحميل عدد المنتجات للقسم $sectionId: $e');
+      AppLogger.error('خطأ في تحميل عدد المنتجات', tag: 'PRODUCT_SECTION', data: {'sectionId': sectionId}, error: e);
       return 0;
     }
   }

@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:test_pro/controller/company_settings_service.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
+import 'package:glamify/controller/company_settings_service.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
 
 class CompanySettingsPage extends StatefulWidget {
   const CompanySettingsPage({super.key});

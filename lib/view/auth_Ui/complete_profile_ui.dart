@@ -1,14 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_animations/simple_animations.dart';
-import 'package:test_pro/controller/Auth_Service.dart';
-import 'package:test_pro/model/userAccount.dart';
+import 'package:glamify/controller/Auth_Service.dart';
+import 'package:glamify/model/userAccount.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_pro/view/bottomNavUi.dart';
-import 'package:test_pro/widgets/ElegantToast.dart';
-import 'package:test_pro/widgets/FormFields.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/buttonsWidgets.dart';
+import 'package:glamify/view/bottomNavUi.dart';
+import 'package:glamify/widgets/ElegantToast.dart';
+import 'package:glamify/widgets/FormFields.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/buttonsWidgets.dart';
 
 class CompleteProfileUi extends StatefulWidget {
   final User user;

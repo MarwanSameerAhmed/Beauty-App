@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/controller/cart_service.dart';
-import 'package:test_pro/widgets/SearchBar.dart';
-import 'package:test_pro/widgets/loader.dart';
-import 'package:test_pro/widgets/ad_loading_skeleton.dart';
-import 'package:test_pro/model/ads_section_settings.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/corusalWidget.dart';
-import 'package:test_pro/widgets/infoWidget.dart';
-import 'package:test_pro/controller/ads_service.dart';
-import 'package:test_pro/controller/product_service.dart';
-import 'package:test_pro/model/ad.dart';
-import 'package:test_pro/model/product.dart';
-import 'package:test_pro/widgets/productDetails.dart';
-import 'package:test_pro/widgets/product_card.dart';
-import 'package:test_pro/view/favoritesUi.dart';
-import 'package:test_pro/view/company_products_page.dart';
+import 'package:glamify/controller/cart_service.dart';
+import 'package:glamify/widgets/SearchBar.dart';
+import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/widgets/ad_loading_skeleton.dart';
+import 'package:glamify/model/ads_section_settings.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/corusalWidget.dart';
+import 'package:glamify/widgets/infoWidget.dart';
+import 'package:glamify/controller/ads_service.dart';
+import 'package:glamify/controller/product_service.dart';
+import 'package:glamify/model/ad.dart';
+import 'package:glamify/model/product.dart';
+import 'package:glamify/widgets/productDetails.dart';
+import 'package:glamify/widgets/product_card.dart';
+import 'package:glamify/view/favoritesUi.dart';
+import 'package:glamify/view/company_products_page.dart';
 
 class Homescreenui extends StatefulWidget {
   final TabController tabController;
@@ -456,57 +456,6 @@ class _HomescreenuiState extends State<Homescreenui> {
     );
   }
 
-  Widget _buildProductSections() {
-    return FutureBuilder<List<AdsSectionSettings>>(
-      future: FirebaseFirestore.instance
-          .collection('ads_section_settings')
-          .where('type', isEqualTo: 'products')
-          .where('isVisible', isEqualTo: true)
-          .get()
-          .then((snapshot) {
-            final sections = snapshot.docs.map((doc) {
-              final data = doc.data();
-              return AdsSectionSettings(
-                id: doc.id,
-                title: data['title'] ?? '',
-                position: data['position'] ?? 'middle',
-                order: data['order'] ?? 0,
-                isVisible: data['isVisible'] ?? true,
-                type: data['type'] ?? 'products',
-                maxItems: data['maxItems'] ?? 6,
-                description: data['description'],
-              );
-            }).toList();
-            sections.sort((a, b) => a.order.compareTo(b.order));
-            return sections;
-          }),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SliverToBoxAdapter(
-            child: Center(child: Loader()),
-          );
-        }
-        
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: SizedBox.shrink(),
-          );
-        }
-
-        final productSections = snapshot.data!;
-
-        return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final section = productSections[index];
-              return _buildProductSection(section.title, section.maxItems);
-            },
-            childCount: productSections.length,
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildProductSection(String title, int maxItems) {
     return StreamBuilder<List<Product>>(

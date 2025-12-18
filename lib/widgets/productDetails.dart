@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:test_pro/model/product.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/controller/favorites_service.dart';
-import 'package:test_pro/controller/cart_service.dart';
+import 'package:glamify/model/product.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/controller/favorites_service.dart';
+import 'package:glamify/controller/cart_service.dart';
 import 'package:lottie/lottie.dart';
 
 class ProductDetailsPage extends StatefulWidget {

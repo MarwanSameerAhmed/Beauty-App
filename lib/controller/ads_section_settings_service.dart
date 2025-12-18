@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/model/ads_section_settings.dart';
+import 'package:glamify/model/ads_section_settings.dart';
+import '../utils/logger.dart';
 
 class AdsSectionSettingsService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -25,19 +26,6 @@ class AdsSectionSettingsService {
               }))
           .toList();
     });
-  }
-
-  // إنشاء الإعدادات الافتراضية
-  Future<void> _createDefaultSettings() async {
-    final defaultSettings = AdsSectionSettings.getDefaultSettings();
-    final batch = _firestore.batch();
-
-    for (var setting in defaultSettings) {
-      final docRef = _firestore.collection(_collection).doc(setting.id);
-      batch.set(docRef, setting.toMap());
-    }
-
-    await batch.commit();
   }
 
   // تحديث إعدادات قسم
@@ -101,8 +89,9 @@ class AdsSectionSettingsService {
             .doc(setting.id)
             .set(setting.toMap());
       }
+      AppLogger.info('تم إنشاء الأقسام الافتراضية', tag: 'ADS_SECTION_SETTINGS');
     } catch (e) {
-      print('Error resetting to defaults: $e');
+      AppLogger.error('خطأ في إعادة تعيين الإعدادات', tag: 'ADS_SECTION_SETTINGS', error: e);
       rethrow;
     }
   }
@@ -121,10 +110,10 @@ class AdsSectionSettingsService {
               .doc(setting.id)
               .set(setting.toMap());
         }
-        print('✅ تم إنشاء الأقسام الافتراضية');
+        AppLogger.info('تم إنشاء الأقسام الافتراضية', tag: 'ADS_SECTION_SETTINGS');
       }
     } catch (e) {
-      print('Error initializing default sections: $e');
+      AppLogger.error('خطأ في إنشاء الأقسام الافتراضية', tag: 'ADS_SECTION_SETTINGS', error: e);
       rethrow;
     }
   }
@@ -245,9 +234,7 @@ class AdsSectionSettingsService {
       );
 
       await addNewSection(section);
-      print('✅ تم إضافة قسم المنتجات بنجاح');
     } catch (e) {
-      print('❌ خطأ في إضافة قسم المنتجات: $e');
       rethrow;
     }
   }
@@ -326,9 +313,9 @@ class AdsSectionSettingsService {
       }
       
       await batch.commit();
-      print('✅ تم تحديث ترتيب الأقسام بنجاح');
+      AppLogger.info('تم تحديث ترتيب الأقسام بنجاح', tag: 'ADS_SECTION_SETTINGS');
     } catch (e) {
-      print('❌ خطأ في تحديث ترتيب الأقسام: $e');
+      AppLogger.error('خطأ في تحديث ترتيب الأقسام', tag: 'ADS_SECTION_SETTINGS', error: e);
       rethrow;
     }
   }
@@ -356,7 +343,7 @@ class AdsSectionSettingsService {
         'hidden': sections.length - visibleSections,
       };
     } catch (e) {
-      print('❌ خطأ في الحصول على إحصائيات الأقسام: $e');
+      AppLogger.error('خطأ في الحصول على إحصائيات الأقسام', tag: 'ADS_SECTION_SETTINGS', error: e);
       return {
         'total': 0,
         'ads': 0,

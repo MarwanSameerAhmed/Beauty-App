@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/model/company.dart';
+import '../model/company.dart';
+import '../utils/logger.dart';
 
 class CompanyService {
   final CollectionReference _companiesCollection = FirebaseFirestore.instance.collection('companies');
@@ -10,7 +11,7 @@ class CompanyService {
       company.id = docRef.id; 
       await docRef.set(company.toMap());
     } catch (e) {
-      print('Error adding company: $e');
+      AppLogger.error('Error adding company', tag: 'COMPANY', error: e);
       rethrow;
     }
   }
@@ -32,7 +33,7 @@ class CompanyService {
     try {
       await _companiesCollection.doc(company.id).update(company.toMap());
     } catch (e) {
-      print('Error updating company: $e');
+      AppLogger.error('Error updating company', tag: 'COMPANY', error: e);
       rethrow;
     }
   }
@@ -41,7 +42,7 @@ class CompanyService {
     try {
       await _companiesCollection.doc(companyId).delete();
     } catch (e) {
-      print('Error deleting company: $e');
+      AppLogger.error('Error deleting company', tag: 'COMPANY', error: e);
       rethrow;
     }
   }

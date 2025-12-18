@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/widgets/loader.dart';
 
 class GradientElevatedButton extends StatelessWidget {
   final String text;

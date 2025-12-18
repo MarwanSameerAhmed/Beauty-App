@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CompanySettingsService {
@@ -26,7 +27,7 @@ class CompanySettingsService {
       
       return null;
     } catch (e) {
-      print('Error getting company settings: $e');
+      // Error getting company settings: $e
       return null;
     }
   }
@@ -58,7 +59,7 @@ class CompanySettingsService {
         SetOptions(merge: true),
       );
     } catch (e) {
-      print('Error updating company settings: $e');
+      // Error updating company settings: $e
       rethrow;
     }
   }
@@ -74,7 +75,7 @@ class CompanySettingsService {
       final settings = await getCompanySettings();
       return settings?['companyPhone'] ?? '0554055582'; // القيمة الافتراضية
     } catch (e) {
-      print('Error getting company phone: $e');
+      // Error getting company phone: $e
       return '0554055582'; // القيمة الافتراضية في حالة الخطأ
     }
   }
@@ -85,7 +86,7 @@ class CompanySettingsService {
       final settings = await getCompanySettings();
       return settings?['whatsappNumber'] ?? '966554055582'; // القيمة الافتراضية
     } catch (e) {
-      print('Error getting whatsapp number: $e');
+      AppLogger.error('Error getting whatsapp number', tag: 'COMPANY_SETTINGS', error: e);
       return '966554055582'; // القيمة الافتراضية في حالة الخطأ
     }
   }

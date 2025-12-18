@@ -3,21 +3,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:simple_animations/simple_animations.dart';
-import 'package:test_pro/controller/Auth_Service.dart';
-import 'package:test_pro/model/userAccount.dart';
-import 'package:test_pro/view/admin_view/create_invoice_page.dart';
-import 'package:test_pro/view/auth_Ui/login_ui.dart';
-import 'package:test_pro/view/admin_view/manage_ads_screen.dart';
-import 'package:test_pro/view/admin_view/manage_categories_screen.dart';
-import 'package:test_pro/view/admin_view/manage_companies_screen.dart';
-import 'package:test_pro/view/admin_view/manage_products_screen.dart';
-import 'package:test_pro/view/admin_view/manage_carousel_ads_screen.dart';
-import 'package:test_pro/view/admin_view/company_settings_page.dart';
-import 'package:test_pro/view/admin_view/ads_layout_manager.dart';
-import 'package:test_pro/view/admin_view/ads_sections_manager.dart';
-import 'package:test_pro/view/admin_view/home_layout_manager.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/elegant_dialog.dart';
+import 'package:glamify/controller/Auth_Service.dart';
+import 'package:glamify/model/userAccount.dart';
+import 'package:glamify/view/admin_view/create_invoice_page.dart';
+import 'package:glamify/view/auth_Ui/login_ui.dart';
+import 'package:glamify/view/admin_view/manage_ads_screen.dart';
+import 'package:glamify/view/admin_view/manage_categories_screen.dart';
+import 'package:glamify/view/admin_view/manage_companies_screen.dart';
+import 'package:glamify/view/admin_view/manage_products_screen.dart';
+import 'package:glamify/view/admin_view/manage_carousel_ads_screen.dart';
+import 'package:glamify/view/admin_view/company_settings_page.dart';
+import 'package:glamify/view/admin_view/ads_layout_manager.dart';
+import 'package:glamify/view/admin_view/ads_sections_manager.dart';
+import 'package:glamify/view/admin_view/home_layout_manager.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/elegant_dialog.dart';
 
 class DashboardUi extends StatefulWidget {
   const DashboardUi({super.key});
@@ -103,7 +103,7 @@ class _DashboardUiState extends State<DashboardUi> {
                         _buildModernDashboardCard(
                           context,
                           icon: Ionicons.megaphone_outline,
-                          title: 'البانر المتحرك',
+                          title: 'البانرز الثابتة',
                           subtitle: 'إنشاء وتعديل الإعلانات',
                           delay: const Duration(milliseconds: 500),
                           cardType: 'ad',

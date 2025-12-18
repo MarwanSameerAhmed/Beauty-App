@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_pro/controller/remote_config_service.dart';
-import 'package:test_pro/view/admin_dashboard/admin_bottom_nav_ui.dart';
-import 'package:test_pro/view/bottomNavUi.dart';
-import 'package:test_pro/view/auth_Ui/login_ui.dart';
-import 'package:test_pro/view/onboardingUi.dart';
-import 'package:test_pro/view/maintenance_page.dart';
+import 'package:glamify/controller/remote_config_service.dart';
+import 'package:glamify/view/admin_dashboard/admin_bottom_nav_ui.dart';
+import 'package:glamify/view/bottomNavUi.dart';
+import 'package:glamify/view/auth_Ui/login_ui.dart';
+import 'package:glamify/view/onboardingUi.dart';
+import 'package:glamify/view/maintenance_page.dart';
+import '../utils/logger.dart';
 
 class AppWrapper extends StatefulWidget {
   final bool onboardingComplete;
@@ -32,23 +34,26 @@ class _AppWrapperState extends State<AppWrapper> {
   }
 
   void _startRemoteConfigListener() {
-    // Check for updates every 5 seconds for testing
-    Stream.periodic(const Duration(seconds: 5)).listen((_) async {
-      print('🔍 Checking Remote Config...');
-      await widget.remoteConfigService.fetchConfig();
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    // Only check for updates in debug mode to avoid unnecessary network calls in production
+    if (kDebugMode) {
+      // Check for updates every 30 seconds in debug mode only
+      Stream.periodic(const Duration(seconds: 30)).listen((_) async {
+        AppLogger.debug('Checking Remote Config (Debug Mode)', tag: 'APP_WRAPPER');
+        await widget.remoteConfigService.fetchConfig();
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isAppEnabled = widget.remoteConfigService.isAppEnabled;
-    print('🏗️ Building AppWrapper - App enabled: $isAppEnabled');
+    AppLogger.debug('Building AppWrapper', tag: 'APP_WRAPPER', data: {'appEnabled': isAppEnabled});
     
     if (!isAppEnabled) {
-      print('🚧 Showing maintenance page');
+      AppLogger.info('Showing maintenance page', tag: 'APP_WRAPPER');
       return const MaintenancePage();
     }
 

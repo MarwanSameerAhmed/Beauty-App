@@ -1,10 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:test_pro/controller/ads_section_settings_service.dart';
-import 'package:test_pro/model/ads_section_settings.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/controller/ads_section_settings_service.dart';
+import 'package:glamify/model/ads_section_settings.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/loader.dart';
 
 class HomeLayoutManager extends StatefulWidget {
   const HomeLayoutManager({Key? key}) : super(key: key);

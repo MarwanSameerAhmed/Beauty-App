@@ -1,10 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/model/userAccount.dart';
-import 'package:firebase_messaging/firebase_messaging.dart'; // For FCM Token
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:test_pro/config/web_config.dart';
+import 'package:glamify/model/userAccount.dart';
+import 'package:glamify/utils/logger.dart';
+import 'package:glamify/config/web_config.dart';
 
 // A special class to indicate a new user from Google sign-in
 class NewGoogleUser {
@@ -126,7 +127,7 @@ class AuthService {
       }
       return 'حدث خطأ غير متوقع.';
     } on FirebaseAuthException catch (e) {
-      print('Firebase Auth Error: ${e.code} - ${e.message}');
+      AppLogger.error('Firebase Auth Error', tag: 'AUTH', error: e);
       switch (e.code) {
         case 'popup-closed-by-user':
           return 'تم إغلاق نافذة تسجيل الدخول.';
@@ -138,7 +139,7 @@ class AuthService {
           return e.message ?? 'فشل تسجيل الدخول باستخدام جوجل.';
       }
     } catch (e) {
-      print('Google Sign-In Error: $e');
+      AppLogger.error('Google Sign-In Error', tag: 'AUTH', error: e);
       if (e.toString().contains('popup_closed_by_user')) {
         return 'تم إغلاق نافذة تسجيل الدخول.';
       }
@@ -151,7 +152,7 @@ class AuthService {
       final userCredential = await _auth.signInAnonymously();
       return userCredential.user;
     } catch (e) {
-      print('Error signing in anonymously: $e');
+      AppLogger.error('Error signing in anonymously', tag: 'AUTH', error: e);
       return null;
     }
   }
@@ -186,7 +187,7 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      print('Error getting current user account: $e');
+      AppLogger.error('Error getting current user account', tag: 'AUTH', error: e);
       return null;
     }
   }
@@ -195,14 +196,13 @@ class AuthService {
     try {
       // Skip FCM token for web as it requires different setup
       if (kIsWeb) {
-        print('Skipping FCM token for web platform');
+        AppLogger.info('Skipping FCM token for web platform', tag: 'FCM');
         return;
       }
       
       String? fcmToken = await FirebaseMessaging.instance.getToken();
       if (fcmToken != null) {
-        print('💾 Saving FCM Token for user: $uid');
-        print('📱 Token: ${fcmToken.substring(0, 20)}...');
+        AppLogger.info('Saving FCM Token for user', tag: 'FCM', data: {'userId': uid});
         
         // Use set with merge to create or update the document
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
@@ -210,18 +210,18 @@ class AuthService {
           'lastTokenUpdate': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
         
-        print('✅ FCM Token saved successfully');
+        AppLogger.info('FCM Token saved successfully', tag: 'FCM');
       } else {
-        print('⚠️ FCM Token is null, skipping save');
+        AppLogger.warning('FCM Token is null, skipping save', tag: 'FCM');
       }
     } catch (e) {
-      print('❌ Error saving device token: $e');
+      AppLogger.error('Error saving device token', tag: 'FCM', error: e);
     }
   }
 
   
   static Future<void> _subscribeToTopics(String userId) async {
-    print('Checking user role for topic subscription for user: $userId');
+    AppLogger.debug('Checking user role for topic subscription', tag: 'TOPICS', data: {'userId': userId});
     try {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
@@ -231,20 +231,20 @@ class AuthService {
         String role =
             userDoc.get('role') ??
             'user'; 
-        print('User role is: $role');
+        AppLogger.info('User role determined', tag: 'TOPICS', data: {'role': role});
         if (role == 'admin') {
-          print('User is an admin. Subscribing to admin topics...');
+          AppLogger.info('User is admin, subscribing to admin topics', tag: 'TOPICS');
           await FirebaseMessaging.instance.subscribeToTopic('new_orders');
           await FirebaseMessaging.instance.subscribeToTopic('admin_notifications');
-          print('>>> SUCCESS: Admin user subscribed to admin topics.');
+          AppLogger.info('Admin user subscribed to admin topics successfully', tag: 'TOPICS');
         } else {
-          print('User is not an admin, no topic subscription needed.');
+          AppLogger.debug('User is not admin, no topic subscription needed', tag: 'TOPICS');
         }
       } else {
-        print('User document not found. Cannot check role.');
+        AppLogger.warning('User document not found, cannot check role', tag: 'TOPICS');
       }
     } catch (e) {
-      print('!!! CRITICAL ERROR subscribing to topics: $e');
+      AppLogger.error('CRITICAL ERROR subscribing to topics', tag: 'TOPICS', error: e);
     }
   }
 }

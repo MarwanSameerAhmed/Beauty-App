@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
-import 'package:test_pro/controller/cart_service.dart';
-import 'package:test_pro/controller/favorites_service.dart';
-import 'package:test_pro/model/product.dart';
-import 'package:test_pro/widgets/ElegantToast.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/controller/cart_service.dart';
+import 'package:glamify/controller/favorites_service.dart';
+import 'package:glamify/model/product.dart';
+import 'package:glamify/widgets/ElegantToast.dart';
+import 'package:glamify/widgets/loader.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;

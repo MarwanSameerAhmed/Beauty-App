@@ -2,17 +2,18 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/loader.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:test_pro/widgets/elegant_dialog.dart';
-import 'package:test_pro/services/pdf_invoice_service.dart';
+import 'package:glamify/widgets/elegant_dialog.dart';
+import 'package:glamify/services/pdf_invoice_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:test_pro/controller/notification_service.dart';
-import 'package:test_pro/controller/company_settings_service.dart';
+import 'package:glamify/controller/notification_service.dart';
+import 'package:glamify/controller/company_settings_service.dart';
+import '../utils/logger.dart';
 
 class CustomerOrderDetailsPage extends StatefulWidget {
   final DocumentSnapshot order;
@@ -566,7 +567,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
           body: 'تم إلغاء طلب رقم ${widget.order.id} من قبل العميل.',
         );
       } catch (e) {
-        print('Failed to send admin notification: $e');
+        AppLogger.error('Failed to send admin notification', tag: 'CUSTOMER_ORDER', error: e);
       }
       
       if (!mounted) return;
@@ -625,7 +626,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
           body: 'طلب رقم ${widget.order.id} جاهز للمراجعة النهائية والموافقة.',
         );
       } catch (e) {
-        print('Failed to send admin notification: $e');
+        AppLogger.error('Failed to send admin notification', tag: 'CUSTOMER_ORDER', error: e);
       }
 
       Navigator.of(context).pop(); // Dismiss dialog
@@ -1018,7 +1019,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
           body: 'العميل $userName أرسل فاتورة طلب رقم ${widget.order.id} - المبلغ: ${_totalPrice.toStringAsFixed(2)} ر.س',
         );
       } catch (e) {
-        print('Failed to send admin notification: $e');
+        AppLogger.error('Failed to send admin notification', tag: 'CUSTOMER_ORDER', error: e);
       }
 
       // Hide loading

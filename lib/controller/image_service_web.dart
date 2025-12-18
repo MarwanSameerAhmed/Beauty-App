@@ -2,6 +2,7 @@
 import 'dart:typed_data';
 import 'dart:html' as html;
 import 'package:flutter/foundation.dart';
+import '../utils/logger.dart';
 
 class WebImageServiceImpl {
   /// ضغط الصورة للويب باستخدام Canvas
@@ -57,7 +58,7 @@ class WebImageServiceImpl {
       return Uint8List.fromList((reader.result as List<int>));
       
     } catch (e) {
-      debugPrint('فشل ضغط الصورة على الويب: $e');
+      AppLogger.error('فشل ضغط الصورة على الويب', tag: 'IMAGE_WEB', error: e);
       return null;
     }
   }
@@ -85,7 +86,7 @@ class WebImageServiceImpl {
       );
       
     } catch (e) {
-      debugPrint('فشل ضغط ملف الصورة: $e');
+      AppLogger.error('فشل ضغط ملف الصورة', tag: 'IMAGE_WEB', error: e);
       return null;
     }
   }

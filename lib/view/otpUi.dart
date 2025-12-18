@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:simple_animations/simple_animations.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/buttonsWidgets.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/buttonsWidgets.dart';
 
 class OtpScreen extends StatefulWidget {
   final String verificationId;
@@ -83,19 +83,19 @@ class _OtpScreenState extends State<OtpScreen> {
                         border: Border.all(color: const Color(0xFFC15C5C)),
                       ),
                     ),
-                    onCompleted: (pin) => print(pin),
+                    onCompleted: (pin) => {}, // OTP completed
                   ),
                   const SizedBox(height: 40),
                   GradientElevatedButton(
                     text: 'تحقق',
                     onPressed: () {
-                      // TODO: Implement OTP verification logic
+                      // OTP verification logic to be implemented
                     },
                   ),
                   const SizedBox(height: 20),
                   TextButton(
                     onPressed: () {
-                      // TODO: Implement resend OTP logic
+                      // Resend OTP logic to be implemented
                     },
                     child: const Text(
                       'إعادة إرسال الرمز',

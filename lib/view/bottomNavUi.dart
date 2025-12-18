@@ -1,16 +1,16 @@
 import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:test_pro/view/categorysUi.dart';
-import 'package:test_pro/view/homeScreenUi.dart';
-import 'package:test_pro/view/cart_page.dart';
-import 'package:test_pro/view/my_orders_page.dart';
-import 'package:test_pro/view/profile_Ui/profileUi.dart';
+import 'package:glamify/view/categorysUi.dart';
+import 'package:glamify/view/homeScreenUi.dart';
+import 'package:glamify/view/cart_page.dart';
+import 'package:glamify/view/my_orders_page.dart';
+import 'package:glamify/view/profile_Ui/profileUi.dart';
 import 'package:provider/provider.dart';
-import 'package:test_pro/controller/cart_service.dart';
+import 'package:glamify/controller/cart_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_pro/controller/order_status_service.dart';
+import 'package:glamify/controller/order_status_service.dart';
 
 class Run extends StatefulWidget {
   const Run({Key? key}) : super(key: key);

@@ -2,9 +2,10 @@ import 'dart:io' if (dart.library.html) 'dart:html';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'package:printing/printing.dart';
+import '../utils/logger.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -36,9 +37,9 @@ class PdfInvoiceService {
       arabicFont = pw.Font.ttf(fontData);
       arabicBoldFont = pw.Font.ttf(fontData); // Use same font for bold
       
-      print('Successfully loaded Tajawal font from assets');
+      AppLogger.info('Successfully loaded Tajawal font from assets', tag: 'PDF');
     } catch (e) {
-      print('Failed to load local fonts: $e');
+      AppLogger.warning('Failed to load local fonts', tag: 'PDF', error: e);
       // Fallback to Google Fonts
       try {
         arabicFont = await PdfGoogleFonts.amiriRegular();
@@ -360,7 +361,7 @@ class PdfInvoiceService {
   // Web-specific function to download PDF
   static void downloadPdfWeb(Uint8List pdfBytes, String fileName) {
     if (!kIsWeb) {
-      debugPrint('downloadPdfWeb يعمل فقط على الويب');
+      AppLogger.warning('downloadPdfWeb يعمل فقط على الويب', tag: 'PDF');
       return;
     }
     
@@ -370,7 +371,7 @@ class PdfInvoiceService {
         onLayout: (PdfPageFormat format) async => pdfBytes,
       );
     } catch (e) {
-      debugPrint('خطأ في تحميل PDF: $e');
+      AppLogger.error('خطأ في تحميل PDF', tag: 'PDF', error: e);
     }
   }
 

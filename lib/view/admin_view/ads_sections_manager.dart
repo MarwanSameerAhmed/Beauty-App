@@ -1,11 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:test_pro/controller/ads_section_settings_service.dart';
-import 'package:test_pro/model/ads_section_settings.dart';
-import 'package:test_pro/view/admin_view/product_section_management_page.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/controller/ads_section_settings_service.dart';
+import 'package:glamify/model/ads_section_settings.dart';
+import 'package:glamify/view/admin_view/product_section_management_page.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/loader.dart';
 
 class AdsSectionsManager extends StatefulWidget {
   const AdsSectionsManager({Key? key}) : super(key: key);

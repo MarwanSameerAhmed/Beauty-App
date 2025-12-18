@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:test_pro/model/categorys.dart';
+import 'package:glamify/model/categorys.dart';
 
 class CategoryCard extends StatelessWidget {
   final Category category;

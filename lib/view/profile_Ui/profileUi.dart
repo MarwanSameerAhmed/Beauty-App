@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_pro/view/admin_view/manage_ads_screen.dart';
-import 'package:test_pro/view/auth_Ui/login_ui.dart';
-import 'package:test_pro/view/profile_Ui/account_settings_page.dart';
-import 'package:test_pro/view/profile_Ui/help_and_support_page.dart';
-import 'package:test_pro/view/profile_Ui/privacy_policy_page.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/ElegantToast.dart';
+import 'package:glamify/view/admin_view/manage_ads_screen.dart';
+import 'package:glamify/view/auth_Ui/login_ui.dart';
+import 'package:glamify/view/profile_Ui/account_settings_page.dart';
+import 'package:glamify/view/profile_Ui/help_and_support_page.dart';
+import 'package:glamify/view/legal/privacy_policy_page.dart' as LegalPrivacy;
+import 'package:glamify/view/legal/terms_of_service_page.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/ElegantToast.dart';
 import 'dart:ui';
 
 class ProfileUi extends StatefulWidget {
@@ -392,7 +393,7 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
                   filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                   child: Column(
                     children: [
-                      // TODO: Replace with a proper role-based check from user data
+                      // Admin role check based on email domain
                       if (_email.endsWith('@admin.com'))
                         Column(
                           children: [
@@ -431,11 +432,21 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
                       ),
                       _buildAnimatedMenuTile(
                         Icons.lock,
-                        'الخصوصية والأمان',
+                        'سياسة الخصوصية',
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const PrivacyPolicyPage(),
+                            builder: (context) => const LegalPrivacy.PrivacyPolicyPage(),
+                          ),
+                        ),
+                      ),
+                      _buildAnimatedMenuTile(
+                        Icons.description,
+                        'شروط الخدمة',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TermsOfServicePage(),
                           ),
                         ),
                       ),

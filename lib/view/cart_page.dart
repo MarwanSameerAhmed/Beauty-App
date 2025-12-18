@@ -2,14 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
-import 'package:test_pro/controller/cart_service.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_Header_user.dart';
-import 'package:test_pro/controller/notification_service.dart'; // For sending notifications
-import 'package:test_pro/widgets/loader.dart';
+import 'package:glamify/controller/cart_service.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_Header_user.dart';
+import 'package:glamify/controller/notification_service.dart'; // For sending notifications
+import 'package:glamify/widgets/loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:test_pro/widgets/elegant_dialog.dart';
-import 'package:test_pro/view/auth_Ui/login_ui.dart';
+import 'package:glamify/widgets/elegant_dialog.dart';
+import 'package:glamify/view/auth_Ui/login_ui.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({Key? key}) : super(key: key);

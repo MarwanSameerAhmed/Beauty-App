@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import '../utils/logger.dart';
 
 class WebImageService {
   static Future<Uint8List?> compressImage(Uint8List imageBytes, {
@@ -9,12 +10,12 @@ class WebImageService {
   }) async {
     if (!kIsWeb) {
       // على الموبايل، إرجاع البيانات كما هي
-      debugPrint('WebImageService: تشغيل على الموبايل - إرجاع الصورة بدون ضغط');
+      AppLogger.debug('WebImageService: تشغيل على الموبايل', tag: 'WEB_IMAGE');
       return imageBytes;
     }
     
     // على الويب، سيتم استبدال هذا بالتنفيذ الحقيقي
-    debugPrint('WebImageService: يحتاج تنفيذ ويب حقيقي');
+    AppLogger.debug('WebImageService: يحتاج تنفيذ ويب حقيقي', tag: 'WEB_IMAGE');
     return imageBytes;
   }
 }

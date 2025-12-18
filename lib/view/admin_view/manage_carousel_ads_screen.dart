@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:test_pro/controller/carousel_ad_service.dart';
-import 'package:test_pro/model/carousel_ad.dart';
-import 'package:test_pro/view/admin_view/add_carousel_ad_form.dart';
-import 'package:test_pro/widgets/backgroundUi.dart';
-import 'package:test_pro/widgets/custom_admin_header.dart';
-import 'package:test_pro/widgets/elegant_dialog.dart';
+import 'package:glamify/controller/carousel_ad_service.dart';
+import 'package:glamify/model/carousel_ad.dart';
+import 'package:glamify/view/admin_view/add_carousel_ad_form.dart';
+import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/elegant_dialog.dart';
 
 class ManageCarouselAdsScreen extends StatelessWidget {
   final CarouselAdService _carouselAdService = CarouselAdService();
