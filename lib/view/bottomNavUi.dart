@@ -71,9 +71,10 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
       const ProfileUi(),
     ];
 
-    return SafeArea(
-      child: Scaffold(
-        body: Stack(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Stack(
           alignment: Alignment.bottomCenter,
           children: [
             TabBarView(
@@ -83,7 +84,12 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
               children: _pages,
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                16 + MediaQuery.of(context).padding.bottom,
+              ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(30.0),
                 child: BackdropFilter(
@@ -213,7 +219,6 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
             ),
           ],
         ),
-      ),
     );
   }
 }

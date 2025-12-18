@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:glamify/controller/notification_service.dart';
 import 'package:glamify/services/pdf_invoice_service.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
@@ -325,10 +324,15 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: FlowerBackground(
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Column(
-            children: [
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            extendBodyBehindAppBar: true,
+            body: Column(
+              children: [
               const CustomAdminHeader(
                 title: 'تفاصيل الطلب',
                 subtitle: 'مراجعة وتسعير المنتجات',
@@ -411,9 +415,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   },
                 ),
               ),
-            ],
-          ),
-          bottomNavigationBar: Padding(
+              ],
+            ),
+            bottomNavigationBar: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -481,6 +485,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   ),
               ],
             ),
+          ),
           ),
         ),
       ),
@@ -860,49 +865,25 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           totalPrice: totalPrice,
         );
       } else {
-        // للموبايل: نسخ الملف لمجلد التحميلات
+        // للموبايل: استخدام المشاركة مباشرة (يعمل على iOS و Android)
         if (pdfFile is File) {
-          // الحصول على مجلد التحميلات
-          final directory = await getExternalStorageDirectory();
-          if (directory != null) {
-            // إنشاء مجلد التحميلات إذا لم يكن موجوداً
-            final downloadsDir = Directory('${directory.path}/Download');
-            if (!await downloadsDir.exists()) {
-              await downloadsDir.create(recursive: true);
-            }
-            
-            // نسخ الملف
-            final fileName = 'فاتورة_${widget.order.id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-            final newPath = '${downloadsDir.path}/$fileName';
-            await pdfFile.copy(newPath);
-            
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('تم حفظ الفاتورة في: $newPath'),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 4),
-                ),
-              );
-            }
-          } else {
-            // إذا فشل الوصول لمجلد التحميلات، استخدم المشاركة
-            await Share.shareXFiles(
-              [XFile(pdfFile.path)],
-              text: 'فاتورة رقم ${widget.order.id}',
-              subject: 'فاتورة - اختر "حفظ في الملفات"',
+          await Share.shareXFiles(
+            [XFile(pdfFile.path)],
+            text: 'فاتورة رقم ${widget.order.id}',
+            subject: 'فاتورة - اختر "حفظ في الملفات"',
+            sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
+          );
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('تم فتح نافذة المشاركة - اختر "حفظ في الملفات" للتحميل'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
+              ),
             );
           }
         }
-      }
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم تحميل الفاتورة بنجاح!'),
-            backgroundColor: Colors.green,
-          ),
-        );
       }
     } catch (e) {
       if (mounted) {

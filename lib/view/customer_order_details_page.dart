@@ -1205,6 +1205,7 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                         [XFile(pdfFile.path)],
                         text: message,
                         subject: 'فاتورة طلب رقم: ${widget.order.id}',
+                        sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
                       );
                     }
                   },
@@ -1322,7 +1323,10 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                               );
                             } else {
                               // For mobile: share file
-                              await Share.shareXFiles([XFile(pdfFile.path)]);
+                              await Share.shareXFiles(
+                                [XFile(pdfFile.path)],
+                                sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
+                              );
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('تم إرسال ملف الفاتورة بنجاح!'),

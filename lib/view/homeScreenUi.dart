@@ -27,13 +27,17 @@ class Homescreenui extends StatefulWidget {
   _HomescreenuiState createState() => _HomescreenuiState();
 }
 
-class _HomescreenuiState extends State<Homescreenui> {
+class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClientMixin {
   String _userName = "Guest";
   String _email = "No Email";
   String _imagePath = "images/0c7640ce594d7f983547e32f01ede503.jpg";
   final ProductService _productService = ProductService();
   final AdsService _adsService = AdsService();
   Stream<List<Ad>>? _adsStream;
+  Stream<QuerySnapshot>? _sectionsStream;
+  
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -47,6 +51,11 @@ class _HomescreenuiState extends State<Homescreenui> {
     
     _loadUserData();
     _adsStream = _adsService.getAds();
+    // تهيئة stream للأقسام مرة واحدة
+    _sectionsStream = FirebaseFirestore.instance
+        .collection('ads_section_settings')
+        .where('isVisible', isEqualTo: true)
+        .snapshots();
   }
 
   Future<void> _loadUserData() async {
@@ -62,6 +71,7 @@ class _HomescreenuiState extends State<Homescreenui> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // مطلوب لـ AutomaticKeepAliveClientMixin
     return FlowerBackground(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -70,6 +80,7 @@ class _HomescreenuiState extends State<Homescreenui> {
         },
         child: Scaffold(
           backgroundColor: Colors.transparent,
+          extendBodyBehindAppBar: true,
           body: CustomScrollView(
             slivers: [
               SliverPersistentHeader(
@@ -120,10 +131,7 @@ class _HomescreenuiState extends State<Homescreenui> {
 
   Widget _buildDynamicLayout() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('ads_section_settings')
-          .where('isVisible', isEqualTo: true)
-          .snapshots(),
+      stream: _sectionsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SliverToBoxAdapter(

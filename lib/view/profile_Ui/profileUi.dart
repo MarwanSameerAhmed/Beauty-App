@@ -107,7 +107,7 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
         textDirection: TextDirection.rtl,
         child: Scaffold(
           backgroundColor: Colors.transparent,
-
+          extendBodyBehindAppBar: true,
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [

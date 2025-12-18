@@ -22,8 +22,13 @@ class ProfileHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      child: Container(
+        padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 8.0,
+          left: 16.0,
+          right: 16.0,
+          bottom: 16.0,
+        ),
         child: Row(
           children: [
             CircleAvatar(

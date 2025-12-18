@@ -398,6 +398,7 @@ class PdfInvoiceService {
           [XFile(pdfFile.path)],
           text: message,
           subject: 'فاتورة طلب رقم: ${orderNumber ?? 'غير محدد'}',
+          sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
         );
       }
     }

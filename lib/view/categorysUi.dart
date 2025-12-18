@@ -33,6 +33,7 @@ class _CategorysState extends State<Categorys> {
       child: FlowerBackground(
         child: Scaffold(
           backgroundColor: Colors.transparent,
+          extendBodyBehindAppBar: true,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

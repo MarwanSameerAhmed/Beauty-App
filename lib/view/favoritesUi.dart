@@ -40,7 +40,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
         textDirection: TextDirection.rtl,
         child: Scaffold(
           backgroundColor: Colors.transparent,
-
+          extendBodyBehindAppBar: true,
           body: Column(
             children: [
               const CustomAdminHeader(
