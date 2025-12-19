@@ -81,7 +81,9 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
         child: Scaffold(
           backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
-          body: CustomScrollView(
+          body: SafeArea(
+            bottom: false, // السماح بامتداد المحتوى للأسفل
+            child: CustomScrollView(
             slivers: [
               SliverPersistentHeader(
                 pinned: true,
@@ -124,7 +126,7 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
               const SliverToBoxAdapter(child: SizedBox(height: 85.0)),
             ],
           ),
-        ),
+        ), // SafeArea
       ),
     );
   }

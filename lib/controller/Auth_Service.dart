@@ -84,7 +84,12 @@ class AuthService {
     try {
       // For web, we don't need to sign out first as it causes issues
       if (!kIsWeb) {
-        await _googleSignIn.signOut();
+        try {
+          await _googleSignIn.signOut();
+        } catch (e) {
+          // Ignore sign out errors (e.g., if no previous session exists)
+          AppLogger.debug('Sign out before sign in failed (this is OK)', tag: 'AUTH');
+        }
       }
       
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();

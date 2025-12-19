@@ -28,10 +28,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // تخصيص شريط الحالة للتطبيق بالكامل
+  // تخصيص شريط الحالة للتطبيق بالكامل - شفاف للسماح بامتداد الباك قراوند
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Color.fromARGB(255, 249, 237, 237), // لون خلفية التطبيق
+      statusBarColor: Colors.transparent, // شفاف للسماح بامتداد الباك قراوند
       statusBarIconBrightness: Brightness.dark, // أيقونات داكنة
       statusBarBrightness: Brightness.light, // للـ iOS
       systemNavigationBarColor: Color.fromARGB(255, 249, 237, 237),
