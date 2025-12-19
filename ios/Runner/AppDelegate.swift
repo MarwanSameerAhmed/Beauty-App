@@ -1,8 +1,6 @@
 import Flutter
 import UIKit
 import GoogleSignIn
-import Firebase
-import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -10,26 +8,10 @@ import UserNotifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // Firebase initialization (required for FCM)
-    FirebaseApp.configure()
-    
-    // Request notification permissions for iOS 10+
+    // تسجيل الإشعارات - Flutter plugins تتعامل مع Firebase تلقائياً
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self
-      
-      let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-      UNUserNotificationCenter.current().requestAuthorization(
-        options: authOptions,
-        completionHandler: { _, _ in }
-      )
-    } else {
-      let settings: UIUserNotificationSettings =
-        UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
-      application.registerUserNotificationSettings(settings)
     }
-    
-    // Register for remote notifications
-    application.registerForRemoteNotifications()
     
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -47,19 +29,5 @@ import UserNotifications
     }
     // Let Flutter handle other URLs
     return super.application(app, open: url, options: options)
-  }
-  
-  // Handle APNs token registration
-  override func application(_ application: UIApplication,
-                            didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-    // Pass device token to Firebase
-    Messaging.messaging().apnsToken = deviceToken
-    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
-  }
-  
-  // Handle APNs registration failure
-  override func application(_ application: UIApplication,
-                            didFailToRegisterForRemoteNotificationsWithError error: Error) {
-    print("Failed to register for remote notifications: \(error.localizedDescription)")
   }
 }

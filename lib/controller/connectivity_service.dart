@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:http/http.dart' as http;
 
 class ConnectivityService {
   final Connectivity _connectivity = Connectivity();
