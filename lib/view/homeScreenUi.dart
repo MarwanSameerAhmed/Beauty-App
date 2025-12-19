@@ -36,6 +36,11 @@ class _HomescreenuiState extends State<Homescreenui>
   final AdsService _adsService = AdsService();
   Stream<List<Ad>>? _adsStream;
   Stream<QuerySnapshot>? _sectionsStream;
+  
+  // Cache للمنتجات والإعلانات لمنع التحديث المستمر
+  List<Product>? _cachedProducts;
+  List<Ad>? _cachedAds;
+  QuerySnapshot? _cachedSections;
 
   @override
   bool get wantKeepAlive => true;
@@ -138,7 +143,11 @@ class _HomescreenuiState extends State<Homescreenui>
       stream: _sectionsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SliverToBoxAdapter(child: Center(child: Loader()));
+          // استخدام الـ cache - عدم عرض loader إذا كان لدينا cache
+          if (_cachedSections == null) {
+            return const SliverToBoxAdapter(child: Center(child: Loader()));
+          }
+          // استمر في المعالجة باستخدام cached data
         }
 
         if (snapshot.hasError) {
@@ -147,6 +156,12 @@ class _HomescreenuiState extends State<Homescreenui>
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return _buildDefaultLayout();
+        }
+        
+        // تحديث الـ cache فقط إذا تغيرت البيانات
+        if (_cachedSections == null || 
+            _cachedSections!.docs.length != snapshot.data!.docs.length) {
+          _cachedSections = snapshot.data;
         }
 
         final sections = snapshot.data!.docs.map((doc) {
@@ -254,15 +269,22 @@ class _HomescreenuiState extends State<Homescreenui>
 
   Widget _buildAdsSectionWidget(AdsSectionSettings section) {
     return StreamBuilder<List<Ad>>(
-      stream: _adsService.getAds(),
+      stream: _adsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox.shrink();
+          // استخدام الـ cache - عدم عرض loader
+          if (_cachedAds == null) {
+            return const SizedBox.shrink();
+          }
+          // استمر في المعالجة باستخدام cached data
         }
 
         if (snapshot.hasError || !snapshot.hasData) {
           return const SizedBox.shrink();
         }
+        
+        // تحديث الـ cache
+        _cachedAds = snapshot.data;
 
         final ads = snapshot.data!;
         final sectionAds =
@@ -480,9 +502,13 @@ class _HomescreenuiState extends State<Homescreenui>
       stream: _productService.getProducts(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Padding(padding: EdgeInsets.all(20.0), child: Loader()),
-          );
+          // استخدام الـ cache - عدم عرض loader إذا كان لدينا cache
+          if (_cachedProducts == null) {
+            return const Center(
+              child: Padding(padding: EdgeInsets.all(20.0), child: Loader()),
+            );
+          }
+          // استمر في المعالجة باستخدام cached data
         }
         if (snapshot.hasError) {
           return Center(child: Text('حدث خطأ: ${snapshot.error}'));
@@ -490,6 +516,9 @@ class _HomescreenuiState extends State<Homescreenui>
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('لا توجد منتجات حالياً'));
         }
+        
+        // تحديث الـ cache
+        _cachedProducts = snapshot.data;
 
         final products = snapshot.data!.take(maxItems).toList();
 

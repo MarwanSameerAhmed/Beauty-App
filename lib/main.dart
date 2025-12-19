@@ -18,6 +18,7 @@ import 'package:glamify/config/app_config.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:glamify/controller/connectivity_service.dart';
+import 'package:glamify/widgets/connectivity_card.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -126,13 +127,13 @@ Future<void> main() async {
   await AppConfig.instance.initialize();
 
   final connectivityService = ConnectivityService();
-  final initialConnectivity = await connectivityService.checkConnectivity();
+  final initialConnectivity = await connectivityService.hasInternetConnection();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => CartService()),
-        StreamProvider<ConnectivityResult>(
+        StreamProvider<bool>(
           create: (context) => connectivityService.connectionStatusStream,
           initialData: initialConnectivity,
         ),
@@ -183,142 +184,21 @@ class ConnectivityWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final connectivityResult = Provider.of<ConnectivityResult?>(context);
+    final isConnected = Provider.of<bool?>(context);
 
     return Stack(
       children: [
         child,
-        if (connectivityResult == ConnectivityResult.none)
-          const NoInternetPopup(),
-      ],
-    );
-  }
-}
-
-class NoInternetPopup extends StatefulWidget {
-  const NoInternetPopup({super.key});
-
-  @override
-  State<NoInternetPopup> createState() => _NoInternetPopupState();
-}
-
-class _NoInternetPopupState extends State<NoInternetPopup>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          color: Colors.black.withOpacity(0.2),
-          child: Center(
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.5, end: 1.0),
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOutBack,
-              builder: (context, scale, child) {
-                return Transform.scale(
-                  scale: scale,
-                  child: Opacity(opacity: scale.clamp(0.0, 1.0), child: child),
-                );
-              },
-              child: Container(
-                margin: const EdgeInsets.all(40.0),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 32.0,
-                ),
-                decoration: BoxDecoration(
-                  color: Color(0xFFF9D5D3).withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 30,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: const Icon(
-                        Icons.wifi_off_rounded,
-                        size: 80,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'انقطع الاتصال',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        decoration: TextDecoration.none,
-                        fontFamily: 'Tajawal',
-
-                        shadows: [
-                          Shadow(
-                            color: Colors.black26,
-                            blurRadius: 4,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'يرجى التحقق من اتصالك بالإنترنت',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black.withOpacity(0.8),
-                        decoration: TextDecoration.none,
-                        fontFamily: 'Tajawal',
-                        shadows: const [
-                          Shadow(
-                            color: Colors.black26,
-                            blurRadius: 2,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
+        if (isConnected == false)
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: NoInternetCard(),
             ),
           ),
-        ),
-      ),
+      ],
     );
   }
 }

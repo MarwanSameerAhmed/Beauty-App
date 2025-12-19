@@ -61,6 +61,7 @@ class _DashboardUiState extends State<DashboardUi> {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           body: SafeArea(
+            bottom: false, // السماح بامتداد الباك قراوند للأسفل
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(

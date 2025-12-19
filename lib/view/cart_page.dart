@@ -413,7 +413,7 @@ class _CartPageState extends State<CartPage> {
                                     ),
                             ),
                           ),
-                          SizedBox(height: 80),
+                          const SizedBox(height: 20), // تقليل المسافة لرفع الزر للأعلى
                         ],
                       ),
               ),
