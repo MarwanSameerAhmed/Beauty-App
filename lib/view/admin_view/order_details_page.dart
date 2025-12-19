@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:async';
 import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -151,7 +152,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         'status': newStatus,
       });
 
-      // Send notification to the user
+      // Send notification to the user (with timeout to prevent infinite loading)
       bool notificationSent = false;
       String? notificationError;
       
@@ -169,6 +170,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           AppLogger.debug('User FCM Token found', tag: 'ORDER_DETAILS', data: {'tokenPrefix': userToken.substring(0, 20)});
           
           if (userToken.isNotEmpty) {
+            // إضافة timeout لمنع التعليق اللانهائي
             await NotificationService.sendNotification(
               token: userToken,
               title: isFinalApproval
@@ -177,6 +179,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               body: isFinalApproval
                   ? 'وافق المسؤول على الأسعار. يمكنك الآن تأكيد طلبك عبر واتساب.'
                   : 'قام المسؤول بتحديث أسعار طلبك. اضغط للمشاهدة.',
+            ).timeout(
+              const Duration(seconds: 10),
+              onTimeout: () {
+                throw TimeoutException('Notification timeout after 10 seconds');
+              },
             );
             notificationSent = true;
             AppLogger.info('Notification sent successfully', tag: 'ORDER_DETAILS');
@@ -194,7 +201,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       }
 
       if (!mounted) return;
-      Navigator.pop(context); 
+      Navigator.pop(context); // إغلاق loading dialog
 
       // Show appropriate message based on notification status
       String message;
@@ -225,10 +232,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         ),
       );
 
-      Navigator.pop(context); // Go back to the previous screen
+      Navigator.pop(context); // الرجوع للصفحة السابقة
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context); // Dismiss loading indicator
+      Navigator.pop(context); // إغلاق loading dialog
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('حدث خطأ: $e')));

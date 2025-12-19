@@ -38,52 +38,55 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
       child: FlowerBackground(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          body: Column(
-            children: [
-              const CustomHeaderUser(
-                title: 'طلبات العملاء',
-                subtitle: 'عرض وإدارة طلبات العملاء',
-              ),
-              TabBar(
-                controller: _tabController,
-                labelColor: Colors.pink.shade800,
-                unselectedLabelColor: Colors.black54,
-                indicatorColor: Colors.pink.shade800,
-                indicatorWeight: 3,
-                labelStyle: const TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontWeight: FontWeight.bold,
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                const CustomHeaderUser(
+                  title: 'طلبات العملاء',
+                  subtitle: 'عرض وإدارة طلبات العملاء',
                 ),
-                tabs: const [
-                  Tab(text: 'الكل'),
-                  Tab(text: 'تحتاج مراجعة'),
-                  Tab(text: 'المؤكدة'),
-                ],
-              ),
-              Expanded(
-                child: TabBarView(
+                TabBar(
                   controller: _tabController,
-                  children: [
-                    _buildOrdersList([
-                      // Active orders
-                      'pending_pricing', // <-- أضفت هذه الحالة
-                      'pending',
-                      'priced',
-                      'awaiting_customer_approval',
-                      'awaiting_admin_approval',
-                      'cancelled',
-                    ]),
-                    _buildOrdersList([
-                      'awaiting_admin_approval',
-                    ]), // Needs review
-                    _buildOrdersList([
-                      'final_approved',
-                      'completed',
-                    ]), // Confirmed
+                  labelColor: Colors.pink.shade800,
+                  unselectedLabelColor: Colors.black54,
+                  indicatorColor: Colors.pink.shade800,
+                  indicatorWeight: 3,
+                  labelStyle: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontWeight: FontWeight.bold,
+                  ),
+                  tabs: const [
+                    Tab(text: 'الكل'),
+                    Tab(text: 'تحتاج مراجعة'),
+                    Tab(text: 'المؤكدة'),
                   ],
                 ),
-              ),
-            ],
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildOrdersList([
+                        // Active orders
+                        'pending_pricing', // <-- أضفت هذه الحالة
+                        'pending',
+                        'priced',
+                        'awaiting_customer_approval',
+                        'awaiting_admin_approval',
+                        'cancelled',
+                      ]),
+                      _buildOrdersList([
+                        'awaiting_admin_approval',
+                      ]), // Needs review
+                      _buildOrdersList([
+                        'final_approved',
+                        'completed',
+                      ]), // Confirmed
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

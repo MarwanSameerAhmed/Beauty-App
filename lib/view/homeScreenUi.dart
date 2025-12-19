@@ -90,6 +90,7 @@ class _HomescreenuiState extends State<Homescreenui>
           body: SafeArea(
             bottom: false, // السماح بامتداد المحتوى للأسفل
             child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()), // منع السحب بالزخم
               slivers: [
                 SliverPersistentHeader(
                   pinned: true,

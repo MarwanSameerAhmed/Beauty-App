@@ -108,16 +108,19 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
-          body: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              const SizedBox(height: 20),
-              _buildProfileHeader(),
-              const SizedBox(height: 10),
-              _buildProfileMenu(context),
-              // Add padding for the translucent bottom navigation bar
-              // const SizedBox(height: 90.0),
-            ],
+          body: SafeArea(
+            bottom: false,
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                const SizedBox(height: 20),
+                _buildProfileHeader(),
+                const SizedBox(height: 10),
+                _buildProfileMenu(context),
+                // Add padding for the translucent bottom navigation bar
+                // const SizedBox(height: 90.0),
+              ],
+            ),
           ),
         ),
       ),

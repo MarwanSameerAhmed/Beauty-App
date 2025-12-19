@@ -59,6 +59,7 @@ class _AdminBottomNavState extends State<AdminBottomNav>
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      bottom: false, // السماح بامتداد الباك قراوند للأسفل
       child: Scaffold(
         body: Stack(
           alignment: Alignment.bottomCenter,
