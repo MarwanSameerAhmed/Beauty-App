@@ -27,7 +27,8 @@ class Homescreenui extends StatefulWidget {
   _HomescreenuiState createState() => _HomescreenuiState();
 }
 
-class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClientMixin {
+class _HomescreenuiState extends State<Homescreenui>
+    with AutomaticKeepAliveClientMixin {
   String _userName = "Guest";
   String _email = "No Email";
   String _imagePath = "images/0c7640ce594d7f983547e32f01ede503.jpg";
@@ -35,7 +36,7 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
   final AdsService _adsService = AdsService();
   Stream<List<Ad>>? _adsStream;
   Stream<QuerySnapshot>? _sectionsStream;
-  
+
   @override
   bool get wantKeepAlive => true;
 
@@ -48,7 +49,7 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
   Future<void> _initializeApp() async {
     // تم تعطيل إنشاء الأقسام الافتراضية التلقائي
     // الأقسام تُدار من صفحة إدارة الأقسام فقط
-    
+
     _loadUserData();
     _adsStream = _adsService.getAds();
     // تهيئة stream للأقسام مرة واحدة
@@ -84,49 +85,50 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
           body: SafeArea(
             bottom: false, // السماح بامتداد المحتوى للأسفل
             child: CustomScrollView(
-            slivers: [
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _SliverAppBarDelegate(
-                  minHeight: 110.0,
-                  maxHeight: 110.0,
-                  child: Consumer<CartService>(
-                    builder: (context, cart, child) {
-                      return ProfileHeaderWidget(
-                        imagePath: _imagePath,
-                        userName: _userName,
-                        email: _email,
-                        cartItemCount: cart.itemCount,
-                        onCartPressed: () {
-                          widget.tabController.animateTo(
-                            2,
-                          ); // Index 2 is CartPage
-                        },
-                        onFavoritePressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const FavoritesPage(),
-                            ),
-                          );
-                        },
-                      );
-                    },
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SliverAppBarDelegate(
+                    minHeight: 110.0,
+                    maxHeight: 110.0,
+                    child: Consumer<CartService>(
+                      builder: (context, cart, child) {
+                        return ProfileHeaderWidget(
+                          imagePath: _imagePath,
+                          userName: _userName,
+                          email: _email,
+                          cartItemCount: cart.itemCount,
+                          onCartPressed: () {
+                            widget.tabController.animateTo(
+                              2,
+                            ); // Index 2 is CartPage
+                          },
+                          onFavoritePressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const FavoritesPage(),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
 
-              // Search Bar and Search Icon
-              const SliverToBoxAdapter(child: Searchbar()),
+                // Search Bar and Search Icon
+                const SliverToBoxAdapter(child: Searchbar()),
 
-              // Dynamic Layout - All Sections (Carousel, Ads, Products)
-              _buildDynamicLayout(),
+                // Dynamic Layout - All Sections (Carousel, Ads, Products)
+                _buildDynamicLayout(),
 
-              // Add padding for the translucent bottom navigation bar
-              const SliverToBoxAdapter(child: SizedBox(height: 85.0)),
-            ],
-          ),
-        ), // SafeArea
+                // Add padding for the translucent bottom navigation bar
+                const SliverToBoxAdapter(child: SizedBox(height: 85.0)),
+              ],
+            ),
+          ), // SafeArea
+        ),
       ),
     );
   }
@@ -136,15 +138,13 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
       stream: _sectionsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SliverToBoxAdapter(
-            child: Center(child: Loader()),
-          );
+          return const SliverToBoxAdapter(child: Center(child: Loader()));
         }
-        
+
         if (snapshot.hasError) {
           return _buildDefaultLayout();
         }
-        
+
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return _buildDefaultLayout();
         }
@@ -162,55 +162,57 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
             description: data['description'],
           );
         }).toList();
-        
+
         sections.sort((a, b) => a.order.compareTo(b.order));
 
         return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final section = sections[index];
-              
-              // عرض العنصر حسب نوعه
-              if (section.isCarouselSection) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          section.title,
-                          style: const TextStyle(
-                            fontFamily: "Tajawal",
-                            fontSize: 22,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w900,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                blurRadius: 30,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final section = sections[index];
+
+            // عرض العنصر حسب نوعه
+            if (section.isCarouselSection) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      right: 24,
+                      top: 10,
+                      bottom: 10,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        section.title,
+                        style: const TextStyle(
+                          fontFamily: "Tajawal",
+                          fontSize: 22,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w900,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              blurRadius: 30,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    const ProductCarousel(),
-                    const SizedBox(height: 10),
-                  ],
-                );
-              } else if (section.isAdsSection) {
-                return _buildAdsSectionWidget(section);
-              } else if (section.isProductsSection) {
-                return _buildProductSection(section.title, section.maxItems);
-              }
-              
-              return const SizedBox.shrink();
-            },
-            childCount: sections.length,
-          ),
+                  ),
+                  const ProductCarousel(),
+                  const SizedBox(height: 10),
+                ],
+              );
+            } else if (section.isAdsSection) {
+              return _buildAdsSectionWidget(section);
+            } else if (section.isProductsSection) {
+              return _buildProductSection(section.title, section.maxItems);
+            }
+
+            return const SizedBox.shrink();
+          }, childCount: sections.length),
         );
       },
     );
@@ -257,16 +259,17 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();
         }
-        
+
         if (snapshot.hasError || !snapshot.hasData) {
           return const SizedBox.shrink();
         }
 
         final ads = snapshot.data!;
-        final sectionAds = ads
-            .where((ad) => ad.sectionId == section.id && ad.isVisible)
-            .toList()
-          ..sort((a, b) => a.order.compareTo(b.order));
+        final sectionAds =
+            ads
+                .where((ad) => ad.sectionId == section.id && ad.isVisible)
+                .toList()
+              ..sort((a, b) => a.order.compareTo(b.order));
 
         // عرض القسم حتى لو كان فارغاً (لأغراض التطوير والاختبار)
         if (sectionAds.isEmpty) {
@@ -275,7 +278,12 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 24,
+                  top: 10,
+                  bottom: 10,
+                ),
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Text(
@@ -327,7 +335,12 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 24,
+                top: 10,
+                bottom: 10,
+              ),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Text(
@@ -388,9 +401,11 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
 
   List<Widget> _buildAdsSectionWidgets(List<Ad> ads) {
     final List<Widget> adWidgets = [];
-    
+
     // تقسيم الإعلانات حسب النوع
-    final rectangleAds = ads.where((ad) => ad.shapeType == 'rectangle').toList();
+    final rectangleAds = ads
+        .where((ad) => ad.shapeType == 'rectangle')
+        .toList();
     final squareAds = ads.where((ad) => ad.shapeType == 'square').toList();
 
     // بناء الإعلانات المستطيلة
@@ -408,10 +423,7 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
 
   Widget _buildRectangleAd(Ad ad) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 8.0,
-        horizontal: 16.0,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: AdImageWithLoading(
         imageUrl: ad.imageUrl,
         width: double.infinity,
@@ -434,10 +446,7 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
 
   Widget _buildSquareAdsGrid(List<Ad> squareAds) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 8.0,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Wrap(
         spacing: 10,
         runSpacing: 10,
@@ -466,7 +475,6 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
     );
   }
 
-
   Widget _buildProductSection(String title, int maxItems) {
     return StreamBuilder<List<Product>>(
       stream: _productService.getProducts(),
@@ -489,7 +497,12 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
           children: [
             // عنوان القسم
             Padding(
-              padding: const EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 24,
+                top: 10,
+                bottom: 10,
+              ),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Text(
@@ -510,7 +523,7 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
                 ),
               ),
             ),
-            
+
             // المنتجات في عرض أفقي
             SizedBox(
               height: 250,
@@ -530,7 +543,8 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ProductDetailsPage(product: product),
+                            builder: (context) =>
+                                ProductDetailsPage(product: product),
                           ),
                         );
                       },
@@ -545,8 +559,6 @@ class _HomescreenuiState extends State<Homescreenui> with AutomaticKeepAliveClie
       },
     );
   }
-
-
 }
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
