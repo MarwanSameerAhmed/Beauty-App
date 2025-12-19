@@ -90,6 +90,7 @@ class _HomescreenuiState extends State<Homescreenui>
           body: SafeArea(
             bottom: false, // السماح بامتداد المحتوى للأسفل
             child: CustomScrollView(
+              controller: ScrollController(keepScrollOffset: true),
               physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()), // منع السحب بالزخم
               slivers: [
                 SliverPersistentHeader(
@@ -143,12 +144,9 @@ class _HomescreenuiState extends State<Homescreenui>
     return StreamBuilder<QuerySnapshot>(
       stream: _sectionsStream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // استخدام الـ cache - عدم عرض loader إذا كان لدينا cache
-          if (_cachedSections == null) {
-            return const SliverToBoxAdapter(child: Center(child: Loader()));
-          }
-          // استمر في المعالجة باستخدام cached data
+        // استخدام الـ cache أثناء الانتظار لمنع إعادة البناء
+        if (snapshot.connectionState == ConnectionState.waiting && _cachedSections != null) {
+          snapshot = AsyncSnapshot.withData(ConnectionState.active, _cachedSections!);
         }
 
         if (snapshot.hasError) {
@@ -156,7 +154,11 @@ class _HomescreenuiState extends State<Homescreenui>
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return _buildDefaultLayout();
+          if (_cachedSections != null) {
+            snapshot = AsyncSnapshot.withData(ConnectionState.active, _cachedSections!);
+          } else {
+            return _buildDefaultLayout();
+          }
         }
         
         // تحديث الـ cache فقط إذا تغيرت البيانات
