@@ -104,6 +104,9 @@
 		<true/>
 		<key>UIStatusBarStyle</key>
 		<string>UIStatusBarStyleLightContent</string>
+		<!-- Google Sign-In Client ID (REQUIRED for iOS) -->
+		<key>GIDClientID</key>
+		<string>677899943891-3brjn65v46vplgat2u5f9g19f1shhsf4.apps.googleusercontent.com</string>
 		<!-- Google Sign-In URL Scheme -->
 		<key>CFBundleURLTypes</key>
 		<array>

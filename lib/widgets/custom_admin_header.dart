@@ -13,9 +13,12 @@ class CustomAdminHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // الحصول على ارتفاع status bar
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    
     return Padding(
-      padding: const EdgeInsets.only(
-        top: 30.0,
+      padding: EdgeInsets.only(
+        top: statusBarHeight + 20.0, // status bar height + مسافة إضافية
         left: 16.0,
         right: 20.0,
         bottom: 15.0,

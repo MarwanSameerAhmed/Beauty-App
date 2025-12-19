@@ -15,10 +15,17 @@ class NewGoogleUser {
 
 class AuthService {
   // Configure GoogleSignIn for web and mobile
+  // iOS Client ID: 677899943891-3brjn65v46vplgat2u5f9g19f1shhsf4.apps.googleusercontent.com
+  // Server Client ID (Web): 677899943891-5f1r21khbvsiphlelq0vs4qj82t7jc7p.apps.googleusercontent.com
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: kIsWeb 
         ? WebConfig.googleClientId // Web client ID from config
-        : null, // Use default for mobile
+        : null, // Use GIDClientID from Info.plist for iOS
+    serverClientId: '677899943891-5f1r21khbvsiphlelq0vs4qj82t7jc7p.apps.googleusercontent.com',
+    scopes: [
+      'email',
+      'profile',
+    ],
   );
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
