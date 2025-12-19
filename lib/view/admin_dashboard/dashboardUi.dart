@@ -60,11 +60,9 @@ class _DashboardUiState extends State<DashboardUi> {
       child: FlowerBackground(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          body: SafeArea(
-            bottom: false, // السماح بامتداد الباك قراوند للأسفل
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 30),
@@ -172,8 +170,8 @@ class _DashboardUiState extends State<DashboardUi> {
             ),
           ),
         ),
-      ),
-    );
+      );
+    
   }
 
   Widget _buildHeader() {

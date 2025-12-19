@@ -38,55 +38,52 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
       child: FlowerBackground(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          body: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                const CustomHeaderUser(
-                  title: 'طلبات العملاء',
-                  subtitle: 'عرض وإدارة طلبات العملاء',
+          body: Column(
+            children: [
+              const CustomHeaderUser(
+                title: 'طلبات العملاء',
+                subtitle: 'عرض وإدارة طلبات العملاء',
+              ),
+              TabBar(
+                controller: _tabController,
+                labelColor: Colors.pink.shade800,
+                unselectedLabelColor: Colors.black54,
+                indicatorColor: Colors.pink.shade800,
+                indicatorWeight: 3,
+                labelStyle: const TextStyle(
+                  fontFamily: 'Tajawal',
+                  fontWeight: FontWeight.bold,
                 ),
-                TabBar(
+                tabs: const [
+                  Tab(text: 'الكل'),
+                  Tab(text: 'تحتاج مراجعة'),
+                  Tab(text: 'المؤكدة'),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
                   controller: _tabController,
-                  labelColor: Colors.pink.shade800,
-                  unselectedLabelColor: Colors.black54,
-                  indicatorColor: Colors.pink.shade800,
-                  indicatorWeight: 3,
-                  labelStyle: const TextStyle(
-                    fontFamily: 'Tajawal',
-                    fontWeight: FontWeight.bold,
-                  ),
-                  tabs: const [
-                    Tab(text: 'الكل'),
-                    Tab(text: 'تحتاج مراجعة'),
-                    Tab(text: 'المؤكدة'),
+                  children: [
+                    _buildOrdersList([
+                      // Active orders
+                      'pending_pricing', // <-- أضفت هذه الحالة
+                      'pending',
+                      'priced',
+                      'awaiting_customer_approval',
+                      'awaiting_admin_approval',
+                      'cancelled',
+                    ]),
+                    _buildOrdersList([
+                      'awaiting_admin_approval',
+                    ]), // Needs review
+                    _buildOrdersList([
+                      'final_approved',
+                      'completed',
+                    ]), // Confirmed
                   ],
                 ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildOrdersList([
-                        // Active orders
-                        'pending_pricing', // <-- أضفت هذه الحالة
-                        'pending',
-                        'priced',
-                        'awaiting_customer_approval',
-                        'awaiting_admin_approval',
-                        'cancelled',
-                      ]),
-                      _buildOrdersList([
-                        'awaiting_admin_approval',
-                      ]), // Needs review
-                      _buildOrdersList([
-                        'final_approved',
-                        'completed',
-                      ]), // Confirmed
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -145,7 +142,9 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
             final status = orderData['status'];
             final isCancelled = status == 'cancelled';
             final items = orderData['items'] as List? ?? [];
-            final String? imageUrl = isCancelled || items.isEmpty ? null : items[0]['imageUrl'];
+            final String? imageUrl = isCancelled || items.isEmpty
+                ? null
+                : items[0]['imageUrl'];
 
             final orderTimestamp = order['timestamp'] as Timestamp;
             final formattedDateTime = DateFormat(
@@ -158,7 +157,10 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
                 if (isCancelled) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('هذا الطلب ملغي.', style: TextStyle(fontFamily: 'Tajawal')),
+                      content: Text(
+                        'هذا الطلب ملغي.',
+                        style: TextStyle(fontFamily: 'Tajawal'),
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -242,13 +244,19 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        isCancelled ? 'طلب ملغي' : 'طلب من: $userName',
+                                        isCancelled
+                                            ? 'طلب ملغي'
+                                            : 'طلب من: $userName',
                                         style: TextStyle(
                                           fontFamily: 'Tajawal',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
-                                          color: isCancelled ? Colors.red.shade400 : Colors.black,
-                                          decoration: isCancelled ? TextDecoration.lineThrough : TextDecoration.none,
+                                          color: isCancelled
+                                              ? Colors.red.shade400
+                                              : Colors.black,
+                                          decoration: isCancelled
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -328,7 +336,11 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
         };
       }
     } catch (e) {
-      AppLogger.error('Error fetching user data', tag: 'CUSTOMER_ORDERS', error: e);
+      AppLogger.error(
+        'Error fetching user data',
+        tag: 'CUSTOMER_ORDERS',
+        error: e,
+      );
     }
     return {'name': 'غير معروف', 'role': 'غير محدد'};
   }

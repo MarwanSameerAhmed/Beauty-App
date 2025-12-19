@@ -152,49 +152,53 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         'status': newStatus,
       });
 
-      // Send notification to the user (with timeout to prevent infinite loading)
+
+      // Send notification to the user (with comprehensive timeout)
       bool notificationSent = false;
       String? notificationError;
       
       try {
-        final String userId = widget.order['userId'];
-        AppLogger.info('Attempting to send notification to user', tag: 'ORDER_DETAILS', data: {'userId': userId});
-        
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .get();
-
-        if (userDoc.exists && userDoc.data()!.containsKey('fcmToken')) {
-          final String userToken = userDoc.data()!['fcmToken'];
-          AppLogger.debug('User FCM Token found', tag: 'ORDER_DETAILS', data: {'tokenPrefix': userToken.substring(0, 20)});
+        // Wrap entire notification process in timeout
+        await Future.microtask(() async {
+          final String userId = widget.order['userId'];
+          AppLogger.info('Attempting to send notification to user', tag: 'ORDER_DETAILS', data: {'userId': userId});
           
-          if (userToken.isNotEmpty) {
-            // إضافة timeout لمنع التعليق اللانهائي
-            await NotificationService.sendNotification(
-              token: userToken,
-              title: isFinalApproval
-                  ? '✅ طلبك جاهز للتأكيد!'
-                  : '✨ تم تسعير طلبك!',
-              body: isFinalApproval
-                  ? 'وافق المسؤول على الأسعار. يمكنك الآن تأكيد طلبك عبر واتساب.'
-                  : 'قام المسؤول بتحديث أسعار طلبك. اضغط للمشاهدة.',
-            ).timeout(
-              const Duration(seconds: 10),
-              onTimeout: () {
-                throw TimeoutException('Notification timeout after 10 seconds');
-              },
-            );
-            notificationSent = true;
-            AppLogger.info('Notification sent successfully', tag: 'ORDER_DETAILS');
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .get();
+
+          if (userDoc.exists && userDoc.data()!.containsKey('fcmToken')) {
+            final String userToken = userDoc.data()!['fcmToken'];
+            AppLogger.debug('User FCM Token found', tag: 'ORDER_DETAILS', data: {'tokenPrefix': userToken.substring(0, 20)});
+            
+            if (userToken.isNotEmpty) {
+              await NotificationService.sendNotification(
+                token: userToken,
+                title: isFinalApproval
+                    ? '✅ طلبك جاهز للتأكيد!'
+                    : '✨ تم تسعير طلبك!',
+                body: isFinalApproval
+                    ? 'وافق المسؤول على الأسعار. يمكنك الآن تأكيد طلبك عبر واتساب.'
+                    : 'قام المسؤول بتحديث أسعار طلبك. اضغط للمشاهدة.',
+              );
+              notificationSent = true;
+              AppLogger.info('Notification sent successfully', tag: 'ORDER_DETAILS');
+            } else {
+              notificationError = 'FCM Token فارغ';
+              AppLogger.warning('User FCM Token is empty', tag: 'ORDER_DETAILS');
+            }
           } else {
-            notificationError = 'FCM Token فارغ';
-            AppLogger.warning('User FCM Token is empty', tag: 'ORDER_DETAILS');
+            notificationError = 'المستخدم ليس لديه FCM Token';
+            AppLogger.warning('User document does not have fcmToken field', tag: 'ORDER_DETAILS');
           }
-        } else {
-          notificationError = 'المستخدم ليس لديه FCM Token';
-          AppLogger.warning('User document does not have fcmToken field', tag: 'ORDER_DETAILS');
-        }
+        }).timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            notificationError = 'انتهت مهلة إرسال الإشعار';
+            AppLogger.warning('Notification timeout', tag: 'ORDER_DETAILS');
+          },
+        );
       } catch (e) {
         notificationError = e.toString();
         AppLogger.error('Failed to send notification', tag: 'ORDER_DETAILS', error: e);

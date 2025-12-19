@@ -109,7 +109,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontFamily: 'Tajawal',
-                                  color: Colors.white70,
+                                  color: Colors.black,
                                 ),
                               ),
                             );
