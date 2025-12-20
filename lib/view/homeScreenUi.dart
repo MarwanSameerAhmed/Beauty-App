@@ -41,6 +41,9 @@ class _HomescreenuiState extends State<Homescreenui>
   List<Product>? _cachedProducts;
   List<Ad>? _cachedAds;
   QuerySnapshot? _cachedSections;
+  
+  // ScrollController لحفظ موضع السكرول
+  final ScrollController _scrollController = ScrollController();
 
   @override
   bool get wantKeepAlive => true;
@@ -90,8 +93,8 @@ class _HomescreenuiState extends State<Homescreenui>
           body: SafeArea(
             bottom: false, // السماح بامتداد المحتوى للأسفل
             child: CustomScrollView(
-              controller: ScrollController(keepScrollOffset: true),
-              physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()), // منع السحب بالزخم
+              controller: _scrollController,
+              physics: const ClampingScrollPhysics(),
               slivers: [
                 SliverPersistentHeader(
                   pinned: true,

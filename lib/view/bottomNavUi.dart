@@ -84,12 +84,7 @@ class _RunState extends State<Run> with SingleTickerProviderStateMixin {
               children: _pages,
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                0,
-                16,
-                16 + MediaQuery.of(context).padding.bottom,
-              ),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(30.0),
                 child: BackdropFilter(

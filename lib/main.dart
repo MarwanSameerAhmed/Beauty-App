@@ -16,7 +16,6 @@ import 'package:glamify/controller/local_notification_service.dart'; // For fore
 import 'package:glamify/controller/remote_config_service.dart';
 import 'package:glamify/config/app_config.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:glamify/controller/connectivity_service.dart';
 import 'package:glamify/widgets/connectivity_card.dart';
 
