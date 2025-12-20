@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -212,14 +213,41 @@ class AuthService {
         return;
       }
       
-      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      String? fcmToken;
+      
+      // iOS requires APNs token before FCM token can be retrieved
+      if (Platform.isIOS) {
+        AppLogger.info('iOS detected, getting APNs token first...', tag: 'FCM');
+        
+        // Get APNs token first
+        String? apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        
+        // If APNs token is null, wait and retry
+        if (apnsToken == null) {
+          AppLogger.warning('APNs token is null, waiting 3 seconds...', tag: 'FCM');
+          await Future.delayed(const Duration(seconds: 3));
+          apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        }
+        
+        if (apnsToken != null) {
+          AppLogger.info('APNs token retrieved successfully', tag: 'FCM', data: {'tokenPrefix': apnsToken.substring(0, 20)});
+        } else {
+          AppLogger.warning('APNs token still null after retry. Notifications may not work.', tag: 'FCM');
+          // Continue anyway, FCM might still work in some cases
+        }
+      }
+      
+      // Now get FCM token
+      fcmToken = await FirebaseMessaging.instance.getToken();
+      
       if (fcmToken != null) {
-        AppLogger.info('Saving FCM Token for user', tag: 'FCM', data: {'userId': uid});
+        AppLogger.info('Saving FCM Token for user', tag: 'FCM', data: {'userId': uid, 'tokenPrefix': fcmToken.substring(0, 20)});
         
         // Use set with merge to create or update the document
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'fcmToken': fcmToken,
           'lastTokenUpdate': FieldValue.serverTimestamp(),
+          'platform': Platform.isIOS ? 'ios' : 'android',
         }, SetOptions(merge: true));
         
         AppLogger.info('FCM Token saved successfully', tag: 'FCM');
