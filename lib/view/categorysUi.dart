@@ -20,11 +20,30 @@ class Categorys extends StatefulWidget {
 class _CategorysState extends State<Categorys> {
   final CategoryService _categoryService = CategoryService();
   final ProductService _productService = ProductService();
+  final ScrollController _mainCategoryScrollController = ScrollController();
+  
+  // Cache للبيانات
+  Stream<List<Category>>? _categoriesStream;
   List<Category> _allCategories = [];
+  List<Category>? _cachedCategories;
+  
   String? _selectedMainCategoryId;
   String? _selectedSubCategoryId;
   int _selectedMainIndex = -1; // -1 for 'All'
   int _selectedSubIndex = -1;
+  
+  @override
+  void initState() {
+    super.initState();
+    // تهيئة الـ stream مرة واحدة فقط
+    _categoriesStream = _categoryService.getCategories();
+  }
+  
+  @override
+  void dispose() {
+    _mainCategoryScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +63,15 @@ class _CategorysState extends State<Categorys> {
               SizedBox(
                 height: 60,
                 child: StreamBuilder<List<Category>>(
-                  stream: _categoryService.getCategories(),
+                  stream: _categoriesStream,
                   builder: (context, snapshot) {
+                    // استخدام الـ cache أثناء الانتظار
+                    if (snapshot.connectionState == ConnectionState.waiting && _cachedCategories != null) {
+                      _allCategories = _cachedCategories!;
+                      final mainCategories = _allCategories.where((c) => c.parentId == null).toList();
+                      return _buildMainCategoryList(mainCategories);
+                    }
+                    
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: Loader());
                     }
@@ -57,6 +83,7 @@ class _CategorysState extends State<Categorys> {
                     }
 
                     _allCategories = snapshot.data!;
+                    _cachedCategories = snapshot.data;
                     final mainCategories = _allCategories
                         .where((c) => c.parentId == null)
                         .toList();
@@ -77,6 +104,7 @@ class _CategorysState extends State<Categorys> {
 
   Widget _buildMainCategoryList(List<Category> mainCategories) {
     return ListView.builder(
+      controller: _mainCategoryScrollController,
       scrollDirection: Axis.horizontal,
       itemCount: mainCategories.length + 1, // +1 for 'All'
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -89,6 +117,12 @@ class _CategorysState extends State<Categorys> {
                 _selectedMainCategoryId = null;
                 _selectedSubCategoryId = null;
               });
+              // Scroll للبداية
+              _mainCategoryScrollController.animateTo(
+                0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
             },
             child: CategoryCard(
               category: Category(id: 'all', name: 'الكل'),
@@ -107,6 +141,14 @@ class _CategorysState extends State<Categorys> {
               _selectedSubCategoryId = null; // Reset sub-category selection
               _selectedSubIndex = -1;
             });
+            // Scroll للعنصر المحدد
+            final itemWidth = 100.0; // عرض تقريبي للـ CategoryCard
+            final scrollPosition = index * itemWidth;
+            _mainCategoryScrollController.animateTo(
+              scrollPosition.clamp(0, _mainCategoryScrollController.position.maxScrollExtent),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
           },
           child: CategoryCard(
             category: category,

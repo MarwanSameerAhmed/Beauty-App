@@ -286,22 +286,18 @@ class _HomescreenuiState extends State<Homescreenui>
     return StreamBuilder<List<Ad>>(
       stream: _adsStream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // استخدام الـ cache - عدم عرض loader
-          if (_cachedAds == null) {
-            return const SizedBox.shrink();
-          }
-          // استمر في المعالجة باستخدام cached data
-        }
-
-        if (snapshot.hasError || !snapshot.hasData) {
-          return const SizedBox.shrink();
-        }
+        // استخدام الـ cache أثناء الانتظار
+        List<Ad> ads = [];
         
-        // تحديث الـ cache
-        _cachedAds = snapshot.data;
+        if (snapshot.connectionState == ConnectionState.waiting && _cachedAds != null) {
+          ads = _cachedAds!;
+        } else if (snapshot.hasData) {
+          ads = snapshot.data!;
+          _cachedAds = ads;
+        } else if (_cachedAds != null) {
+          ads = _cachedAds!;
+        }
 
-        final ads = snapshot.data!;
         final sectionAds =
             ads
                 .where((ad) => ad.sectionId == section.id && ad.isVisible)

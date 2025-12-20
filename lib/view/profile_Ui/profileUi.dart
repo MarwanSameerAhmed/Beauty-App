@@ -111,7 +111,7 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 60),
               _buildProfileHeader(),
               const SizedBox(height: 10),
               _buildProfileMenu(context),
@@ -135,69 +135,54 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
         return Transform.scale(
           scale: _scaleAnimation.value.clamp(0.0, 1.0),
           child: Transform.scale(
-            scale: _pulseAnimation.value.clamp(0.8, 1.2),
+            scale: _pulseAnimation.value.clamp(0.95, 1.05),
             child: GestureDetector(
               onTap: () {
                 _scaleController.reset();
                 _scaleController.forward();
               },
               child: Transform.rotate(
-                angle: _rotationAnimation.value * 0.1, // Subtle rotation
+                angle: _rotationAnimation.value * 0.05, // Subtle rotation
                 child: Container(
-                  width: 110,
-                  height: 110,
+                  width: 90,
+                  height: 90,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xFF52002C),
-                        Color(0xFF942A59),
-                        Color(0xFFf9d5d3),
-                        Colors.white.withOpacity(0.8),
+                        Color(0xFFf9d5d3).withOpacity(0.9),
+                        Color(0xFF942A59).withOpacity(0.5),
+                        Color(0xFF52002C).withOpacity(0.4),
                       ],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0xFF52002C).withOpacity(
-                          (0.4 * _pulseAnimation.value).clamp(0.0, 1.0),
-                        ),
-                        blurRadius: (25 * _pulseAnimation.value).clamp(
-                          10.0,
-                          35.0,
-                        ),
-                        offset: const Offset(0, 12),
-                        spreadRadius: (3 * _pulseAnimation.value).clamp(
-                          1.0,
-                          5.0,
-                        ),
-                      ),
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Color(0xFF52002C).withOpacity(0.15),
                         blurRadius: 20,
-                        offset: const Offset(-8, -8),
+                        offset: const Offset(0, 8),
+                        spreadRadius: 2,
                       ),
                       BoxShadow(
-                        color: Color(0xFF942A59).withOpacity(0.2),
+                        color: Colors.white.withOpacity(0.8),
                         blurRadius: 15,
-                        offset: const Offset(5, 5),
+                        offset: const Offset(-4, -4),
                       ),
                     ],
                   ),
                   child: Container(
-                    margin: const EdgeInsets.all(5),
+                    margin: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
                           Colors.white.withOpacity(0.95),
-                          Colors.white.withOpacity(0.7),
-                          Colors.white.withOpacity(0.4),
+                          Colors.white.withOpacity(0.85),
                         ],
                       ),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withOpacity(0.9),
                         width: 2,
                       ),
                     ),
@@ -348,49 +333,42 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
       animation: _scaleController,
       builder: (context, child) {
         return Transform.translate(
-          offset: Offset(0, 30 * (1 - _scaleAnimation.value)),
+          offset: Offset(0, 20 * (1 - _scaleAnimation.value)),
           child: Opacity(
-            opacity: (_scaleAnimation.value * 0.9 + 0.1).clamp(0.0, 1.0),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withOpacity(0.9),
-                    Colors.white.withOpacity(0.7),
-                    Color(0xFFf9d5d3).withOpacity(0.3),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.8),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFF52002C).withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                    spreadRadius: 2,
+            opacity: (_scaleAnimation.value * 0.95 + 0.05).clamp(0.0, 1.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
                   ),
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.9),
-                    blurRadius: 15,
-                    offset: const Offset(-5, -5),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withOpacity(0.7),
+                        Colors.white.withOpacity(0.5),
+                        Color(0xFFf9d5d3).withOpacity(0.2),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.6),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF52002C).withOpacity(0.08),
+                        blurRadius: 25,
+                        offset: const Offset(0, 8),
+                        spreadRadius: 0,
+                      ),
+                    ],
                   ),
-                  BoxShadow(
-                    color: Color(0xFF942A59).withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(3, 3),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(25),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                   child: Column(
                     children: [
                       // Admin role check based on email domain
@@ -486,85 +464,81 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
     Color? color,
   }) {
     return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 500),
       tween: Tween(begin: 0.0, end: 1.0),
       builder: (context, value, child) {
         return Transform.translate(
-          offset: Offset(50 * (1 - value), 0),
+          offset: Offset(30 * (1 - value), 0),
           child: Opacity(
             opacity: value,
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Colors.white.withOpacity(0.1),
-                    Colors.white.withOpacity(0.05),
-                  ],
-                ),
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.3),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withOpacity(0.4),
                   width: 0.5,
                 ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(12),
+                  splashColor: Color(0xFF52002C).withOpacity(0.1),
+                  highlightColor: Color(0xFFf9d5d3).withOpacity(0.2),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
                     ),
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            (color ?? const Color(0xFF52002C)).withOpacity(0.2),
-                            (color ?? const Color(0xFF52002C)).withOpacity(0.1),
-                          ],
-                        ),
-                      ),
-                      child: Icon(
-                        icon,
-                        color: color ?? const Color(0xFF52002C),
-                        size: 22,
-                      ),
-                    ),
-                    title: Text(
-                      title,
-                      style: TextStyle(
-                        fontFamily: 'Tajawal',
-                        color: color ?? const Color(0xFF52002C),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        shadows: [
-                          Shadow(
-                            color: Colors.white.withOpacity(0.8),
-                            blurRadius: 2,
-                            offset: const Offset(0, 1),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                (color ?? const Color(0xFF52002C)).withOpacity(
+                                  0.15,
+                                ),
+                                (color ?? const Color(0xFFf9d5d3)).withOpacity(
+                                  0.2,
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
+                          child: Icon(
+                            icon,
+                            color: color ?? const Color(0xFF52002C),
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              color: color ?? const Color(0xFF52002C),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 12,
+                          color: (color ?? const Color(0xFF52002C)).withOpacity(
+                            0.5,
+                          ),
+                        ),
+                      ],
                     ),
-                    trailing: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.3),
-                      ),
-                      child: Icon(
-                        Icons.arrow_forward_ios,
-                        size: 14,
-                        color: color ?? const Color(0xFF52002C),
-                      ),
-                    ),
-                    onTap: onTap,
                   ),
                 ),
               ),
