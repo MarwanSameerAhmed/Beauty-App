@@ -65,7 +65,7 @@ class _DashboardUiState extends State<DashboardUi> {
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 60),
                   _buildHeader(),
                   const SizedBox(height: 20),
                   Expanded(

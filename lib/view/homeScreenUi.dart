@@ -36,6 +36,7 @@ class _HomescreenuiState extends State<Homescreenui>
   final AdsService _adsService = AdsService();
   Stream<List<Ad>>? _adsStream;
   Stream<QuerySnapshot>? _sectionsStream;
+  Stream<List<Product>>? _productsStream;
   
   // Cache للمنتجات والإعلانات لمنع التحديث المستمر
   List<Product>? _cachedProducts;
@@ -59,12 +60,20 @@ class _HomescreenuiState extends State<Homescreenui>
     // الأقسام تُدار من صفحة إدارة الأقسام فقط
 
     _loadUserData();
+    
+    // تهيئة جميع الـ streams مرة واحدة فقط
     _adsStream = _adsService.getAds();
-    // تهيئة stream للأقسام مرة واحدة
+    _productsStream = _productService.getProducts();
     _sectionsStream = FirebaseFirestore.instance
         .collection('ads_section_settings')
         .where('isVisible', isEqualTo: true)
         .snapshots();
+  }
+  
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -505,21 +514,26 @@ class _HomescreenuiState extends State<Homescreenui>
 
   Widget _buildProductSection(String title, int maxItems) {
     return StreamBuilder<List<Product>>(
-      stream: _productService.getProducts(),
+      stream: _productsStream,
       builder: (context, snapshot) {
+        // استخدام الـ cache أثناء الانتظار
+        if (snapshot.connectionState == ConnectionState.waiting && _cachedProducts != null) {
+          // استخدم البيانات المحفوظة
+          return _buildProductSectionContent(title, _cachedProducts!.take(maxItems).toList());
+        }
+        
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // استخدام الـ cache - عدم عرض loader إذا كان لدينا cache
-          if (_cachedProducts == null) {
-            return const Center(
-              child: Padding(padding: EdgeInsets.all(20.0), child: Loader()),
-            );
-          }
-          // استمر في المعالجة باستخدام cached data
+          return const Center(
+            child: Padding(padding: EdgeInsets.all(20.0), child: Loader()),
+          );
         }
         if (snapshot.hasError) {
           return Center(child: Text('حدث خطأ: ${snapshot.error}'));
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          if (_cachedProducts != null) {
+            return _buildProductSectionContent(title, _cachedProducts!.take(maxItems).toList());
+          }
           return const Center(child: Text('لا توجد منتجات حالياً'));
         }
         
@@ -527,71 +541,75 @@ class _HomescreenuiState extends State<Homescreenui>
         _cachedProducts = snapshot.data;
 
         final products = snapshot.data!.take(maxItems).toList();
-
-        return Column(
-          children: [
-            // عنوان القسم
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 16,
-                right: 24,
-                top: 10,
-                bottom: 10,
-              ),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: "Tajawal",
-                    fontSize: 22,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w900,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black26,
-                        blurRadius: 30,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // المنتجات في عرض أفقي
-            SizedBox(
-              height: 250,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                reverse: true,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                itemCount: products.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return SizedBox(
-                    width: 180,
-                    child: ProductCard(
-                      product: product,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ProductDetailsPage(product: product),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        );
+        return _buildProductSectionContent(title, products);
       },
+    );
+  }
+  
+  Widget _buildProductSectionContent(String title, List<Product> products) {
+    return Column(
+      key: ValueKey('products_$title'),
+      children: [
+        // عنوان القسم
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 24,
+            top: 10,
+            bottom: 10,
+          ),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontFamily: "Tajawal",
+                fontSize: 22,
+                color: Colors.black,
+                fontWeight: FontWeight.w900,
+                shadows: [
+                  Shadow(
+                    color: Colors.black26,
+                    blurRadius: 30,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // المنتجات في عرض أفقي
+        SizedBox(
+          height: 250,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            reverse: true,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: products.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return SizedBox(
+                width: 180,
+                child: ProductCard(
+                  product: product,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ProductDetailsPage(product: product),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }
