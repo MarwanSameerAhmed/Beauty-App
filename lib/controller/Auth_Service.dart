@@ -216,8 +216,10 @@ class AuthService {
       );
 
       // Create OAuthCredential for Firebase
+      // IMPORTANT: Must include both idToken AND accessToken (authorizationCode)
       final oauthCredential = OAuthProvider("apple.com").credential(
         idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
         rawNonce: rawNonce,
       );
 
