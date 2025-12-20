@@ -67,7 +67,6 @@ class _DashboardUiState extends State<DashboardUi> {
                 children: [
                   const SizedBox(height: 60),
                   _buildHeader(),
-                  const SizedBox(height: 20),
                   Expanded(
                     child: ListView(
                       physics: const BouncingScrollPhysics(),
