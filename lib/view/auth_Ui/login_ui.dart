@@ -1,4 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glamify/model/userAccount.dart';
 import 'package:simple_animations/simple_animations.dart';
@@ -341,6 +343,11 @@ class _LoginUiState extends State<LoginUi> {
                 ),
                 const SizedBox(height: 20.0),
                 _buildGoogleSignInButton(),
+                // Apple Sign In - only on iOS
+                if (!kIsWeb && Platform.isIOS) ...[
+                  const SizedBox(height: 12.0),
+                  _buildAppleSignInButton(),
+                ],
               ],
             ),
         ],
@@ -366,10 +373,44 @@ class _LoginUiState extends State<LoginUi> {
             SizedBox(width: 12),
             Flexible(
               child: Text(
-                'سجل الدخول باستخدام ',
+                'سجل الدخول باستخدام Google',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Tajawal',
+                  fontSize: 16,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppleSignInButton() {
+    return InkWell(
+      onTap: _signInWithApple,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(FontAwesome.apple, color: Colors.white, size: 22),
+            SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                'سجل الدخول باستخدام Apple',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Tajawal',
                   fontSize: 16,
@@ -539,6 +580,57 @@ class _LoginUiState extends State<LoginUi> {
       }
     } else if (result is NewGoogleUser) {
       // New Google user, navigate to complete profile screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CompleteProfileUi(user: result.user),
+        ),
+      );
+    } else if (result is String) {
+      showElegantToast(context, result, isSuccess: false);
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _signInWithApple() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final authService = AuthService();
+    final result = await authService.signInWithApple();
+
+    if (!mounted) return;
+
+    if (result is UserAccount) {
+      // Existing user logic
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('uid', result.uid);
+      await prefs.setString('userName', result.name);
+      await prefs.setString('email', result.email);
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('role', result.role);
+
+      showElegantToast(context, "تم تسجيل الدخول بنجاح!", isSuccess: true);
+
+      if (result.role.toLowerCase() == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminBottomNav()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Run()),
+        );
+      }
+    } else if (result is NewAppleUser) {
+      // New Apple user, navigate to complete profile screen
       Navigator.push(
         context,
         MaterialPageRoute(
