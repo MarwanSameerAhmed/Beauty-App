@@ -36,6 +36,11 @@ class CompanySettingsService {
   Future<void> updateCompanySettings({
     String? phoneNumber,
     String? whatsappNumber,
+    String? companyName,
+    String? taxNumber,
+    String? commercialRegister,
+    String? supportPhone,
+    String? supportEmail,
   }) async {
     try {
       // استخدام collection مختلف للأدمن
@@ -46,13 +51,13 @@ class CompanySettingsService {
         'updatedBy': FirebaseAuth.instance.currentUser?.email,
       };
       
-      if (phoneNumber != null) {
-        updateData['companyPhone'] = phoneNumber;
-      }
-      
-      if (whatsappNumber != null) {
-        updateData['whatsappNumber'] = whatsappNumber;
-      }
+      if (phoneNumber != null) updateData['companyPhone'] = phoneNumber;
+      if (whatsappNumber != null) updateData['whatsappNumber'] = whatsappNumber;
+      if (companyName != null) updateData['companyName'] = companyName;
+      if (taxNumber != null) updateData['taxNumber'] = taxNumber;
+      if (commercialRegister != null) updateData['commercialRegister'] = commercialRegister;
+      if (supportPhone != null) updateData['supportPhone'] = supportPhone;
+      if (supportEmail != null) updateData['supportEmail'] = supportEmail;
       
       await adminCollection.doc(_settingsDocId).set(
         updateData,
@@ -90,6 +95,58 @@ class CompanySettingsService {
       return '966554055582'; // القيمة الافتراضية في حالة الخطأ
     }
   }
+  
+  // === Invoice Settings ===
+  
+  // جلب اسم الشركة للفاتورة
+  Future<String> getCompanyName() async {
+    try {
+      final settings = await getCompanySettings();
+      return settings?['companyName'] ?? 'مؤسسة علي حامد علي عبدالله للتجارة';
+    } catch (e) {
+      return 'مؤسسة علي حامد علي عبدالله للتجارة';
+    }
+  }
+  
+  // جلب الرقم الضريبي للفاتورة
+  Future<String> getTaxNumber() async {
+    try {
+      final settings = await getCompanySettings();
+      return settings?['taxNumber'] ?? '310824900003';
+    } catch (e) {
+      return '310824900003';
+    }
+  }
+  
+  // جلب السجل التجاري
+  Future<String> getCommercialRegister() async {
+    try {
+      final settings = await getCompanySettings();
+      return settings?['commercialRegister'] ?? '4030649655';
+    } catch (e) {
+      return '4030649655';
+    }
+  }
+  
+  // جلب رقم الاستفسارات
+  Future<String> getSupportPhone() async {
+    try {
+      final settings = await getCompanySettings();
+      return settings?['supportPhone'] ?? '0554055582';
+    } catch (e) {
+      return '0554055582';
+    }
+  }
+  
+  // جلب إيميل الدعم
+  Future<String> getSupportEmail() async {
+    try {
+      final settings = await getCompanySettings();
+      return settings?['supportEmail'] ?? 'info@glamify.com';
+    } catch (e) {
+      return 'info@glamify.com';
+    }
+  }
 
   // مراقبة تغييرات إعدادات الشركة
   Stream<Map<String, dynamic>?> watchCompanySettings() {
@@ -101,3 +158,4 @@ class CompanySettingsService {
     });
   }
 }
+
