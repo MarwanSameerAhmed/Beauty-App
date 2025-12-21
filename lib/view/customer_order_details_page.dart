@@ -808,122 +808,106 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.9,
-              maxHeight: MediaQuery.of(context).size.height * 0.7,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(context).size.width * 0.06,
-                    vertical: MediaQuery.of(context).size.height * 0.03,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withOpacity(0.95),
-                        const Color(0xFFF9D5D3).withOpacity(0.85),
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        colors: [
+                          Colors.white.withOpacity(0.95),
+                          const Color(0xFFF9D5D3).withOpacity(0.9),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.5),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF52002C).withOpacity(0.15),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.4),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF52002C).withOpacity(0.08),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Success icon - responsive size
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.15,
-                        height: MediaQuery.of(context).size.width * 0.15,
-                        constraints: const BoxConstraints(
-                          minWidth: 60,
-                          maxWidth: 90,
-                          minHeight: 60,
-                          maxHeight: 90,
-                        ),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.green.shade400,
-                              Colors.green.shade600,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Success Icon
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.green.shade400,
+                                Colors.green.shade600,
+                              ],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.green.withOpacity(0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
                             ],
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.green.withOpacity(0.25),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                          child: const Icon(
+                            Icons.check_circle_rounded,
+                            color: Colors.white,
+                            size: 45,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.check_circle_outline,
-                          color: Colors.white,
-                          size: MediaQuery.of(context).size.width * 0.08,
-                        ),
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.025,
-                      ),
+                        const SizedBox(height: 20),
 
-                      // Success message - responsive text
-                      Text(
-                        'تم إنشاء الفاتورة بنجاح!',
-                        style: TextStyle(
-                          fontFamily: 'Tajawal',
-                          fontSize: MediaQuery.of(context).size.width * 0.05,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF52002C),
+                        // Title
+                        const Text(
+                          'تم إنشاء الفاتورة بنجاح',
+                          style: TextStyle(
+                            fontFamily: 'Tajawal',
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF52002C),
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.015,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: MediaQuery.of(context).size.width * 0.02,
-                        ),
-                        child: Text(
+                        const SizedBox(height: 8),
+
+                        // Subtitle
+                        Text(
                           'اختر طريقة الإرسال المناسبة لك',
                           style: TextStyle(
                             fontFamily: 'Tajawal',
-                            fontSize: MediaQuery.of(context).size.width * 0.035,
+                            fontSize: 14,
                             color: Colors.grey.shade600,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.035,
-                      ),
+                        const SizedBox(height: 25),
 
-                      // Action buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildActionButton(
+                        // Buttons
+                        Column(
+                          children: [
+                            // Share button
+                            _buildDialogButton(
                               icon: Icons.share_rounded,
                               label: 'مشاركة الفاتورة',
+                              subtitle: 'إرسال لأي تطبيق تريده',
                               color: const Color(0xFF25D366),
                               onPressed: () async {
                                 Navigator.of(context).pop();
@@ -934,46 +918,37 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                                 );
                               },
                             ),
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: Icons.send_rounded,
-                              label: 'مراسلة المتجر',
+                            const SizedBox(height: 12),
+
+                            // WhatsApp button
+                            _buildDialogButton(
+                              icon: Icons.storefront_rounded,
+                              label: 'إرسال للمتجر',
+                              subtitle: 'فتح واتساب مباشرة',
                               color: const Color(0xFF52002C),
                               onPressed: () async {
                                 Navigator.of(context).pop();
                                 await _sendPdfToWhatsApp(pdfFile);
                               },
                             ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.02,
-                      ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
 
-                      // Close button - responsive
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            horizontal:
-                                MediaQuery.of(context).size.width * 0.08,
-                            vertical:
-                                MediaQuery.of(context).size.height * 0.015,
+                        // Close button
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(
+                            'إغلاق',
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 15,
+                              color: Colors.grey.shade500,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          'إغلاق',
-                          style: TextStyle(
-                            fontFamily: 'Tajawal',
-                            color: Colors.grey.shade600,
-                            fontSize: MediaQuery.of(context).size.width * 0.04,
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -981,6 +956,79 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildDialogButton({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 45,
+                height: 45,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.white.withOpacity(0.7),
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -1040,204 +1088,283 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
     }
   }
 
-  void _showWhatsAppSendOptions(dynamic pdfFile, String message) {
+  void _showWhatsAppSendOptions(dynamic pdfFile, String message) async {
+    // Get store number from settings
+    final companySettings = CompanySettingsService();
+    final storeWhatsApp = await companySettings.getWhatsappNumber();
+    
+    if (!mounted) return;
+    
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Row(
-            children: [
-              Icon(Icons.send_rounded, color: Color(0xFF52002C), size: 24),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'إرسال الفاتورة للمتجر',
-                  style: TextStyle(
-                    fontFamily: 'Tajawal',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
               ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'اختر طريقة الإرسال المناسبة:',
-                style: TextStyle(fontFamily: 'Tajawal'),
-              ),
-              const SizedBox(height: 20),
-
-              // Option 1: Direct WhatsApp link
-              Container(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-
-                    // Show dialog with instructions
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text(
-                            'إرسال الفاتورة',
-                            style: TextStyle(fontFamily: 'Tajawal'),
-                            textAlign: TextAlign.center,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        colors: [
+                          Colors.white.withOpacity(0.95),
+                          const Color(0xFFF9D5D3).withOpacity(0.9),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.5),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Header icon
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF25D366),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF25D366).withOpacity(0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
                           ),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
+                          child: const Icon(
+                            Icons.store_rounded,
+                            color: Colors.white,
+                            size: 35,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Title
+                        const Text(
+                          'إرسال الفاتورة للمتجر',
+                          style: TextStyle(
+                            fontFamily: 'Tajawal',
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF52002C),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Store number card
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF25D366).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF25D366).withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Icon(
-                                Icons.info_outline,
-                                size: 50,
-                                color: Colors.blue,
+                                Icons.phone_android_rounded,
+                                color: Color(0xFF25D366),
+                                size: 20,
                               ),
-                              const SizedBox(height: 15),
-                              const Text(
-                                'سيتم فتح واتساب مع رسالة جاهزة.\nبعدها ارجع للتطبيق لإرسال ملف الفاتورة.',
-                                style: TextStyle(fontFamily: 'Tajawal'),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 10),
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'رقم المتجر: 0554055582',
-                                  style: TextStyle(
-                                    fontFamily: 'Tajawal',
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'رقم المتجر: $storeWhatsApp',
+                                style: const TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF25D366),
                                 ),
                               ),
                             ],
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text(
-                                'إلغاء',
-                                style: TextStyle(fontFamily: 'Tajawal'),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Instructions
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              _buildStepItem(1, 'سيتم فتح واتساب المتجر'),
+                              const SizedBox(height: 8),
+                              _buildStepItem(2, 'أرسل الرسالة الجاهزة'),
+                              const SizedBox(height: 8),
+                              _buildStepItem(3, 'ارجع للتطبيق لإرفاق الفاتورة'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Buttons
+                        Column(
+                          children: [
+                            // Open WhatsApp button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                  
+                                  final String whatsappUrl =
+                                      'https://wa.me/$storeWhatsApp?text=${Uri.encodeComponent(message)}';
+
+                                  if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+                                    await launchUrl(
+                                      Uri.parse(whatsappUrl),
+                                      mode: LaunchMode.externalApplication,
+                                    );
+                                    // Show reminder to send file
+                                    _showPersistentFileReminder(pdfFile);
+                                  }
+                                },
+                                icon: const Icon(Icons.open_in_new_rounded, color: Colors.white),
+                                label: const Text(
+                                  'فتح واتساب المتجر',
+                                  style: TextStyle(
+                                    fontFamily: 'Tajawal',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF25D366),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
                               ),
                             ),
-                            ElevatedButton(
-                              onPressed: () async {
-                                Navigator.of(context).pop();
+                            const SizedBox(height: 12),
 
-                                // جلب رقم الواتس من الإعدادات
-                                final companySettings = CompanySettingsService();
-                                final businessPhone = await companySettings.getWhatsappNumber();
-                                final String whatsappUrl =
-                                    'https://wa.me/$businessPhone?text=${Uri.encodeComponent(message)}';
-
-                                if (await canLaunchUrl(
-                                  Uri.parse(whatsappUrl),
-                                )) {
-                                  await launchUrl(
-                                    Uri.parse(whatsappUrl),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-
-                                  // Show persistent notification to send file
-                                  _showPersistentFileReminder(pdfFile);
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF25D366),
-                              ),
-                              child: const Text(
-                                'فتح واتساب',
-                                style: TextStyle(
-                                  fontFamily: 'Tajawal',
-                                  color: Colors.white,
+                            // Share via apps button
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                  if (kIsWeb) {
+                                    await PdfInvoiceService.shareInvoice(
+                                      pdfFile,
+                                      orderNumber: widget.order.id,
+                                      totalPrice: _totalPrice,
+                                    );
+                                  } else {
+                                    await Share.shareXFiles(
+                                      [XFile(pdfFile.path)],
+                                      text: message,
+                                      subject: 'فاتورة طلب رقم: ${widget.order.id}',
+                                    );
+                                  }
+                                },
+                                icon: Icon(
+                                  kIsWeb ? Icons.download_rounded : Icons.apps_rounded,
+                                  color: const Color(0xFF52002C),
+                                ),
+                                label: Text(
+                                  kIsWeb ? 'تحميل الفاتورة' : 'اختيار تطبيق آخر',
+                                  style: const TextStyle(
+                                    fontFamily: 'Tajawal',
+                                    fontSize: 15,
+                                    color: Color(0xFF52002C),
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  side: const BorderSide(color: Color(0xFF52002C)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                               ),
                             ),
                           ],
-                        );
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.phone, color: Colors.white),
-                  label: const Text(
-                    'فتح واتساب مباشرة\n(رقم المتجر: 0554055582)',
-                    style: TextStyle(
-                      fontFamily: 'Tajawal',
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF25D366),
-                    padding: const EdgeInsets.all(15),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Option 2: Share menu / Download for web
-              Container(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    if (kIsWeb) {
-                      // For web: download PDF
-                      await PdfInvoiceService.shareInvoice(pdfFile, orderNumber: widget.order.id, totalPrice: _totalPrice);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('تم تحميل الفاتورة بنجاح! يمكنك الآن إرسالها عبر أي تطبيق تريده.'),
-                          backgroundColor: Colors.green,
                         ),
-                      );
-                    } else {
-                      // For mobile: use share menu
-                      await Share.shareXFiles(
-                        [XFile(pdfFile.path)],
-                        text: message,
-                        subject: 'فاتورة طلب رقم: ${widget.order.id}',
-                        sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
-                      );
-                    }
-                  },
-                  icon: Icon(kIsWeb ? Icons.download : Icons.share, color: Colors.white),
-                  label: Text(
-                    kIsWeb ? 'تحميل الفاتورة للجهاز' : 'اختيار من قائمة التطبيقات',
-                    style: const TextStyle(
-                      fontFamily: 'Tajawal',
-                      color: Colors.white,
+                        const SizedBox(height: 16),
+
+                        // Cancel button
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(
+                            'إلغاء',
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF52002C),
-                    padding: const EdgeInsets.all(15),
-                  ),
                 ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontFamily: 'Tajawal'),
               ),
             ),
-          ],
+          ),
         );
       },
     );
   }
+
+  Widget _buildStepItem(int number, String text) {
+    return Row(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: const Color(0xFF52002C),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Text(
+              '$number',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontFamily: 'Tajawal',
+              fontSize: 14,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
 
   void _showPersistentFileReminder(dynamic pdfFile) {
     showDialog(
