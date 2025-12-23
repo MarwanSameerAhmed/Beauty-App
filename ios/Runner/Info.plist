@@ -132,5 +132,8 @@
 		<!-- Notifications Permission -->
 		<key>NSUserNotificationsUsageDescription</key>
 		<string>يحتاج التطبيق للإشعارات لإعلامك بحالة طلباتك والعروض الجديدة</string>
+		<!-- Export Compliance - No custom encryption used -->
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 	</dict>
 </plist>

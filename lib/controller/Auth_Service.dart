@@ -269,6 +269,80 @@ class AuthService {
     await _auth.signOut();
   }
 
+  /// Delete user account permanently - required by Apple App Store guidelines
+  /// Returns null on success, or error message on failure
+  Future<String?> deleteAccount() async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        return 'لم يتم العثور على المستخدم. يرجى تسجيل الدخول مرة أخرى.';
+      }
+
+      final String uid = user.uid;
+      AppLogger.info('Starting account deletion for user', tag: 'AUTH', data: {'uid': uid});
+
+      // Step 1: Delete user data from Firestore
+      try {
+        // Delete user document
+        await _firestore.collection('users').doc(uid).delete();
+        AppLogger.info('User document deleted from Firestore', tag: 'AUTH');
+
+        // Delete user's orders (optional - you might want to keep for records)
+        final ordersQuery = await _firestore
+            .collection('orders')
+            .where('userId', isEqualTo: uid)
+            .get();
+        
+        for (var doc in ordersQuery.docs) {
+          await doc.reference.delete();
+        }
+        AppLogger.info('User orders deleted', tag: 'AUTH', data: {'count': ordersQuery.docs.length});
+
+        // Delete user's cart
+        await _firestore.collection('carts').doc(uid).delete();
+        AppLogger.info('User cart deleted', tag: 'AUTH');
+
+      } catch (e) {
+        AppLogger.error('Error deleting Firestore data', tag: 'AUTH', error: e);
+        // Continue with account deletion even if Firestore cleanup fails
+      }
+
+      // Step 2: Unsubscribe from FCM topics
+      try {
+        await FirebaseMessaging.instance.unsubscribeFromTopic('new_orders');
+        await FirebaseMessaging.instance.unsubscribeFromTopic('admin_notifications');
+        AppLogger.info('Unsubscribed from FCM topics', tag: 'AUTH');
+      } catch (e) {
+        AppLogger.error('Error unsubscribing from topics', tag: 'AUTH', error: e);
+      }
+
+      // Step 3: Sign out from Google if applicable
+      try {
+        await _googleSignIn.signOut();
+      } catch (e) {
+        // Ignore errors
+      }
+
+      // Step 4: Delete Firebase Auth account
+      await user.delete();
+      AppLogger.info('Firebase Auth account deleted successfully', tag: 'AUTH');
+
+      return null; // Success
+
+    } on FirebaseAuthException catch (e) {
+      AppLogger.error('Firebase Auth error during deletion', tag: 'AUTH', error: e);
+      
+      if (e.code == 'requires-recent-login') {
+        return 'يرجى تسجيل الخروج ثم تسجيل الدخول مرة أخرى قبل حذف الحساب.';
+      }
+      return 'فشل حذف الحساب: ${e.message}';
+    } catch (e) {
+      AppLogger.error('Error deleting account', tag: 'AUTH', error: e);
+      return 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+    }
+  }
+
+
   Future<String?> updateUserProfile(UserAccount user) async {
     try {
       await _firestore.collection('users').doc(user.uid).set(user.toJson(), SetOptions(merge: true));

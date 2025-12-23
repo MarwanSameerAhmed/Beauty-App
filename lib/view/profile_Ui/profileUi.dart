@@ -8,6 +8,8 @@ import 'package:glamify/view/legal/privacy_policy_page.dart' as LegalPrivacy;
 import 'package:glamify/view/legal/terms_of_service_page.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/ElegantToast.dart';
+import 'package:glamify/controller/Auth_Service.dart';
+import 'package:glamify/widgets/loader.dart';
 import 'dart:ui';
 
 class ProfileUi extends StatefulWidget {
@@ -97,6 +99,236 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
         MaterialPageRoute(builder: (context) => const LoginUi()),
         (route) => false,
       );
+    }
+  }
+
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 350),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        colors: [
+                          Colors.white.withOpacity(0.95),
+                          const Color(0xFFF9D5D3).withOpacity(0.9),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.5),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Warning Icon
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.red.shade50,
+                            border: Border.all(
+                              color: Colors.red.shade200,
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.red.shade600,
+                            size: 40,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Title
+                        const Text(
+                          'حذف الحساب نهائياً',
+                          style: TextStyle(
+                            fontFamily: 'Tajawal',
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF52002C),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Warning message
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.red.shade100,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                '⚠️ تحذير هام',
+                                style: TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'سيتم حذف حسابك وجميع بياناتك بشكل نهائي ولا يمكن استعادتها. هذا يشمل:',
+                                style: TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 14,
+                                  color: Colors.red.shade700,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '• معلومات حسابك\n• سجل طلباتك\n• السلة المحفوظة',
+                                style: TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 13,
+                                  color: Colors.red.shade600,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  side: const BorderSide(color: Color(0xFF52002C)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'إلغاء',
+                                  style: TextStyle(
+                                    fontFamily: 'Tajawal',
+                                    color: Color(0xFF52002C),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  _deleteAccount();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'حذف الحساب',
+                                  style: TextStyle(
+                                    fontFamily: 'Tajawal',
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) => const Loader(),
+    );
+
+    try {
+      final authService = AuthService();
+      final result = await authService.deleteAccount();
+
+      // Hide loading
+      if (mounted) Navigator.of(context).pop();
+
+      if (result == null) {
+        // Success - clear local data and navigate to login
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        
+        if (mounted) {
+          showElegantToast(
+            context,
+            'تم حذف حسابك بنجاح',
+            isSuccess: true,
+          );
+          
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginUi()),
+            (route) => false,
+          );
+        }
+      } else {
+        // Error
+        if (mounted) {
+          showElegantToast(
+            context,
+            result,
+            isSuccess: false,
+          );
+        }
+      }
+    } catch (e) {
+      // Hide loading
+      if (mounted) Navigator.of(context).pop();
+      
+      if (mounted) {
+        showElegantToast(
+          context,
+          'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.',
+          isSuccess: false,
+        );
+      }
     }
   }
 
@@ -444,6 +676,12 @@ class _ProfileUiState extends State<ProfileUi> with TickerProviderStateMixin {
                         Icons.logout,
                         'تسجيل الخروج',
                         onTap: _logout,
+                        color: Colors.orange,
+                      ),
+                      _buildAnimatedMenuTile(
+                        Icons.delete_forever,
+                        'حذف الحساب',
+                        onTap: _showDeleteAccountDialog,
                         color: Colors.red,
                       ),
                     ],
