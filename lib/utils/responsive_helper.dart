@@ -233,7 +233,8 @@ class ResponsiveHelper {
   /// حساب عرض الإعلان المربع بناءً على عدد الأعمدة
   static double get squareAdWidth {
     int columns = squareAdsColumns;
-    double totalPadding = 32 + ((columns - 1) * 10); // padding + spacing
+    double spacing = isMobile ? 10.0 : 12.0;
+    double totalPadding = (horizontalPadding * 2) + ((columns - 1) * spacing);
     return (screenWidth - totalPadding) / columns;
   }
 
@@ -400,21 +401,19 @@ class ResponsiveHelper {
   }
 
   /// الـ viewport fraction للـ carousel
+  /// يحسب بناءً على horizontalPadding ليتناسق مع باقي العناصر
   static double get carouselViewportFraction {
-    switch (deviceType) {
-      case DeviceType.mobileSmall:
-        return 0.92;
-      case DeviceType.mobile:
-        return 0.94;
-      case DeviceType.mobileLarge:
-        return 0.9;
-      case DeviceType.tablet:
-        return 0.75;
-      case DeviceType.tabletLarge:
-        return 0.65;
-      case DeviceType.desktop:
-        return 0.55;
-    }
+    // حساب الـ fraction بحيث يتناسق مع padding باقي العناصر
+    // الهامش الفعلي = horizontalPadding - 5 (لإعطاء مساحة للـ enlargeCenterPage)
+    double effectivePadding = horizontalPadding - 5;
+    if (effectivePadding < 8) effectivePadding = 8;
+    
+    double fraction = 1 - (effectivePadding * 2 / screenWidth);
+    
+    // تقييد القيمة بين 0.7 و 0.96
+    if (fraction > 0.96) return 0.96;
+    if (fraction < 0.7) return 0.7;
+    return fraction;
   }
 }
 
