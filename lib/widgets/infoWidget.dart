@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:glamify/utils/responsive_helper.dart';
 
 class ProfileHeaderWidget extends StatelessWidget {
   final String userName;
   final String email;
   final String imagePath;
   final VoidCallback? onCartPressed;
-  final VoidCallback? onFavoritePressed; // Add this
+  final VoidCallback? onFavoritePressed;
   final int cartItemCount;
 
   const ProfileHeaderWidget({
@@ -14,35 +15,51 @@ class ProfileHeaderWidget extends StatelessWidget {
     required this.email,
     required this.imagePath,
     this.onCartPressed,
-    this.onFavoritePressed, // Add this
+    this.onFavoritePressed,
     required this.cartItemCount,
   });
 
   @override
   Widget build(BuildContext context) {
+    // تهيئة الـ responsive helper
+    ResponsiveHelper.init(context);
+
+    // الأبعاد المتجاوبة
+    final avatarRadius = ResponsiveHelper.avatarRadius;
+    final iconsWidth = ResponsiveHelper.headerIconsWidth;
+    final iconsHeight = ResponsiveHelper.headerIconsHeight;
+    final iconSize = ResponsiveHelper.iconSize;
+    final titleFontSize = ResponsiveHelper.bodyFontSize;
+    final subtitleFontSize = ResponsiveHelper.smallFontSize;
+    final horizontalPadding = ResponsiveHelper.horizontalPadding;
+    final borderRadius = ResponsiveHelper.borderRadius;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Container(
         padding: EdgeInsets.only(
           top: MediaQuery.of(context).padding.top + 8.0,
-          left: 16.0,
-          right: 16.0,
-          bottom: 16.0,
+          left: horizontalPadding,
+          right: horizontalPadding,
+          bottom: horizontalPadding,
         ),
         child: Row(
           children: [
+            // صورة المستخدم
             CircleAvatar(
-              radius: 30,
+              radius: avatarRadius,
               backgroundColor: Colors.grey.shade200,
               child: CircleAvatar(
-                radius: 28,
+                radius: avatarRadius - 2,
                 backgroundImage: AssetImage(imagePath),
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: horizontalPadding * 0.75),
+            
+            // معلومات المستخدم
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 10.0),
+                padding: EdgeInsets.only(top: ResponsiveHelper.verticalSpacing),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -50,28 +67,34 @@ class ProfileHeaderWidget extends StatelessWidget {
                     Text(
                       "مرحباً بك،",
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: subtitleFontSize,
                         color: Colors.grey.shade600,
+                        fontFamily: 'Tajawal',
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       userName,
-                      style: const TextStyle(
-                        fontSize: 20,
+                      style: TextStyle(
+                        fontSize: titleFontSize + 2,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
+                        fontFamily: 'Tajawal',
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
             ),
+            
+            // أزرار المفضلة والسلة
             Padding(
               padding: const EdgeInsets.only(left: 2.0),
               child: Container(
-                width: 100, // Increased width for two icons
-                height: 50,
+                width: iconsWidth,
+                height: iconsHeight,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     begin: Alignment.centerLeft,
@@ -79,56 +102,66 @@ class ProfileHeaderWidget extends StatelessWidget {
                     colors: [Color(0xFF52002C), Color(0xFF942A59)],
                     stops: [0.7, 1.0],
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(borderRadius * 0.8),
                 ),
                 child: Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceEvenly, // Space out icons
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
+                    // زر المفضلة
                     IconButton(
-                      icon: const Icon(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: Icon(
                         Icons.favorite_border,
                         color: Colors.white,
-                        size: 22,
+                        size: iconSize,
                       ),
                       onPressed: onFavoritePressed,
                     ),
+                    
+                    // الفاصل العمودي
                     SizedBox(
-                      height: 24, // Divider height
+                      height: iconsHeight * 0.5,
                       child: VerticalDivider(
                         color: Colors.white.withOpacity(0.5),
                         width: 1,
                       ),
                     ),
+                    
+                    // زر السلة مع العداد
                     Stack(
+                      clipBehavior: Clip.none,
                       children: [
                         IconButton(
-                          icon: const Icon(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
                             Icons.shopping_bag_outlined,
                             color: Colors.white,
-                            size: 22,
+                            size: iconSize,
                           ),
                           onPressed: onCartPressed,
                         ),
                         if (cartItemCount > 0)
                           Positioned(
-                            right: 0,
-                            top: 0,
+                            right: -4,
+                            top: -4,
                             child: Container(
-                              padding: const EdgeInsets.all(2),
+                              padding: EdgeInsets.all(ResponsiveHelper.isMobile ? 2 : 3),
                               decoration: BoxDecoration(
                                 color: Colors.red,
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              constraints: const BoxConstraints(
-                                minWidth: 16,
-                                minHeight: 16,
+                              constraints: BoxConstraints(
+                                minWidth: ResponsiveHelper.isMobile ? 16 : 20,
+                                minHeight: ResponsiveHelper.isMobile ? 16 : 20,
                               ),
                               child: Text(
                                 '$cartItemCount',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10,
+                                  fontSize: ResponsiveHelper.isMobile ? 10 : 12,
+                                  fontWeight: FontWeight.bold,
                                 ),
                                 textAlign: TextAlign.center,
                               ),

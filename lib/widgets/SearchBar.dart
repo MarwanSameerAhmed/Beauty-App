@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:glamify/view/search_results_page.dart';
 import 'package:glamify/controller/product_service.dart';
+import 'package:glamify/utils/responsive_helper.dart';
 
 class Searchbar extends StatefulWidget {
   const Searchbar({super.key});
@@ -97,15 +98,26 @@ class _SearchbarState extends State<Searchbar> {
 
   @override
   Widget build(BuildContext context) {
+    // تهيئة الـ responsive helper
+    ResponsiveHelper.init(context);
+    
+    final horizontalPadding = ResponsiveHelper.horizontalPadding;
+    final borderRadius = ResponsiveHelper.borderRadius;
+    final iconSize = ResponsiveHelper.iconSize;
+    final bodyFontSize = ResponsiveHelper.bodyFontSize;
+    final smallFontSize = ResponsiveHelper.smallFontSize;
+    final buttonSize = ResponsiveHelper.isMobile ? 50.0 : 58.0;
+    
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 16.0),
+      padding: EdgeInsets.fromLTRB(horizontalPadding + 4, 0.0, horizontalPadding + 4, horizontalPadding),
       child: Column(
         children: [
           Row(
             children: [
+              // زر البحث
               Container(
-                width: 50,
-                height: 50,
+                width: buttonSize,
+                height: buttonSize,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     begin: Alignment.centerLeft,
@@ -113,63 +125,68 @@ class _SearchbarState extends State<Searchbar> {
                     colors: [Color(0xFF52002C), Color(0xFF942A59)],
                     stops: [0.7, 1.0],
                   ),
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(borderRadius),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.search, color: Colors.white),
+                  icon: Icon(Icons.search, color: Colors.white, size: iconSize),
                   onPressed: _performSearch,
                 ),
               ),
 
-              const SizedBox(width: 12),
+              SizedBox(width: horizontalPadding * 0.75),
+              
+              // حقل البحث
               Expanded(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(borderRadius),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 7.0, sigmaY: 7.0),
-                    child: TextField(
-                      controller: _searchController,
-                      focusNode: _focusNode,
-                      textDirection: TextDirection.rtl,
-                      onSubmitted: (value) => _performSearch(),
-                      style: const TextStyle(
-                        fontFamily: 'Tajawal',
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'ابحث عن منتج...',
-                        hintTextDirection: TextDirection.rtl,
-                        hintStyle: TextStyle(
-                          color: Colors.black.withOpacity(0.6),
+                    child: SizedBox(
+                      height: buttonSize,
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _focusNode,
+                        textDirection: TextDirection.rtl,
+                        onSubmitted: (value) => _performSearch(),
+                        style: TextStyle(
                           fontFamily: 'Tajawal',
+                          fontSize: bodyFontSize,
+                          color: Colors.black87,
                         ),
-                        filled: true,
-                        fillColor: const Color.fromARGB(
-                          255,
-                          216,
-                          213,
-                          213,
-                        ).withOpacity(0.2),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                          borderSide: BorderSide(
-                            color: Colors.black.withOpacity(0.4),
-                            width: 1.0,
+                        decoration: InputDecoration(
+                          hintText: 'ابحث عن منتج...',
+                          hintTextDirection: TextDirection.rtl,
+                          hintStyle: TextStyle(
+                            color: Colors.black.withOpacity(0.6),
+                            fontFamily: 'Tajawal',
+                            fontSize: bodyFontSize,
                           ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                          borderSide: BorderSide(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 1.0,
+                          filled: true,
+                          fillColor: const Color.fromARGB(255, 216, 213, 213).withOpacity(0.2),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                            vertical: ResponsiveHelper.isMobile ? 12 : 16,
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                          borderSide: BorderSide(
-                            color: Colors.white.withOpacity(0.6),
-                            width: 1.5,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(borderRadius),
+                            borderSide: BorderSide(
+                              color: Colors.black.withOpacity(0.4),
+                              width: 1.0,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(borderRadius),
+                            borderSide: BorderSide(
+                              color: Colors.white.withOpacity(0.4),
+                              width: 1.0,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(borderRadius),
+                            borderSide: BorderSide(
+                              color: Colors.white.withOpacity(0.6),
+                              width: 1.5,
+                            ),
                           ),
                         ),
                       ),
@@ -183,14 +200,14 @@ class _SearchbarState extends State<Searchbar> {
           // القائمة المنسدلة للاقتراحات
           if (_showSuggestions && _suggestions.isNotEmpty)
             Container(
-              margin: const EdgeInsets.only(top: 8, left: 62),
-              constraints: const BoxConstraints(maxHeight: 200),
+              margin: EdgeInsets.only(top: 8, left: buttonSize + horizontalPadding * 0.75),
+              constraints: BoxConstraints(maxHeight: ResponsiveHelper.isMobile ? 200 : 250),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(15.0),
+                borderRadius: BorderRadius.circular(borderRadius),
                 child: Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFFF9D5D3).withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(15.0),
+                    borderRadius: BorderRadius.circular(borderRadius),
                     border: Border.all(
                       color: Colors.white.withOpacity(0.5),
                       width: 1.0,
@@ -205,22 +222,22 @@ class _SearchbarState extends State<Searchbar> {
                   ),
                   child: ListView.separated(
                     shrinkWrap: true,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: EdgeInsets.symmetric(vertical: ResponsiveHelper.isMobile ? 8 : 10),
                     itemCount: _suggestions.length,
                     separatorBuilder: (context, index) => Divider(
                       height: 1,
                       color: Colors.white.withOpacity(0.2),
-                      indent: 16,
-                      endIndent: 16,
+                      indent: horizontalPadding,
+                      endIndent: horizontalPadding,
                     ),
                     itemBuilder: (context, index) {
                       final suggestion = _suggestions[index];
                       return InkWell(
                         onTap: () => _selectSuggestion(suggestion),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                            vertical: ResponsiveHelper.isMobile ? 12 : 14,
                           ),
                           child: Row(
                             textDirection: TextDirection.rtl,
@@ -228,8 +245,8 @@ class _SearchbarState extends State<Searchbar> {
                               Expanded(
                                 child: Text(
                                   suggestion,
-                                  style: const TextStyle(
-                                    fontSize: 14,
+                                  style: TextStyle(
+                                    fontSize: smallFontSize + 2,
                                     color: Colors.black87,
                                     fontFamily: 'Tajawal',
                                   ),
@@ -237,10 +254,10 @@ class _SearchbarState extends State<Searchbar> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: horizontalPadding * 0.75),
                               Icon(
                                 Icons.search,
-                                size: 18,
+                                size: iconSize * 0.8,
                                 color: Colors.black.withOpacity(0.6),
                               ),
                             ],
@@ -257,3 +274,4 @@ class _SearchbarState extends State<Searchbar> {
     );
   }
 }
+

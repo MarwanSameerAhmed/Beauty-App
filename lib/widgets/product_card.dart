@@ -6,6 +6,7 @@ import 'package:glamify/controller/favorites_service.dart';
 import 'package:glamify/model/product.dart';
 import 'package:glamify/widgets/ElegantToast.dart';
 import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/utils/responsive_helper.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
@@ -61,19 +62,28 @@ class _ProductCardState extends State<ProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    // تهيئة الـ responsive helper
+    ResponsiveHelper.init(context);
+    
+    final borderRadius = ResponsiveHelper.borderRadius + 10;
+    final titleFontSize = ResponsiveHelper.bodyFontSize;
+    final descFontSize = ResponsiveHelper.smallFontSize;
+    final buttonSize = ResponsiveHelper.isMobile ? 38.0 : 44.0;
+    final favoriteButtonSize = ResponsiveHelper.isMobile ? 36.0 : 42.0;
+    
     return SizedBox(
       width: widget.width,
       height: widget.height,
       child: GestureDetector(
         onTap: widget.onTap,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(25.0),
+          borderRadius: BorderRadius.circular(borderRadius),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(25.0),
+                borderRadius: BorderRadius.circular(borderRadius),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.4),
                   width: 1.5,
@@ -82,8 +92,8 @@ class _ProductCardState extends State<ProductCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(flex: 3, child: _buildImage()),
-                  Expanded(flex: 2, child: _buildProductDetails()),
+                  Expanded(flex: 3, child: _buildImage(borderRadius, favoriteButtonSize)),
+                  Expanded(flex: 2, child: _buildProductDetails(titleFontSize, descFontSize, buttonSize)),
                 ],
               ),
             ),
@@ -93,15 +103,15 @@ class _ProductCardState extends State<ProductCard> {
     );
   }
 
-  Widget _buildImage() {
+  Widget _buildImage(double borderRadius, double favoriteButtonSize) {
     return Hero(
       tag: 'product-image-${widget.product.id}',
       child: Stack(
         children: [
           Positioned.fill(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(25.0),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(borderRadius),
               ),
               child: Image.network(
                 widget.product.images.first,
@@ -120,16 +130,20 @@ class _ProductCardState extends State<ProductCard> {
               ),
             ),
           ),
-          Positioned(top: 12, right: 12, child: _buildFavoriteButton()),
+          Positioned(
+            top: ResponsiveHelper.isMobile ? 12 : 14,
+            right: ResponsiveHelper.isMobile ? 12 : 14,
+            child: _buildFavoriteButton(favoriteButtonSize),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildFavoriteButton() {
+  Widget _buildFavoriteButton(double size) {
     return Container(
-      width: 36,
-      height: 36,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.3),
         shape: BoxShape.circle,
@@ -145,28 +159,30 @@ class _ProductCardState extends State<ProductCard> {
                   ? Icons.favorite_rounded
                   : Icons.favorite_border_rounded,
               color: isFavorite ? const Color(0xFFF9D5D3) : Colors.white,
-              size: 20,
+              size: size * 0.55,
             ),
             onPressed: () =>
                 _favoritesService.toggleFavorite(widget.product.id),
-            splashRadius: 18,
+            splashRadius: size * 0.5,
           );
         },
       ),
     );
   }
 
-  Widget _buildProductDetails() {
+  Widget _buildProductDetails(double titleFontSize, double descFontSize, double buttonSize) {
+    final padding = ResponsiveHelper.isMobile ? 12.0 : 14.0;
+    
     return Padding(
-      padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.all(padding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end, // Align items to the bottom
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Add to cart button on the left
+          // زر إضافة للسلة
           SizedBox(
-            width: 38,
-            height: 38,
+            width: buttonSize,
+            height: buttonSize,
             child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
@@ -175,52 +191,51 @@ class _ProductCardState extends State<ProductCard> {
                   colors: [Color(0xFF52002C), Color(0xFF942A59)],
                   stops: [0.7, 1.0],
                 ),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(ResponsiveHelper.borderRadius * 0.8),
               ),
               child: Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(ResponsiveHelper.borderRadius * 0.8),
                 child: InkWell(
                   onTap: _addToCart,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(ResponsiveHelper.borderRadius * 0.8),
                   child: Center(
                     child: _isAddingToCart
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
+                        ? SizedBox(
+                            width: buttonSize * 0.52,
+                            height: buttonSize * 0.52,
+                            child: const CircularProgressIndicator(
                               strokeWidth: 2.5,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 Colors.white,
                               ),
                             ),
                           )
-                        : const Icon(
+                        : Icon(
                             Icons.add_shopping_cart,
                             color: Colors.white,
-                            size: 20,
+                            size: buttonSize * 0.52,
                           ),
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          // Details on the right
+          SizedBox(width: padding),
+          // تفاصيل المنتج
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment:
-                  MainAxisAlignment.end, // Align text to the bottom
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Directionality(
                   textDirection: TextDirection.rtl,
                   child: Text(
                     widget.product.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Tajawal',
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: titleFontSize,
                       color: Colors.black87,
                     ),
                     textAlign: TextAlign.right,
@@ -235,14 +250,14 @@ class _ProductCardState extends State<ProductCard> {
                     widget.product.description,
                     style: TextStyle(
                       fontFamily: 'Tajawal',
-                      fontSize: 12,
+                      fontSize: descFontSize,
                       fontWeight: FontWeight.w300,
                       color: Colors.black.withOpacity(0.6),
                       height: 1.3,
                     ),
                     textAlign: TextAlign.right,
-                    maxLines: 2, // Limit to 2 lines
-                    overflow: TextOverflow.ellipsis, // Add ellipsis on overflow
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

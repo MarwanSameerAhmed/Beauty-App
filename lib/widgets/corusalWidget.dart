@@ -5,6 +5,7 @@ import 'package:glamify/model/carousel_ad.dart';
 import 'package:glamify/widgets/ad_loading_skeleton.dart';
 import 'package:glamify/widgets/loader.dart';
 import 'package:glamify/view/company_products_page.dart';
+import 'package:glamify/utils/responsive_helper.dart';
 import 'dart:ui';
 
 class ProductCarousel extends StatefulWidget {
@@ -27,20 +28,31 @@ class _ProductCarouselState extends State<ProductCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    // تهيئة الـ responsive helper
+    ResponsiveHelper.init(context);
+
+    // الأبعاد المتجاوبة
+    final carouselHeight = ResponsiveHelper.carouselHeight;
+    final viewportFraction = ResponsiveHelper.carouselViewportFraction;
+    final borderRadius = ResponsiveHelper.borderRadius;
+    final titleFontSize = ResponsiveHelper.bodyFontSize;
+    final indicatorSize = ResponsiveHelper.isMobile ? 8.0 : 10.0;
+    final indicatorActiveWidth = ResponsiveHelper.isMobile ? 24.0 : 32.0;
+
     return StreamBuilder<List<CarouselAd>>(
       stream: _carouselAdsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
-            height: 225, // Same height as carousel + indicator
-            child: Center(child: Loader()),
+          return SizedBox(
+            height: carouselHeight + 40, // carousel + indicator
+            child: const Center(child: Loader()),
           );
         }
         if (snapshot.hasError) {
-          return const SizedBox.shrink(); // Don't show anything on error
+          return const SizedBox.shrink();
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SizedBox.shrink(); // Don't show if no ads
+          return const SizedBox.shrink();
         }
 
         // فلترة البانرات الظاهرة فقط وترتيبها
@@ -74,9 +86,11 @@ class _ProductCarouselState extends State<ProductCarousel> {
                     );
                   },
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    margin: EdgeInsets.symmetric(
+                      horizontal: ResponsiveHelper.isMobile ? 5 : 8,
+                    ),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(borderRadius + 4),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.white.withOpacity(0.15),
@@ -92,12 +106,12 @@ class _ProductCarouselState extends State<ProductCarousel> {
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(borderRadius),
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(borderRadius + 4),
                             border: Border.all(
                               color: Colors.white.withOpacity(0.3),
                               width: 1.5,
@@ -115,7 +129,7 @@ class _ProductCarouselState extends State<ProductCarousel> {
                             children: [
                               // الصورة الرئيسية مع مؤشر التحميل الأنيق
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(18),
+                                borderRadius: BorderRadius.circular(borderRadius + 2),
                                 child: AdImageWithLoading(
                                   imageUrl: ad.imageUrl,
                                   width: double.infinity,
@@ -130,14 +144,14 @@ class _ProductCarouselState extends State<ProductCarousel> {
                                 left: 0,
                                 right: 0,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: ResponsiveHelper.horizontalPadding,
+                                    vertical: ResponsiveHelper.isMobile ? 12 : 16,
                                   ),
                                   decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.only(
-                                      bottomLeft: Radius.circular(18),
-                                      bottomRight: Radius.circular(18),
+                                    borderRadius: BorderRadius.only(
+                                      bottomLeft: Radius.circular(borderRadius + 2),
+                                      bottomRight: Radius.circular(borderRadius + 2),
                                     ),
                                     gradient: LinearGradient(
                                       begin: Alignment.topCenter,
@@ -150,12 +164,12 @@ class _ProductCarouselState extends State<ProductCarousel> {
                                   ),
                                   child: Text(
                                     ad.companyName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 16,
+                                      fontSize: titleFontSize,
                                       fontWeight: FontWeight.bold,
                                       fontFamily: 'Tajawal',
-                                      shadows: [
+                                      shadows: const [
                                         Shadow(
                                           color: Colors.black54,
                                           blurRadius: 4,
@@ -177,11 +191,10 @@ class _ProductCarouselState extends State<ProductCarousel> {
                 );
               },
               options: CarouselOptions(
-                height: 220,
-
+                height: carouselHeight,
                 enlargeCenterPage: true,
                 autoPlay: true,
-                viewportFraction: 0.94,
+                viewportFraction: viewportFraction,
                 autoPlayCurve: Curves.easeInOut,
                 autoPlayInterval: const Duration(seconds: 4),
                 onPageChanged: (index, reason) {
@@ -191,19 +204,17 @@ class _ProductCarouselState extends State<ProductCarousel> {
                 },
               ),
             ),
-            const SizedBox(height: 15),
+            SizedBox(height: ResponsiveHelper.verticalSpacing + 5),
 
             // مؤشرات محسنة مع تصميم زجاجي
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: ResponsiveHelper.horizontalPadding,
+                vertical: ResponsiveHelper.isMobile ? 8 : 10,
+              ),
               decoration: BoxDecoration(
-                color: const Color.fromARGB(
-                  255,
-                  215,
-                  211,
-                  211,
-                ).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
+                color: const Color.fromARGB(255, 215, 211, 211).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(borderRadius + 4),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.2),
                   width: 1,
@@ -217,11 +228,13 @@ class _ProductCarouselState extends State<ProductCarousel> {
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.easeInOutCubic,
-                    width: isActive ? 24.0 : 8.0,
-                    height: 8.0,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: isActive ? indicatorActiveWidth : indicatorSize,
+                    height: indicatorSize,
+                    margin: EdgeInsets.symmetric(
+                      horizontal: ResponsiveHelper.isMobile ? 4 : 5,
+                    ),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(indicatorSize / 2),
                       gradient: isActive
                           ? const LinearGradient(
                               colors: [Color(0xFF52002C), Color(0xFF942A59)],
@@ -248,3 +261,4 @@ class _ProductCarouselState extends State<ProductCarousel> {
     );
   }
 }
+

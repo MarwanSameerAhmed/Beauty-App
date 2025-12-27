@@ -18,6 +18,7 @@ import 'package:glamify/widgets/productDetails.dart';
 import 'package:glamify/widgets/product_card.dart';
 import 'package:glamify/view/favoritesUi.dart';
 import 'package:glamify/view/company_products_page.dart';
+import 'package:glamify/utils/responsive_helper.dart';
 
 class Homescreenui extends StatefulWidget {
   final TabController tabController;
@@ -90,6 +91,12 @@ class _HomescreenuiState extends State<Homescreenui>
   @override
   Widget build(BuildContext context) {
     super.build(context); // مطلوب لـ AutomaticKeepAliveClientMixin
+    
+    // تهيئة الـ responsive helper
+    ResponsiveHelper.init(context);
+    final headerHeight = ResponsiveHelper.headerHeight;
+    final bottomPadding = ResponsiveHelper.isMobile ? 85.0 : 100.0;
+    
     return FlowerBackground(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -108,8 +115,8 @@ class _HomescreenuiState extends State<Homescreenui>
                 SliverPersistentHeader(
                   pinned: true,
                   delegate: _SliverAppBarDelegate(
-                    minHeight: 110.0,
-                    maxHeight: 110.0,
+                    minHeight: headerHeight,
+                    maxHeight: headerHeight,
                     child: Consumer<CartService>(
                       builder: (context, cart, child) {
                         return ProfileHeaderWidget(
@@ -143,7 +150,7 @@ class _HomescreenuiState extends State<Homescreenui>
                 _buildDynamicLayout(),
 
                 // Add padding for the translucent bottom navigation bar
-                const SliverToBoxAdapter(child: SizedBox(height: 85.0)),
+                SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
               ],
             ),
           ), // SafeArea
@@ -205,22 +212,22 @@ class _HomescreenuiState extends State<Homescreenui>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      right: 24,
-                      top: 10,
-                      bottom: 10,
+                    padding: EdgeInsets.only(
+                      left: ResponsiveHelper.horizontalPadding,
+                      right: ResponsiveHelper.horizontalPadding + 8,
+                      top: ResponsiveHelper.verticalSpacing,
+                      bottom: ResponsiveHelper.verticalSpacing,
                     ),
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Text(
                         section.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: "Tajawal",
-                          fontSize: 22,
+                          fontSize: ResponsiveHelper.titleFontSize,
                           color: Colors.black,
                           fontWeight: FontWeight.w900,
-                          shadows: [
+                          shadows: const [
                             Shadow(
                               color: Colors.black26,
                               blurRadius: 30,
@@ -232,7 +239,7 @@ class _HomescreenuiState extends State<Homescreenui>
                     ),
                   ),
                   const ProductCarousel(),
-                  const SizedBox(height: 10),
+                  SizedBox(height: ResponsiveHelper.verticalSpacing),
                 ],
               );
             } else if (section.isAdsSection) {
@@ -252,18 +259,23 @@ class _HomescreenuiState extends State<Homescreenui>
     // التخطيط الافتراضي في حال عدم وجود أقسام
     return SliverList(
       delegate: SliverChildListDelegate([
-        const Padding(
-          padding: EdgeInsets.only(left: 16, right: 24, top: 10, bottom: 10),
+        Padding(
+          padding: EdgeInsets.only(
+            left: ResponsiveHelper.horizontalPadding,
+            right: ResponsiveHelper.horizontalPadding + 8,
+            top: ResponsiveHelper.verticalSpacing,
+            bottom: ResponsiveHelper.verticalSpacing,
+          ),
           child: Align(
             alignment: Alignment.centerRight,
             child: Text(
               'جديدنا',
               style: TextStyle(
                 fontFamily: "Tajawal",
-                fontSize: 22,
+                fontSize: ResponsiveHelper.titleFontSize,
                 color: Colors.black,
                 fontWeight: FontWeight.w900,
-                shadows: [
+                shadows: const [
                   Shadow(
                     color: Colors.black26,
                     blurRadius: 30,
@@ -275,9 +287,9 @@ class _HomescreenuiState extends State<Homescreenui>
           ),
         ),
         const ProductCarousel(),
-        const SizedBox(height: 10),
+        SizedBox(height: ResponsiveHelper.verticalSpacing),
         _buildAdsSection(),
-        const SizedBox(height: 10),
+        SizedBox(height: ResponsiveHelper.verticalSpacing),
       ]),
     );
   }
@@ -311,22 +323,22 @@ class _HomescreenuiState extends State<Homescreenui>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 16,
-                  right: 24,
-                  top: 10,
-                  bottom: 10,
+                padding: EdgeInsets.only(
+                  left: ResponsiveHelper.horizontalPadding,
+                  right: ResponsiveHelper.horizontalPadding + 8,
+                  top: ResponsiveHelper.verticalSpacing,
+                  bottom: ResponsiveHelper.verticalSpacing,
                 ),
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Text(
                     section.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: "Tajawal",
-                      fontSize: 22,
+                      fontSize: ResponsiveHelper.titleFontSize,
                       color: Colors.black,
                       fontWeight: FontWeight.w900,
-                      shadows: [
+                      shadows: const [
                         Shadow(
                           color: Colors.black26,
                           blurRadius: 30,
@@ -338,27 +350,27 @@ class _HomescreenuiState extends State<Homescreenui>
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.horizontalPadding),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(ResponsiveHelper.horizontalPadding + 4),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(ResponsiveHelper.borderRadius),
                     border: Border.all(color: Colors.grey.shade300),
                   ),
-                  child: const Text(
+                  child: Text(
                     'لا توجد إعلانات في هذا القسم بعد',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Tajawal',
-                      fontSize: 16,
+                      fontSize: ResponsiveHelper.bodyFontSize,
                       color: Colors.grey,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: ResponsiveHelper.verticalSpacing * 2),
             ],
           );
         }
@@ -368,22 +380,22 @@ class _HomescreenuiState extends State<Homescreenui>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(
-                left: 16,
-                right: 24,
-                top: 10,
-                bottom: 10,
+              padding: EdgeInsets.only(
+                left: ResponsiveHelper.horizontalPadding,
+                right: ResponsiveHelper.horizontalPadding + 8,
+                top: ResponsiveHelper.verticalSpacing,
+                bottom: ResponsiveHelper.verticalSpacing,
               ),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Text(
                   section.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: "Tajawal",
-                    fontSize: 22,
+                    fontSize: ResponsiveHelper.titleFontSize,
                     color: Colors.black,
                     fontWeight: FontWeight.w900,
-                    shadows: [
+                    shadows: const [
                       Shadow(
                         color: Colors.black26,
                         blurRadius: 30,
@@ -395,7 +407,7 @@ class _HomescreenuiState extends State<Homescreenui>
               ),
             ),
             ..._buildAdsSectionWidgets(sectionAds),
-            const SizedBox(height: 10),
+            SizedBox(height: ResponsiveHelper.verticalSpacing),
           ],
         );
       },
@@ -456,11 +468,14 @@ class _HomescreenuiState extends State<Homescreenui>
 
   Widget _buildRectangleAd(Ad ad) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      padding: EdgeInsets.symmetric(
+        vertical: ResponsiveHelper.verticalSpacing * 0.8,
+        horizontal: ResponsiveHelper.horizontalPadding,
+      ),
       child: AdImageWithLoading(
         imageUrl: ad.imageUrl,
         width: double.infinity,
-        height: 180,
+        height: ResponsiveHelper.rectangleAdHeight,
         isRectangle: true,
         onTap: () {
           Navigator.push(
@@ -478,14 +493,18 @@ class _HomescreenuiState extends State<Homescreenui>
   }
 
   Widget _buildSquareAdsGrid(List<Ad> squareAds) {
+    final itemWidth = ResponsiveHelper.squareAdWidth;
+    final spacing = ResponsiveHelper.isMobile ? 10.0 : 12.0;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveHelper.horizontalPadding,
+        vertical: ResponsiveHelper.verticalSpacing * 0.8,
+      ),
       child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
+        spacing: spacing,
+        runSpacing: spacing,
         children: squareAds.map((ad) {
-          final screenWidth = MediaQuery.of(context).size.width;
-          final itemWidth = (screenWidth - 16 * 2 - 10) / 2;
           return AdImageWithLoading(
             imageUrl: ad.imageUrl,
             width: itemWidth,
@@ -548,22 +567,22 @@ class _HomescreenuiState extends State<Homescreenui>
       children: [
         // عنوان القسم
         Padding(
-          padding: const EdgeInsets.only(
-            left: 16,
-            right: 24,
-            top: 10,
-            bottom: 10,
+          padding: EdgeInsets.only(
+            left: ResponsiveHelper.horizontalPadding,
+            right: ResponsiveHelper.horizontalPadding + 8,
+            top: ResponsiveHelper.verticalSpacing,
+            bottom: ResponsiveHelper.verticalSpacing,
           ),
           child: Align(
             alignment: Alignment.centerRight,
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: "Tajawal",
-                fontSize: 22,
+                fontSize: ResponsiveHelper.titleFontSize,
                 color: Colors.black,
                 fontWeight: FontWeight.w900,
-                shadows: [
+                shadows: const [
                   Shadow(
                     color: Colors.black26,
                     blurRadius: 30,
@@ -577,17 +596,17 @@ class _HomescreenuiState extends State<Homescreenui>
 
         // المنتجات في عرض أفقي
         SizedBox(
-          height: 250,
+          height: ResponsiveHelper.productSectionHeight,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             reverse: true,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.horizontalPadding),
             itemCount: products.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            separatorBuilder: (context, index) => SizedBox(width: ResponsiveHelper.isMobile ? 12 : 16),
             itemBuilder: (context, index) {
               final product = products[index];
               return SizedBox(
-                width: 180,
+                width: ResponsiveHelper.productCardWidth,
                 child: ProductCard(
                   product: product,
                   onTap: () {
@@ -604,7 +623,7 @@ class _HomescreenuiState extends State<Homescreenui>
             },
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: ResponsiveHelper.verticalSpacing * 2),
       ],
     );
   }
