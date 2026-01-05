@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:glamify/view/auth_Ui/complete_profile_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glamify/model/userAccount.dart';
 import 'package:simple_animations/simple_animations.dart';
@@ -14,7 +15,6 @@ import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/buttonsWidgets.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:glamify/widgets/loader.dart';
-import 'package:glamify/view/auth_Ui/complete_profile_ui.dart';
 
 class LoginUi extends StatefulWidget {
   const LoginUi({super.key});
@@ -608,7 +608,7 @@ class _LoginUiState extends State<LoginUi> {
     if (!mounted) return;
 
     if (result is UserAccount) {
-      // Existing user logic
+      // User account (new or existing) - go directly to home
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('uid', result.uid);
       await prefs.setString('userName', result.name);
@@ -629,14 +629,6 @@ class _LoginUiState extends State<LoginUi> {
           MaterialPageRoute(builder: (context) => const Run()),
         );
       }
-    } else if (result is NewAppleUser) {
-      // New Apple user, navigate to complete profile screen
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CompleteProfileUi(user: result.user),
-        ),
-      );
     } else if (result is String) {
       showElegantToast(context, result, isSuccess: false);
     }

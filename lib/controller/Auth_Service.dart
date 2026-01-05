@@ -195,6 +195,7 @@ class AuthService {
   }
 
   /// Sign in with Apple - iOS only
+  /// Apple provides name and email on FIRST sign-in only, so we must use them immediately
   Future<Object?> signInWithApple() async {
     try {
       // Apple Sign In is only available on iOS
@@ -216,7 +217,6 @@ class AuthService {
       );
 
       // Create OAuthCredential for Firebase
-      // IMPORTANT: Must include both idToken AND accessToken (authorizationCode)
       final oauthCredential = OAuthProvider("apple.com").credential(
         idToken: appleCredential.identityToken,
         accessToken: appleCredential.authorizationCode,
@@ -235,8 +235,63 @@ class AuthService {
             .get();
 
         if (!doc.exists) {
-          // New user - return NewAppleUser for profile completion
-          return NewAppleUser(user);
+          // New user - Create account directly using Apple's data
+          // Apple provides name and email ONLY on first sign-in
+          
+          // Get name from Apple credential (givenName + familyName)
+          String? givenName = appleCredential.givenName;
+          String? familyName = appleCredential.familyName;
+          String? appleEmail = appleCredential.email;
+          
+          // Build the full name
+          String fullName = '';
+          if (givenName != null && givenName.isNotEmpty) {
+            fullName = givenName;
+          }
+          if (familyName != null && familyName.isNotEmpty) {
+            fullName = fullName.isEmpty ? familyName : '$fullName $familyName';
+          }
+          
+          // If Apple didn't provide a name, use the display name from Firebase or a default
+          if (fullName.isEmpty) {
+            fullName = user.displayName ?? 'مستخدم Apple';
+          }
+          
+          // Get email - prefer Apple's email, fallback to Firebase user email
+          String email = appleEmail ?? user.email ?? '';
+          
+          // If still no email (very rare), generate placeholder
+          if (email.isEmpty) {
+            email = '${user.uid}@privaterelay.appleid.com';
+          }
+          
+          // Create the user account directly - NO additional form needed
+          final userAccount = UserAccount(
+            uid: user.uid,
+            name: fullName,
+            email: email,
+            accountType: 'فرد', // Default to individual
+            role: 'user',
+            password: '',
+            confirmPassword: '',
+          );
+          
+          // Save to Firestore
+          await _firestore.collection('users').doc(user.uid).set(userAccount.toJson());
+          
+          // Save device token and subscribe to topics
+          await _saveDeviceToken(user.uid);
+          await _subscribeToTopics(user.uid);
+          
+          AppLogger.info('New Apple user created directly', tag: 'AUTH', data: {
+            'uid': user.uid,
+            'name': fullName,
+            'hasEmail': email.isNotEmpty,
+          });
+          
+          // Return the created account - user goes directly to home
+          return userAccount;
+          
         } else {
           // Existing user - save token and return account
           await _saveDeviceToken(user.uid);

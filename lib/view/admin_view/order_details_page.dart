@@ -119,7 +119,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     // Update prices and ensure 'userAction' is present
     final List<Map<String, dynamic>> updatedItems = _items.map((item) {
       final key = item['productId']?.toString() ?? item['name']?.toString();
-      double price = item['price'] ?? 0.0;
+      double price = (item['price'] ?? 0.0).toDouble();
       if (key != null && _priceControllers.containsKey(key)) {
         price = double.tryParse(_priceControllers[key]!.text) ?? price;
       }
@@ -147,32 +147,46 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         : updatedItems;
 
     try {
+      // Step 1: Update the order in Firestore
       await widget.order.reference.update({
-        'items': itemsToSave, // Save the potentially filtered list
+        'items': itemsToSave,
         'status': newStatus,
       });
 
+      AppLogger.info('Order updated successfully', tag: 'ORDER_DETAILS', data: {
+        'orderId': widget.order.id,
+        'newStatus': newStatus,
+        'itemsCount': itemsToSave.length,
+      });
 
-      // Send notification to the user (with comprehensive timeout)
+      // Step 2: Send notification to the user (with proper error handling)
       bool notificationSent = false;
       String? notificationError;
       
       try {
-        // Wrap entire notification process in timeout
-        await Future.microtask(() async {
-          final String userId = widget.order['userId'];
-          AppLogger.info('Attempting to send notification to user', tag: 'ORDER_DETAILS', data: {'userId': userId});
-          
-          final userDoc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(userId)
-              .get();
+        final String userId = widget.order['userId'];
+        AppLogger.info('Attempting to send notification to user', tag: 'ORDER_DETAILS', data: {'userId': userId});
+        
+        // Get user document with timeout
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get()
+            .timeout(const Duration(seconds: 5));
 
-          if (userDoc.exists && userDoc.data()!.containsKey('fcmToken')) {
-            final String userToken = userDoc.data()!['fcmToken'];
-            AppLogger.debug('User FCM Token found', tag: 'ORDER_DETAILS', data: {'tokenPrefix': userToken.substring(0, 20)});
+        if (userDoc.exists && userDoc.data() != null) {
+          final userData = userDoc.data()!;
+          if (userData.containsKey('fcmToken')) {
+            final String userToken = userData['fcmToken'] ?? '';
             
             if (userToken.isNotEmpty) {
+              // Safe substring for logging
+              final tokenPreview = userToken.length > 20 
+                  ? userToken.substring(0, 20) 
+                  : userToken;
+              AppLogger.debug('User FCM Token found', tag: 'ORDER_DETAILS', data: {'tokenPrefix': tokenPreview});
+              
+              // Send notification with timeout
               await NotificationService.sendNotification(
                 token: userToken,
                 title: isFinalApproval
@@ -181,7 +195,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 body: isFinalApproval
                     ? 'وافق المسؤول على الأسعار. يمكنك الآن تأكيد طلبك عبر واتساب.'
                     : 'قام المسؤول بتحديث أسعار طلبك. اضغط للمشاهدة.',
-              );
+              ).timeout(const Duration(seconds: 10));
+              
               notificationSent = true;
               AppLogger.info('Notification sent successfully', tag: 'ORDER_DETAILS');
             } else {
@@ -192,18 +207,19 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             notificationError = 'المستخدم ليس لديه FCM Token';
             AppLogger.warning('User document does not have fcmToken field', tag: 'ORDER_DETAILS');
           }
-        }).timeout(
-          const Duration(seconds: 5),
-          onTimeout: () {
-            notificationError = 'انتهت مهلة إرسال الإشعار';
-            AppLogger.warning('Notification timeout', tag: 'ORDER_DETAILS');
-          },
-        );
+        } else {
+          notificationError = 'لم يتم العثور على بيانات المستخدم';
+          AppLogger.warning('User document not found or empty', tag: 'ORDER_DETAILS');
+        }
+      } on TimeoutException {
+        notificationError = 'انتهت مهلة إرسال الإشعار';
+        AppLogger.warning('Notification timeout', tag: 'ORDER_DETAILS');
       } catch (e) {
-        notificationError = e.toString();
+        notificationError = 'خطأ في الإشعار';
         AppLogger.error('Failed to send notification', tag: 'ORDER_DETAILS', error: e);
       }
 
+      // Step 3: Close loading dialog and show result
       if (!mounted) return;
       Navigator.pop(context); // إغلاق loading dialog
 
@@ -218,8 +234,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         backgroundColor = Colors.green;
       } else if (notificationError != null) {
         message = isFinalApproval
-            ? 'تمت الموافقة لكن فشل إرسال الإشعار: $notificationError'
-            : 'تم حفظ الأسعار لكن فشل إرسال الإشعار: $notificationError';
+            ? 'تمت الموافقة (الإشعار: $notificationError)'
+            : 'تم حفظ الأسعار (الإشعار: $notificationError)';
         backgroundColor = Colors.orange;
       } else {
         message = isFinalApproval
@@ -232,17 +248,21 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         SnackBar(
           content: Text(message),
           backgroundColor: backgroundColor,
-          duration: const Duration(seconds: 4),
+          duration: const Duration(seconds: 3),
         ),
       );
 
       Navigator.pop(context); // الرجوع للصفحة السابقة
     } catch (e) {
+      AppLogger.error('Failed to update order', tag: 'ORDER_DETAILS', error: e);
       if (!mounted) return;
       Navigator.pop(context); // إغلاق loading dialog
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('حدث خطأ: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('حدث خطأ: ${e.toString().length > 50 ? e.toString().substring(0, 50) : e}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
