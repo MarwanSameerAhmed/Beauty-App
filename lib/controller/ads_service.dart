@@ -41,7 +41,7 @@ class AdsService {
       try {
         return snapshot.docs.map((doc) {
           try {
-            return Ad.fromMap(doc.data());
+            return Ad.fromMap(doc.data(), doc.id);
           } catch (e) {
             AppLogger.warning('Error parsing ad document', tag: 'ADS', data: {'docId': doc.id}, error: e);
             return null;

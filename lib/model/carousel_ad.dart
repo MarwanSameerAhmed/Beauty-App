@@ -15,9 +15,9 @@ class CarouselAd {
     this.isVisible = true,
   });
 
-  factory CarouselAd.fromMap(Map<String, dynamic> data) {
+  factory CarouselAd.fromMap(Map<String, dynamic> data, String documentId) {
     return CarouselAd(
-      id: data['id'] ?? '', 
+      id: documentId, 
       imageUrl: data['imageUrl'] ?? '',
       companyId: data['companyId'] ?? '',
       companyName: data['companyName'] ?? '',

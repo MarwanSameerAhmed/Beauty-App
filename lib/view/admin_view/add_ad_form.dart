@@ -13,6 +13,7 @@ import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/buttonsWidgets.dart';
 import 'package:glamify/widgets/custom_admin_header.dart';
 import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/utils/responsive_helper.dart';
 
 class AddAdForm extends StatefulWidget {
   final Ad? ad;
@@ -148,15 +149,17 @@ class _AddAdFormState extends State<AddAdForm> {
     }
 
     if (!_isEditing) {
-      if (_selectedShape == 'square' && _selectedImages.length != 2) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('الرجاء اختيار صورتين للإعلان المربع')),
-        );
-        return;
-      }
+      // للمستطيل: صورة واحدة فقط
       if (_selectedShape == 'rectangle' && _selectedImages.length != 1) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('الرجاء اختيار صورة واحدة للإعلان المستطيل')),
+        );
+        return;
+      }
+      // للمربع: صورة واحدة أو صورتين (اختياري)
+      if (_selectedShape == 'square' && (_selectedImages.isEmpty || _selectedImages.length > 2)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('الرجاء اختيار صورة واحدة أو صورتين للإعلان المربع')),
         );
         return;
       }
@@ -248,40 +251,69 @@ class _AddAdFormState extends State<AddAdForm> {
 
   Widget buildImageWidget() {
     if (_selectedImages.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(14.0),
-        child: GridView.builder(
-          shrinkWrap: true,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 4,
-            mainAxisSpacing: 4,
+      // للمستطيل: صورة واحدة تمتد على كامل المساحة
+      if (_selectedShape == 'rectangle') {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(14.0),
+          child: Image.memory(
+            _selectedImages.first.bytes, 
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
           ),
-          itemCount: _selectedImages.length,
-          itemBuilder: (context, index) {
-            return Image.memory(_selectedImages[index].bytes, fit: BoxFit.cover);
-          },
-        ),
-      );
+        );
+      } else {
+        // للمربع: عرض الصور في grid
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(14.0),
+          child: _selectedImages.length == 1
+              ? Image.memory(
+                  _selectedImages.first.bytes, 
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                )
+              : Row(
+                  children: _selectedImages.map((img) {
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10.0),
+                          child: Image.memory(img.bytes, fit: BoxFit.cover),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+        );
+      }
     } else if (_existingImageUrl != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(14.0),
-        child: Image.network(_existingImageUrl!, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+        child: Image.network(
+          _existingImageUrl!, 
+          fit: BoxFit.cover, 
+          width: double.infinity, 
+          height: double.infinity,
+        ),
       );
     } else {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.add_a_photo_outlined,
               color: Colors.black,
               size: 40,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              'اختر صورة',
-              style: TextStyle(
+              _selectedShape == 'rectangle' 
+                  ? 'اختر صورة واحدة' 
+                  : 'اختر صورة أو صورتين',
+              style: const TextStyle(
                 color: Colors.black,
                 fontFamily: 'Tajawal',
               ),
@@ -294,6 +326,9 @@ class _AddAdFormState extends State<AddAdForm> {
 
   @override
   Widget build(BuildContext context) {
+    // تهيئة الـ responsive helper
+    ResponsiveHelper.init(context);
+    
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -393,18 +428,76 @@ class _AddAdFormState extends State<AddAdForm> {
   }
 
   Widget _buildImagePickerSection() {
-    return GestureDetector(
-      onTap: _pickImage,
-      child: Container(
-        height: 150,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(15.0),
-          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+    // حساب الارتفاع بناءً على نوع الإعلان
+    final double imageHeight = _selectedShape == 'rectangle'
+        ? ResponsiveHelper.rectangleAdHeight
+        : ResponsiveHelper.squareAdWidth;
+    
+    // القياسات المثالية بناءً على النوع
+    final String recommendedSize = _selectedShape == 'rectangle'
+        ? '1200×500 بكسل (نسبة 2.4:1)'
+        : '1080×1080 بكسل (نسبة 1:1)';
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            height: imageHeight,
+            width: _selectedShape == 'square' ? imageHeight : double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(15.0),
+              border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+            ),
+            child: buildImageWidget(),
+          ),
         ),
-        child: buildImageWidget(),
-      ),
+        const SizedBox(height: 8),
+        // إرشادات القياسات المثالية
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline, color: Colors.blue, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'القياس المثالي: $recommendedSize',
+                      style: const TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 13,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _selectedShape == 'rectangle'
+                          ? 'إعلان عريض بعرض الشاشة - صورة واحدة'
+                          : 'إعلان مربع - صورة واحدة أو صورتين (كل صورة إعلان منفصل)',
+                      style: TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 11,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

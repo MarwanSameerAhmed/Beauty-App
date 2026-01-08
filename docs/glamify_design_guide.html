@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل قياسات التصميم - Glamify</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            direction: rtl;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #52002C 0%, #942A59 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .carousel-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .rectangle-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .square-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .product-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        
+        .section-title {
+            font-size: 22px;
+            color: #333;
+        }
+        
+        .section-body {
+            padding: 25px;
+        }
+        
+        .dimension-box {
+            background: linear-gradient(135deg, #52002C 0%, #942A59 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .dimension-box .size {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .dimension-box .ratio {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .info-list {
+            list-style: none;
+        }
+        
+        .info-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .info-list .label {
+            color: #666;
+        }
+        
+        .info-list .value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .responsive-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .responsive-table th,
+        .responsive-table td {
+            padding: 12px 15px;
+            text-align: right;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .responsive-table th {
+            background: #52002C;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .responsive-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .summary-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        
+        .summary-section h3 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .summary-item {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .summary-item .type {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .summary-item .dimension {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .print-btn {
+            background: linear-gradient(135deg, #52002C 0%, #942A59 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .print-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .print-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📐 دليل قياسات التصميم</h1>
+            <p>Glamify - تطبيق التجميل</p>
+        </div>
+        
+        <div class="content">
+            <!-- Carousel Ads -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon carousel-icon">🎠</div>
+                    <h2 class="section-title">إعلانات الكاروسيل (Carousel Ads)</h2>
+                </div>
+                <div class="section-body">
+                    <div class="dimension-box">
+                        <div class="size">1920 × 1080 بكسل</div>
+                        <div class="ratio">نسبة 16:9</div>
+                    </div>
+                    <ul class="info-list">
+                        <li>
+                            <span class="label">النوع</span>
+                            <span class="value">بانر عرض متحرك</span>
+                        </li>
+                        <li>
+                            <span class="label">عدد الصور</span>
+                            <span class="value">صورة واحدة لكل إعلان</span>
+                        </li>
+                        <li>
+                            <span class="label">الحد الأدنى</span>
+                            <span class="value">1200 × 675 بكسل</span>
+                        </li>
+                    </ul>
+                    <h4 style="margin-top: 20px; margin-bottom: 10px;">الارتفاع حسب الجهاز:</h4>
+                    <table class="responsive-table">
+                        <tr>
+                            <th>نوع الجهاز</th>
+                            <th>الارتفاع</th>
+                        </tr>
+                        <tr>
+                            <td>موبايل صغير</td>
+                            <td>180 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>موبايل</td>
+                            <td>220 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>موبايل كبير</td>
+                            <td>240 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>تابلت</td>
+                            <td>300 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>تابلت كبير</td>
+                            <td>350 بكسل</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Rectangle Ads -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon rectangle-icon">🖼️</div>
+                    <h2 class="section-title">الإعلانات المستطيلة (Rectangle Ads)</h2>
+                </div>
+                <div class="section-body">
+                    <div class="dimension-box">
+                        <div class="size">1200 × 500 بكسل</div>
+                        <div class="ratio">نسبة 2.4:1</div>
+                    </div>
+                    <ul class="info-list">
+                        <li>
+                            <span class="label">النوع</span>
+                            <span class="value">إعلان بعرض الشاشة</span>
+                        </li>
+                        <li>
+                            <span class="label">عدد الصور</span>
+                            <span class="value">صورة واحدة فقط</span>
+                        </li>
+                        <li>
+                            <span class="label">الحد الأدنى</span>
+                            <span class="value">800 × 350 بكسل</span>
+                        </li>
+                    </ul>
+                    <h4 style="margin-top: 20px; margin-bottom: 10px;">الارتفاع حسب الجهاز:</h4>
+                    <table class="responsive-table">
+                        <tr>
+                            <th>نوع الجهاز</th>
+                            <th>الارتفاع</th>
+                        </tr>
+                        <tr>
+                            <td>موبايل صغير</td>
+                            <td>150 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>موبايل</td>
+                            <td>180 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>موبايل كبير</td>
+                            <td>200 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>تابلت</td>
+                            <td>250 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>تابلت كبير</td>
+                            <td>300 بكسل</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Square Ads -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon square-icon">◼️</div>
+                    <h2 class="section-title">الإعلانات المربعة (Square Ads)</h2>
+                </div>
+                <div class="section-body">
+                    <div class="dimension-box">
+                        <div class="size">1080 × 1080 بكسل</div>
+                        <div class="ratio">نسبة 1:1</div>
+                    </div>
+                    <ul class="info-list">
+                        <li>
+                            <span class="label">النوع</span>
+                            <span class="value">إعلان مربع يظهر مع إعلانات أخرى</span>
+                        </li>
+                        <li>
+                            <span class="label">عدد الصور</span>
+                            <span class="value">صورة واحدة أو صورتين (اختياري)</span>
+                        </li>
+                        <li>
+                            <span class="label">الحد الأدنى</span>
+                            <span class="value">600 × 600 بكسل</span>
+                        </li>
+                    </ul>
+                    <h4 style="margin-top: 20px; margin-bottom: 10px;">الحجم حسب الجهاز:</h4>
+                    <table class="responsive-table">
+                        <tr>
+                            <th>نوع الجهاز</th>
+                            <th>عدد الأعمدة</th>
+                            <th>حجم كل إعلان</th>
+                        </tr>
+                        <tr>
+                            <td>موبايل</td>
+                            <td>2 أعمدة</td>
+                            <td>~170 × 170 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>تابلت</td>
+                            <td>3 أعمدة</td>
+                            <td>~200 × 200 بكسل</td>
+                        </tr>
+                        <tr>
+                            <td>ديسكتوب</td>
+                            <td>4 أعمدة</td>
+                            <td>~240 × 240 بكسل</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Product Images -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon product-icon">🛍️</div>
+                    <h2 class="section-title">صور المنتجات (Product Images)</h2>
+                </div>
+                <div class="section-body">
+                    <div class="dimension-box">
+                        <div class="size">800 × 800 بكسل</div>
+                        <div class="ratio">نسبة 1:1 (مربع)</div>
+                    </div>
+                    <ul class="info-list">
+                        <li>
+                            <span class="label">الصورة الأساسية</span>
+                            <span class="value">إجبارية</span>
+                        </li>
+                        <li>
+                            <span class="label">صور إضافية</span>
+                            <span class="value">اختيارية (عدد غير محدود)</span>
+                        </li>
+                        <li>
+                            <span class="label">الحد الأدنى</span>
+                            <span class="value">400 × 400 بكسل</span>
+                        </li>
+                        <li>
+                            <span class="label">الحد الأقصى للحجم</span>
+                            <span class="value">5 ميجابايت</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Summary -->
+            <div class="summary-section">
+                <h3>📋 ملخص سريع للمصمم</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="type">🎠 كاروسيل</div>
+                        <div class="dimension">1920 × 1080</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="type">🖼️ مستطيل</div>
+                        <div class="dimension">1200 × 500</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="type">◼️ مربع</div>
+                        <div class="dimension">1080 × 1080</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="type">🛍️ منتج</div>
+                        <div class="dimension">800 × 800</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>📆 تاريخ التحديث: يناير 2026</p>
+            <p style="margin-top: 5px; color: #999;">Glamify Design Guidelines v1.0</p>
+            <button class="print-btn" onclick="window.print()">📥 حفظ كـ PDF</button>
+        </div>
+    </div>
+</body>
+</html>

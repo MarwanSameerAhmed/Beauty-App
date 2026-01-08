@@ -21,9 +21,9 @@ class Ad {
     this.sectionId = 'middle_section', // القيمة الافتراضية
   });
 
-  factory Ad.fromMap(Map<String, dynamic> data) {
+  factory Ad.fromMap(Map<String, dynamic> data, String documentId) {
     return Ad(
-      id: data['id'] ?? '',
+      id: documentId,
       imageUrl: data['imageUrl'] ?? '',
       shapeType: data['shapeType'] ?? 'rectangle',
       companyId: data['companyId'] ?? '',

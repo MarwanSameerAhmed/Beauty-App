@@ -41,7 +41,7 @@ class CarouselAdService {
       try {
         return snapshot.docs.map((doc) {
           try {
-            return CarouselAd.fromMap(doc.data());
+            return CarouselAd.fromMap(doc.data(), doc.id);
           } catch (e) {
             AppLogger.warning('Error parsing carousel ad document', tag: 'CAROUSEL', data: {'docId': doc.id}, error: e);
             return null;

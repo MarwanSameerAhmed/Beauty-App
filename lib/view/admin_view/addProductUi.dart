@@ -16,6 +16,7 @@ import 'package:glamify/widgets/buttonsWidgets.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'dart:typed_data';
 import 'package:glamify/widgets/ElegantToast.dart';
+import 'package:glamify/utils/responsive_helper.dart';
 
 class AddProductUi extends StatefulWidget {
   final Product? product;
@@ -258,6 +259,9 @@ class _AddProductUiState extends State<AddProductUi> {
 
   @override
   Widget build(BuildContext context) {
+    // تهيئة الـ responsive helper
+    ResponsiveHelper.init(context);
+    
     return Directionality(
       textDirection: TextDirection.rtl,
       child: FlowerBackground(
@@ -395,6 +399,33 @@ class _AddProductUiState extends State<AddProductUi> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // إرشادات القياسات المثالية
+        Container(
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.blue, size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'القياس المثالي لصور المنتجات: 800×800 بكسل (نسبة 1:1 مربع)',
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 13,
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         const Text(
           'الصورة الأساسية (إجباري)',
           style: TextStyle(
@@ -535,11 +566,14 @@ class _AddProductUiState extends State<AddProductUi> {
     required VoidCallback onTap,
     required Widget child,
   }) {
+    // ارتفاع متجاوب لحقل اختيار الصورة
+    final imageHeight = ResponsiveHelper.productCardWidth * 0.9;
+    
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(15),
       child: Container(
-        height: 150,
+        height: imageHeight,
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.2),

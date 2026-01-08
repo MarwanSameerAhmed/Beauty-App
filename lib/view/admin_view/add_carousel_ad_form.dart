@@ -9,6 +9,7 @@ import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/buttonsWidgets.dart';
 import 'package:glamify/widgets/custom_admin_header.dart';
 import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/utils/responsive_helper.dart';
 
 class AddCarouselAdForm extends StatefulWidget {
   final CarouselAd? carouselAd; // للتعديل
@@ -169,6 +170,9 @@ class _AddCarouselAdFormState extends State<AddCarouselAdForm> {
 
   @override
   Widget build(BuildContext context) {
+    // تهيئة الـ responsive helper
+    ResponsiveHelper.init(context);
+    
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -188,10 +192,11 @@ class _AddCarouselAdFormState extends State<AddCarouselAdForm> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // حقل اختيار صورة الكاروسيل مع معاينة متجاوبة
                         GestureDetector(
                           onTap: _pickImage,
                           child: Container(
-                            height: 200,
+                            height: ResponsiveHelper.carouselHeight,
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.3),
                               borderRadius: BorderRadius.circular(15.0),
@@ -217,6 +222,32 @@ class _AddCarouselAdFormState extends State<AddCarouselAdForm> {
                                           ],
                                         ),
                                       ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // إرشادات القياسات المثالية
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'القياس المثالي: 1920×1080 بكسل (نسبة 16:9)',
+                                  style: TextStyle(
+                                    fontFamily: 'Tajawal',
+                                    fontSize: 13,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 24),

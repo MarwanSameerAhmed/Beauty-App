@@ -48,7 +48,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
           .get();
       
       _ads = adsSnapshot.docs
-          .map((doc) => Ad.fromMap({...doc.data(), 'id': doc.id}))
+          .map((doc) => Ad.fromMap(doc.data(), doc.id))
           .toList();
       
       // ترتيب الإعلانات حسب القسم ثم حسب order
@@ -74,7 +74,7 @@ class _AdsLayoutManagerState extends State<AdsLayoutManager>
           .get();
       
       _carouselAds = carouselSnapshot.docs
-          .map((doc) => CarouselAd.fromMap({...doc.data(), 'id': doc.id}))
+          .map((doc) => CarouselAd.fromMap(doc.data(), doc.id))
           .toList();
       
       // ترتيب البانر المتحرك حسب order (الافتراضي 0)
