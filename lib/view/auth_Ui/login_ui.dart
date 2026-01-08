@@ -608,7 +608,7 @@ class _LoginUiState extends State<LoginUi> {
     if (!mounted) return;
 
     if (result is UserAccount) {
-      // User account (new or existing) - go directly to home
+      // Existing user - go directly to home
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('uid', result.uid);
       await prefs.setString('userName', result.name);
@@ -629,6 +629,20 @@ class _LoginUiState extends State<LoginUi> {
           MaterialPageRoute(builder: (context) => const Run()),
         );
       }
+    } else if (result is NewAppleUser) {
+      // New Apple user - navigate to complete profile screen with Apple flag
+      // This shows only account type selection to comply with Apple policies
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CompleteProfileUi(
+            user: result.user,
+            isAppleUser: true,
+            appleProvidedName: result.appleProvidedName,
+            appleProvidedEmail: result.appleProvidedEmail,
+          ),
+        ),
+      );
     } else if (result is String) {
       showElegantToast(context, result, isSuccess: false);
     }

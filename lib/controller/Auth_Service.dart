@@ -21,7 +21,9 @@ class NewGoogleUser {
 // A special class to indicate a new user from Apple sign-in
 class NewAppleUser {
   final User user;
-  NewAppleUser(this.user);
+  final String? appleProvidedName;
+  final String? appleProvidedEmail;
+  NewAppleUser(this.user, {this.appleProvidedName, this.appleProvidedEmail});
 }
 
 class AuthService {
@@ -235,8 +237,8 @@ class AuthService {
             .get();
 
         if (!doc.exists) {
-          // New user - Create account directly using Apple's data
-          // Apple provides name and email ONLY on first sign-in
+          // New user - Need to complete profile (select account type)
+          // Apple provides name and email ONLY on first sign-in, so we capture them now
           
           // Get name from Apple credential (givenName + familyName)
           String? givenName = appleCredential.givenName;
@@ -265,32 +267,15 @@ class AuthService {
             email = '${user.uid}@privaterelay.appleid.com';
           }
           
-          // Create the user account directly - NO additional form needed
-          final userAccount = UserAccount(
-            uid: user.uid,
-            name: fullName,
-            email: email,
-            accountType: 'فرد', // Default to individual
-            role: 'user',
-            password: '',
-            confirmPassword: '',
-          );
-          
-          // Save to Firestore
-          await _firestore.collection('users').doc(user.uid).set(userAccount.toJson());
-          
-          // Save device token and subscribe to topics
-          await _saveDeviceToken(user.uid);
-          await _subscribeToTopics(user.uid);
-          
-          AppLogger.info('New Apple user created directly', tag: 'AUTH', data: {
+          AppLogger.info('New Apple user needs profile completion', tag: 'AUTH', data: {
             'uid': user.uid,
             'name': fullName,
             'hasEmail': email.isNotEmpty,
           });
           
-          // Return the created account - user goes directly to home
-          return userAccount;
+          // Return NewAppleUser to signal profile completion is needed
+          // Pass the Apple-provided name and email so they can be used in profile completion
+          return NewAppleUser(user, appleProvidedName: fullName, appleProvidedEmail: email);
           
         } else {
           // Existing user - save token and return account

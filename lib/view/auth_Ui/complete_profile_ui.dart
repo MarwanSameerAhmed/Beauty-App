@@ -12,7 +12,17 @@ import 'package:glamify/widgets/buttonsWidgets.dart';
 
 class CompleteProfileUi extends StatefulWidget {
   final User user;
-  const CompleteProfileUi({super.key, required this.user});
+  final bool isAppleUser;
+  final String? appleProvidedName;
+  final String? appleProvidedEmail;
+  
+  const CompleteProfileUi({
+    super.key, 
+    required this.user,
+    this.isAppleUser = false,
+    this.appleProvidedName,
+    this.appleProvidedEmail,
+  });
 
   @override
   State<CompleteProfileUi> createState() => _CompleteProfileUiState();
@@ -30,7 +40,12 @@ class _CompleteProfileUiState extends State<CompleteProfileUi> {
   @override
   void initState() {
     super.initState();
-    nameController.text = widget.user.displayName ?? '';
+    // For Apple users, use the provided name; for others, use displayName
+    if (widget.isAppleUser && widget.appleProvidedName != null) {
+      nameController.text = widget.appleProvidedName!;
+    } else {
+      nameController.text = widget.user.displayName ?? '';
+    }
   }
 
   @override
@@ -128,18 +143,49 @@ class _CompleteProfileUiState extends State<CompleteProfileUi> {
         textDirection: TextDirection.rtl,
         child: Column(
           children: [
-            GlassField(
-              controller: nameController,
-              hintText: 'الاسم الكامل',
-              prefixIcon: Icons.person_outline,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'يرجى إدخال اسمك';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
+            // For Apple users: show only account type selection (to comply with Apple policies)
+            // For Google users: show name field + account type
+            if (!widget.isAppleUser) ...[
+              GlassField(
+                controller: nameController,
+                hintText: 'الاسم الكامل',
+                prefixIcon: Icons.person_outline,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'يرجى إدخال اسمك';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+            // Apple user info message
+            if (widget.isAppleUser) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.black54, size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'يرجى اختيار نوع حسابك للمتابعة',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontFamily: 'Tajawal',
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
             _buildAccountTypeDropdown(),
             _buildCompanyFields(),
           ],
@@ -237,14 +283,24 @@ class _CompleteProfileUiState extends State<CompleteProfileUi> {
             _isLoading = true;
           });
 
+          // For Apple users, use the provided name and email from Apple sign-in
+          // For Google/other users, use the form values and Firebase user email
+          final String userName = widget.isAppleUser 
+              ? (widget.appleProvidedName ?? nameController.text.trim())
+              : nameController.text.trim();
+          
+          final String userEmail = widget.isAppleUser
+              ? (widget.appleProvidedEmail ?? widget.user.email ?? '')
+              : widget.user.email!;
+
           final userAccount = UserAccount(
             uid: widget.user.uid,
-            name: nameController.text.trim(),
-            email: widget.user.email!,
+            name: userName,
+            email: userEmail,
             accountType: _selectedAccountType!,
             role: 'user',
-            password: '', // Not needed for Google sign-in
-            confirmPassword: '', // Not needed for Google sign-in
+            password: '', // Not needed for social sign-in
+            confirmPassword: '', // Not needed for social sign-in
             companyName: _selectedAccountType == 'شركة' ? companyNameController.text.trim() : null,
             taxNumber: _selectedAccountType == 'شركة' ? taxNumberController.text.trim() : null,
           );
