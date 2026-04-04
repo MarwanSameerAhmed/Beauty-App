@@ -1,6 +1,5 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:glamify/view/auth_Ui/complete_profile_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glamify/model/userAccount.dart';
@@ -92,11 +91,14 @@ class _LoginUiState extends State<LoginUi> {
                             _buildAnimatedLoginButton(),
                             const SizedBox(height: 20.0),
                             _buildAnimatedSocialLogin(),
-                            const SizedBox(height: 10.0),
-                            _buildAnimatedSkipButton(),
-                            const SizedBox(height: 10.0),
-                            _buildAnimatedPhoneToggle(),
-                            _buildAnimatedSignUp(),
+                            // على الويب: إخفاء دخول كزائر + تسجيل بالهاتف + إنشاء حساب
+                            if (!kIsWeb) ...[
+                              const SizedBox(height: 10.0),
+                              _buildAnimatedSkipButton(),
+                              const SizedBox(height: 10.0),
+                              _buildAnimatedPhoneToggle(),
+                            ],
+                            if (!kIsWeb) _buildAnimatedSignUp(),
                           ],
                         ),
                       ),
@@ -154,15 +156,31 @@ class _LoginUiState extends State<LoginUi> {
           ),
         );
       },
-      child: const Text(
-        'أهلاً بعودتك',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 32.0,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-          fontFamily: 'Tajawal',
-        ),
+      child: Column(
+        children: [
+          Text(
+            kIsWeb ? 'لوحة تحكم الإدارة' : 'أهلاً بعودتك',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 32.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+              fontFamily: 'Tajawal',
+            ),
+          ),
+          if (kIsWeb) ...[
+            const SizedBox(height: 8),
+            Text(
+              'سجّل الدخول بحساب المسؤول',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14.0,
+                color: Colors.black54,
+                fontFamily: 'Tajawal',
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -277,12 +295,25 @@ class _LoginUiState extends State<LoginUi> {
 
             if (mounted) {
               if (result is UserAccount) {
+                // على الويب: السماح فقط للأدمن
+                if (kIsWeb && result.role.toLowerCase() != 'admin') {
+                  showElegantToast(
+                    context,
+                    "هذه اللوحة مخصصة للمسؤولين فقط",
+                    isSuccess: false,
+                  );
+                  setState(() {
+                    _isLoading = false;
+                  });
+                  return;
+                }
+
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setString('uid', result.uid);
                 await prefs.setString('userName', result.name);
                 await prefs.setString('email', result.email);
                 await prefs.setBool('isLoggedIn', true);
-                await prefs.setString('role', result.role); // Save user role
+                await prefs.setString('role', result.role);
 
                 showElegantToast(
                   context,
@@ -344,7 +375,7 @@ class _LoginUiState extends State<LoginUi> {
                 const SizedBox(height: 20.0),
                 _buildGoogleSignInButton(),
                 // Apple Sign In - only on iOS
-                if (!kIsWeb && Platform.isIOS) ...[
+                if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
                   const SizedBox(height: 12.0),
                   _buildAppleSignInButton(),
                 ],
@@ -557,6 +588,15 @@ class _LoginUiState extends State<LoginUi> {
     if (!mounted) return;
 
     if (result is UserAccount) {
+      // على الويب: السماح فقط للأدمن
+      if (kIsWeb && result.role.toLowerCase() != 'admin') {
+        showElegantToast(context, "هذه اللوحة مخصصة للمسؤولين فقط", isSuccess: false);
+        if (mounted) {
+          setState(() { _isLoading = false; });
+        }
+        return;
+      }
+
       // Existing user logic
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('uid', result.uid);

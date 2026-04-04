@@ -1,6 +1,10 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:connectivity_plus/connectivity_plus.dart';
+
+// Conditional import: dart:io فقط على الموبايل
+import 'connectivity_io_helper.dart'
+    if (dart.library.html) 'connectivity_web_helper.dart';
 
 class ConnectivityService {
   final Connectivity _connectivity = Connectivity();
@@ -55,16 +59,13 @@ class ConnectivityService {
         return false;
       }
 
-      // فحص الاتصال الفعلي بالإنترنت عبر HTTP ping
-      final result = await InternetAddress.lookup('google.com')
-          .timeout(const Duration(seconds: 5));
-      
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+      if (kIsWeb) {
+        // على الويب: الاعتماد فقط على connectivity_plus (لا يوجد InternetAddress)
         return true;
       }
-      return false;
-    } on SocketException catch (_) {
-      return false;
+
+      // على الموبايل: فحص DNS lookup للتأكد من الاتصال الفعلي
+      return await platformDnsLookup('google.com', 5);
     } on TimeoutException catch (_) {
       return false;
     } catch (_) {
@@ -74,10 +75,14 @@ class ConnectivityService {
 
   /// فحص سريع بدون timeout طويل
   Future<bool> quickCheck() async {
+    if (kIsWeb) {
+      // على الويب: فحص سريع عبر connectivity_plus
+      final results = await _connectivity.checkConnectivity();
+      return results.contains(ConnectivityResult.mobile) || 
+             results.contains(ConnectivityResult.wifi);
+    }
     try {
-      final result = await InternetAddress.lookup('google.com')
-          .timeout(const Duration(seconds: 2));
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      return await platformDnsLookup('google.com', 2);
     } catch (_) {
       return false;
     }

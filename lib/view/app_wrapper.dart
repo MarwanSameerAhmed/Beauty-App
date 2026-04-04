@@ -57,6 +57,12 @@ class _AppWrapperState extends State<AppWrapper> {
       return const MaintenancePage();
     }
 
+    // على الويب: تخطي Onboarding دائماً — الدخول مباشرة للوحة التحكم
+    if (kIsWeb) {
+      return _getInitialScreen();
+    }
+
+    // على الموبايل: التدفق العادي بدون أي تغيير
     if (widget.onboardingComplete) {
       return _getInitialScreen();
     } else {
@@ -71,6 +77,10 @@ class _AppWrapperState extends State<AppWrapper> {
       if (userRole == 'admin') {
         return const AdminBottomNav();
       } else {
+        // على الويب: المستخدم العادي لا يدخل المتجر — يرجع للـ Login
+        if (kIsWeb) {
+          return const LoginUi();
+        }
         return const Run();
       }
     } else {
@@ -78,3 +88,4 @@ class _AppWrapperState extends State<AppWrapper> {
     }
   }
 }
+

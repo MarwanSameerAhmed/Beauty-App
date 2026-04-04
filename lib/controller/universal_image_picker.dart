@@ -3,7 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../utils/logger.dart';
-import 'dart:io' as io;
+
+// Conditional import
+import 'image_picker_io_helper.dart'
+    if (dart.library.html) 'image_picker_web_helper.dart';
 
 class UniversalImagePicker {
   static final ImagePicker _imagePicker = ImagePicker();
@@ -39,7 +42,7 @@ class UniversalImagePicker {
             bytes: bytes,
             name: image.name,
             size: bytes.length,
-            file: io.File(image.path),
+            file: createPlatformFile(image.path),
           );
         }
       }
@@ -84,7 +87,7 @@ class UniversalImagePicker {
             bytes: bytes,
             name: image.name,
             size: bytes.length,
-            file: io.File(image.path),
+            file: createPlatformFile(image.path),
           ));
         }
       }
@@ -114,7 +117,7 @@ class UniversalImagePicker {
           bytes: bytes,
           name: image.name,
           size: bytes.length,
-          file: io.File(image.path),
+          file: createPlatformFile(image.path),
         );
       }
     } catch (e) {
@@ -129,7 +132,7 @@ class ImagePickerResult {
   final Uint8List bytes;
   final String name;
   final int size;
-  final io.File? file; // للموبايل فقط
+  final dynamic file; // للموبايل فقط - io.File
 
   ImagePickerResult({
     required this.bytes,
@@ -159,3 +162,4 @@ class ImagePickerResult {
     return supportedFormats.contains(extension);
   }
 }
+

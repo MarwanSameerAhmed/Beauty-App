@@ -1,10 +1,8 @@
 import 'dart:ui';
 import 'dart:async';
-import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:glamify/controller/notification_service.dart';
 import 'package:glamify/services/pdf_invoice_service.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
@@ -896,24 +894,21 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           totalPrice: totalPrice,
         );
       } else {
-        // للموبايل: استخدام المشاركة مباشرة (يعمل على iOS و Android)
-        if (pdfFile is File) {
-          await Share.shareXFiles(
-            [XFile(pdfFile.path)],
-            text: 'فاتورة رقم ${widget.order.id}',
-            subject: 'فاتورة - اختر "حفظ في الملفات"',
-            sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
-          );
+        // للموبايل: استخدام المشاركة عبر PdfInvoiceService
+        await PdfInvoiceService.shareInvoice(
+          pdfFile,
+          orderNumber: widget.order.id,
+          totalPrice: totalPrice,
+        );
           
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم فتح نافذة المشاركة - اختر "حفظ في الملفات" للتحميل'),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 3),
-              ),
-            );
-          }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم فتح نافذة المشاركة - اختر "حفظ في الملفات" للتحميل'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
         }
       }
     } catch (e) {

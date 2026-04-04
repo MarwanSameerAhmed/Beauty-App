@@ -1,7 +1,5 @@
-import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:cross_file/cross_file.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:glamify/controller/product_service.dart';
 import 'package:glamify/services/pdf_invoice_service.dart';
 import 'package:glamify/model/product.dart';
@@ -338,13 +336,11 @@ class _CreateInvoicePageState extends State<CreateInvoicePage> {
       if (mounted) {
         if (pdfFile != null) {
           // مشاركة الفاتورة
-          if (pdfFile is File) {
-            await Share.shareXFiles(
-              [XFile(pdfFile.path)],
-              text:
-                  'فاتورة ${_customerNameController.text.isEmpty ? "عميل" : _customerNameController.text}',
-            );
-          }
+          await PdfInvoiceService.shareInvoice(
+            pdfFile,
+            orderNumber: 'INV-${DateTime.now().millisecondsSinceEpoch}',
+            totalPrice: _totalAmount,
+          );
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

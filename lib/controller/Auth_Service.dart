@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'dart:convert';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,7 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:glamify/model/userAccount.dart';
 import 'package:glamify/utils/logger.dart';
 import 'package:glamify/config/web_config.dart';
@@ -201,7 +200,7 @@ class AuthService {
   Future<Object?> signInWithApple() async {
     try {
       // Apple Sign In is only available on iOS
-      if (kIsWeb || !Platform.isIOS) {
+      if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
         return 'تسجيل الدخول بـ Apple متاح فقط على أجهزة iOS';
       }
 
@@ -424,7 +423,7 @@ class AuthService {
       String? fcmToken;
       
       // iOS requires APNs token before FCM token can be retrieved
-      if (Platform.isIOS) {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
         AppLogger.info('iOS detected, getting APNs token first...', tag: 'FCM');
         
         // Get APNs token first
@@ -455,7 +454,7 @@ class AuthService {
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'fcmToken': fcmToken,
           'lastTokenUpdate': FieldValue.serverTimestamp(),
-          'platform': Platform.isIOS ? 'ios' : 'android',
+          'platform': defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
         }, SetOptions(merge: true));
         
         AppLogger.info('FCM Token saved successfully', tag: 'FCM');

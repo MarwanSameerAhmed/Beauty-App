@@ -1,4 +1,3 @@
-import 'dart:io' if (dart.library.html) 'dart:html';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -8,8 +7,11 @@ import 'package:flutter/foundation.dart';
 import '../utils/logger.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cross_file/cross_file.dart';
-import 'package:path_provider/path_provider.dart';
 import '../controller/company_settings_service.dart';
+
+// Conditional import for file operations
+import 'pdf_io_helper.dart'
+    if (dart.library.html) 'pdf_web_helper.dart';
 
 class PdfInvoiceService {
   // Helper function to ensure Arabic text is properly handled
@@ -98,10 +100,8 @@ class PdfInvoiceService {
     if (kIsWeb) {
       return pdfBytes;
     } else {
-      final output = await getTemporaryDirectory();
-      final file = File('${output.path}/invoice_$orderNumber.pdf');
-      await file.writeAsBytes(pdfBytes);
-      return file;
+      // على الموبايل: حفظ كملف
+      return await savePdfToFile(pdfBytes, 'invoice_$orderNumber.pdf');
     }
   }
 
@@ -306,23 +306,8 @@ class PdfInvoiceService {
         downloadPdfWeb(pdfFile, 'invoice_${orderNumber ?? DateTime.now().millisecondsSinceEpoch}.pdf');
       }
     } else {
-      final String message = '''🧾 *فاتورة طلب*
-
-📋 رقم الطلب: ${orderNumber ?? 'غير محدد'}
-💰 المبلغ الإجمالي: ${totalPrice?.toStringAsFixed(2) ?? '0.00'} ر.س
-
-📄 فاتورة مفصلة مرفقة.
-
-شكراً لكم 🙏''';
-
-      if (pdfFile is File) {
-        await Share.shareXFiles(
-          [XFile(pdfFile.path)],
-          text: message,
-          subject: 'فاتورة طلب رقم: ${orderNumber ?? 'غير محدد'}',
-          sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
-        );
-      }
+      // على الموبايل: مشاركة عبر share_plus
+      await platformSharePdf(pdfFile, orderNumber: orderNumber, totalPrice: totalPrice);
     }
   }
 
@@ -332,8 +317,9 @@ class PdfInvoiceService {
         await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdfFile);
       }
     } else {
-      if (pdfFile is File) {
-        final bytes = await pdfFile.readAsBytes();
+      // على الموبايل: طباعة من ملف
+      final bytes = await platformReadFileBytes(pdfFile);
+      if (bytes != null) {
         await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => bytes);
       }
     }
