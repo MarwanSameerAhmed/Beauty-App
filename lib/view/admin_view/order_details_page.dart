@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,6 +9,7 @@ import 'package:glamify/services/pdf_invoice_service.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/custom_admin_header.dart';
 import 'package:glamify/widgets/loader.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../utils/logger.dart';
 import 'package:glamify/widgets/elegant_dialog.dart';
 
@@ -151,20 +153,28 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         'status': newStatus,
       });
 
-      AppLogger.info('Order updated successfully', tag: 'ORDER_DETAILS', data: {
-        'orderId': widget.order.id,
-        'newStatus': newStatus,
-        'itemsCount': itemsToSave.length,
-      });
+      AppLogger.info(
+        'Order updated successfully',
+        tag: 'ORDER_DETAILS',
+        data: {
+          'orderId': widget.order.id,
+          'newStatus': newStatus,
+          'itemsCount': itemsToSave.length,
+        },
+      );
 
       // Step 2: Send notification to the user (with proper error handling)
       bool notificationSent = false;
       String? notificationError;
-      
+
       try {
         final String userId = widget.order['userId'];
-        AppLogger.info('Attempting to send notification to user', tag: 'ORDER_DETAILS', data: {'userId': userId});
-        
+        AppLogger.info(
+          'Attempting to send notification to user',
+          tag: 'ORDER_DETAILS',
+          data: {'userId': userId},
+        );
+
         // Get user document with timeout
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
@@ -176,14 +186,18 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           final userData = userDoc.data()!;
           if (userData.containsKey('fcmToken')) {
             final String userToken = userData['fcmToken'] ?? '';
-            
+
             if (userToken.isNotEmpty) {
               // Safe substring for logging
-              final tokenPreview = userToken.length > 20 
-                  ? userToken.substring(0, 20) 
+              final tokenPreview = userToken.length > 20
+                  ? userToken.substring(0, 20)
                   : userToken;
-              AppLogger.debug('User FCM Token found', tag: 'ORDER_DETAILS', data: {'tokenPrefix': tokenPreview});
-              
+              AppLogger.debug(
+                'User FCM Token found',
+                tag: 'ORDER_DETAILS',
+                data: {'tokenPrefix': tokenPreview},
+              );
+
               // Send notification with timeout
               await NotificationService.sendNotification(
                 token: userToken,
@@ -194,27 +208,43 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     ? 'وافق المسؤول على الأسعار. يمكنك الآن تأكيد طلبك عبر واتساب.'
                     : 'قام المسؤول بتحديث أسعار طلبك. اضغط للمشاهدة.',
               ).timeout(const Duration(seconds: 10));
-              
+
               notificationSent = true;
-              AppLogger.info('Notification sent successfully', tag: 'ORDER_DETAILS');
+              AppLogger.info(
+                'Notification sent successfully',
+                tag: 'ORDER_DETAILS',
+              );
             } else {
               notificationError = 'FCM Token فارغ';
-              AppLogger.warning('User FCM Token is empty', tag: 'ORDER_DETAILS');
+              AppLogger.warning(
+                'User FCM Token is empty',
+                tag: 'ORDER_DETAILS',
+              );
             }
           } else {
             notificationError = 'المستخدم ليس لديه FCM Token';
-            AppLogger.warning('User document does not have fcmToken field', tag: 'ORDER_DETAILS');
+            AppLogger.warning(
+              'User document does not have fcmToken field',
+              tag: 'ORDER_DETAILS',
+            );
           }
         } else {
           notificationError = 'لم يتم العثور على بيانات المستخدم';
-          AppLogger.warning('User document not found or empty', tag: 'ORDER_DETAILS');
+          AppLogger.warning(
+            'User document not found or empty',
+            tag: 'ORDER_DETAILS',
+          );
         }
       } on TimeoutException {
         notificationError = 'انتهت مهلة إرسال الإشعار';
         AppLogger.warning('Notification timeout', tag: 'ORDER_DETAILS');
       } catch (e) {
         notificationError = 'خطأ في الإشعار';
-        AppLogger.error('Failed to send notification', tag: 'ORDER_DETAILS', error: e);
+        AppLogger.error(
+          'Failed to send notification',
+          tag: 'ORDER_DETAILS',
+          error: e,
+        );
       }
 
       // Step 3: Close loading dialog and show result
@@ -224,7 +254,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       // Show appropriate message based on notification status
       String message;
       Color backgroundColor;
-      
+
       if (notificationSent) {
         message = isFinalApproval
             ? 'تمت الموافقة النهائية وتم إرسال الإشعار للعميل!'
@@ -257,7 +287,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       Navigator.pop(context); // إغلاق loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('حدث خطأ: ${e.toString().length > 50 ? e.toString().substring(0, 50) : e}'),
+          content: Text(
+            'حدث خطأ: ${e.toString().length > 50 ? e.toString().substring(0, 50) : e}',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -271,17 +303,17 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF52002C),
-        ),
+        child: CircularProgressIndicator(color: Color(0xFF52002C)),
       ),
     );
 
     try {
       // حساب المجموع الكلي
       double totalPrice = 0.0;
-      final validItems = _items.where((item) => item['userAction'] != 'rejected').toList();
-      
+      final validItems = _items
+          .where((item) => item['userAction'] != 'rejected')
+          .toList();
+
       for (var item in validItems) {
         final price = (item['price'] ?? 0.0).toDouble();
         final quantity = (item['quantity'] ?? 1).toInt();
@@ -291,7 +323,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       // جلب بيانات العميل من قاعدة البيانات
       String customerName = 'عميل';
       String customerEmail = 'غير محدد';
-      
+
       final userId = widget.order['userId'];
       if (userId != null) {
         try {
@@ -299,14 +331,19 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               .collection('users')
               .doc(userId)
               .get();
-          
+
           if (userDoc.exists) {
             final userData = userDoc.data() as Map<String, dynamic>;
-            customerName = userData['name'] ?? userData['displayName'] ?? 'عميل';
+            customerName =
+                userData['name'] ?? userData['displayName'] ?? 'عميل';
             customerEmail = userData['email'] ?? 'غير محدد';
           }
         } catch (e) {
-          AppLogger.error('Error fetching user data', tag: 'ORDER_DETAILS', error: e);
+          AppLogger.error(
+            'Error fetching user data',
+            tag: 'ORDER_DETAILS',
+            error: e,
+          );
         }
       }
 
@@ -362,159 +399,159 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             extendBodyBehindAppBar: true,
             body: Column(
               children: [
-              const CustomAdminHeader(
-                title: 'تفاصيل الطلب',
-                subtitle: 'مراجعة وتسعير المنتجات',
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  itemCount: _items.length,
-                  itemBuilder: (context, index) {
-                    final item = _items[index];
-                    final isRejected = item['userAction'] == 'rejected';
-                    return Opacity(
-                      opacity: isRejected ? 0.6 : 1.0,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20.0),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isRejected
-                                  ? Colors.grey.withOpacity(0.4)
-                                  : const Color(0xFFF9D5D3).withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(20.0),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1.5,
+                const CustomAdminHeader(
+                  title: 'تفاصيل الطلب',
+                  subtitle: 'مراجعة وتسعير المنتجات',
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    itemCount: _items.length,
+                    itemBuilder: (context, index) {
+                      final item = _items[index];
+                      final isRejected = item['userAction'] == 'rejected';
+                      return Opacity(
+                        opacity: isRejected ? 0.6 : 1.0,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20.0),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isRejected
+                                    ? Colors.grey.withOpacity(0.4)
+                                    : const Color(0xFFF9D5D3).withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(20.0),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  child: Image.network(
-                                    item['imageUrl'],
-                                    width: 70,
-                                    height: 70,
-                                    fit: BoxFit.cover,
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    child: Image.network(
+                                      item['imageUrl'],
+                                      width: 70,
+                                      height: 70,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 15),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['name'],
-                                        style: const TextStyle(
-                                          fontFamily: 'Tajawal',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.black,
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item['name'],
+                                          style: const TextStyle(
+                                            fontFamily: 'Tajawal',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'الكمية: ${item['quantity']}',
-                                        style: const TextStyle(
-                                          fontFamily: 'Tajawal',
-                                          fontSize: 14,
-                                          color: Colors.black87,
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'الكمية: ${item['quantity']}',
+                                          style: const TextStyle(
+                                            fontFamily: 'Tajawal',
+                                            fontSize: 14,
+                                            color: Colors.black87,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      // عرض السعر الأصلي كـ hint أنيق
-                                      _buildPriceHint(item),
-                                    ],
+                                        const SizedBox(height: 6),
+                                        // عرض السعر الأصلي كـ hint أنيق
+                                        _buildPriceHint(item),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                _buildItemActions(item, index),
-                              ],
+                                  const SizedBox(width: 10),
+                                  _buildItemActions(item, index),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
               ],
             ),
             bottomNavigationBar: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // بوتون تحميل الفاتورة (متاح دائماً للأدمن)
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: _downloadInvoice,
-                    icon: const Icon(Icons.download, color: Colors.white),
-                    label: const Text(
-                      'تحميل الفاتورة',
-                      style: TextStyle(
-                        fontFamily: 'Tajawal',
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2196F3),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      elevation: 5,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // بوتون حفظ الأسعار (يظهر حسب حالة الطلب)
-                if (_status != 'final_approved' && _status != 'priced')
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // بوتون تحميل الفاتورة (متاح دائماً للأدمن)
                   SizedBox(
                     width: double.infinity,
                     height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isButtonEnabled ? _updateOrder : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _status == 'awaiting_admin_approval'
-                            ? Colors.green.shade700
-                            : const Color(0xFFC23A6D),
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: const Color(
-                          0xFFC23A6D,
-                        ).withOpacity(0.5),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        elevation: 8,
-                        shadowColor: Colors.black45,
-                      ),
-                      child: Text(
-                        _status == 'awaiting_admin_approval'
-                            ? 'موافقة نهائية وإرسال للعميل'
-                            : 'حفظ الأسعار وإرسال للعميل',
-                        style: const TextStyle(
+                    child: ElevatedButton.icon(
+                      onPressed: _downloadInvoice,
+                      icon: const Icon(Icons.download, color: Colors.white),
+                      label: const Text(
+                        'تحميل الفاتورة',
+                        style: TextStyle(
                           fontFamily: 'Tajawal',
-                          fontSize: 18,
+                          fontSize: 16,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2196F3),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        elevation: 5,
+                      ),
                     ),
                   ),
-              ],
+                  const SizedBox(height: 10),
+                  // بوتون حفظ الأسعار (يظهر حسب حالة الطلب)
+                  if (_status != 'final_approved' && _status != 'priced')
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isButtonEnabled ? _updateOrder : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _status == 'awaiting_admin_approval'
+                              ? Colors.green.shade700
+                              : const Color(0xFFC23A6D),
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: const Color(
+                            0xFFC23A6D,
+                          ).withOpacity(0.5),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          elevation: 8,
+                          shadowColor: Colors.black45,
+                        ),
+                        child: Text(
+                          _status == 'awaiting_admin_approval'
+                              ? 'موافقة نهائية وإرسال للعميل'
+                              : 'حفظ الأسعار وإرسال للعميل',
+                          style: const TextStyle(
+                            fontFamily: 'Tajawal',
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
           ),
         ),
       ),
@@ -718,26 +755,19 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   // بناء widget لعرض السعر الأصلي بشكل أنيق
   Widget _buildPriceHint(Map<String, dynamic> item) {
     final originalPrice = item['originalPrice'];
-    
+
     if (originalPrice != null && originalPrice > 0) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
           color: Colors.orange.withOpacity(0.15),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: Colors.orange.withOpacity(0.3),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.orange.withOpacity(0.3), width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 12,
-              color: Colors.orange.shade700,
-            ),
+            Icon(Icons.info_outline, size: 12, color: Colors.orange.shade700),
             const SizedBox(width: 3),
             Expanded(
               child: Text(
@@ -755,25 +785,18 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         ),
       );
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: Colors.grey.withOpacity(0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.edit_outlined,
-            size: 12,
-            color: Colors.grey.shade600,
-          ),
+          Icon(Icons.edit_outlined, size: 12, color: Colors.grey.shade600),
           const SizedBox(width: 3),
           Expanded(
             child: Text(
@@ -816,10 +839,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             children: [
               const Text(
                 'اختر الإجراء المطلوب:',
-                style: TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontFamily: 'Tajawal', fontSize: 16),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -894,21 +914,26 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           totalPrice: totalPrice,
         );
       } else {
-        // للموبايل: استخدام المشاركة عبر PdfInvoiceService
-        await PdfInvoiceService.shareInvoice(
-          pdfFile,
-          orderNumber: widget.order.id,
-          totalPrice: totalPrice,
-        );
-          
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم فتح نافذة المشاركة - اختر "حفظ في الملفات" للتحميل'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
-            ),
+        // للموبايل: استخدام المشاركة مباشرة (يعمل على iOS و Android)
+        if (pdfFile is File) {
+          await Share.shareXFiles(
+            [XFile(pdfFile.path)],
+            text: 'فاتورة رقم ${widget.order.id}',
+            subject: 'فاتورة - اختر "حفظ في الملفات"',
+            sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
           );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'تم فتح نافذة المشاركة - اختر "حفظ في الملفات" للتحميل',
+                ),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
         }
       }
     } catch (e) {
@@ -931,7 +956,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         orderNumber: widget.order.id,
         totalPrice: totalPrice,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -951,5 +976,4 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       }
     }
   }
-
 }

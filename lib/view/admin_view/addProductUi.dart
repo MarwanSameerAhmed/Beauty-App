@@ -513,19 +513,17 @@ class _AddProductUiState extends State<AddProductUi> {
           ? _buildPlaceholder('اختر الصورة الأساسية')
           : ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: _mainImage != null
-                  ? Image.memory(
-                      _mainImage!.bytes,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    )
-                  : Image.network(
-                      _existingImageUrls.first,
-                      fit: BoxFit.contain,
-                      width: double.infinity,
-                      height: double.infinity,
-                    ),
+              child: SizedBox.expand(
+                child: _mainImage != null
+                    ? Image.memory(
+                        _mainImage!.bytes,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.network(
+                        _existingImageUrls.first,
+                        fit: BoxFit.cover,
+                      ),
+              ),
             ),
     );
   }
@@ -551,10 +549,10 @@ class _AddProductUiState extends State<AddProductUi> {
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: _otherImages.isNotEmpty
-                      ? Image.memory(_otherImages[index].bytes, fit: BoxFit.contain)
+                      ? Image.memory(_otherImages[index].bytes, fit: BoxFit.cover)
                       : Image.network(
                           _existingImageUrls[index + 1],
-                          fit: BoxFit.contain,
+                          fit: BoxFit.cover,
                         ),
                 );
               },
@@ -566,15 +564,17 @@ class _AddProductUiState extends State<AddProductUi> {
     required VoidCallback onTap,
     required Widget child,
   }) {
-    // ارتفاع متجاوب لحقل اختيار الصورة
-    final imageHeight = ResponsiveHelper.productCardWidth * 0.9;
-    
-    return InkWell(
+    // على الديسكتوب: مربع ثابت (450×450) محاذى للمركز
+    // على الموبايل/التابلت: نفس السلوك القديم بدون تغيير
+    final bool isDesktop = ResponsiveHelper.isDesktop;
+    final double imageSize = isDesktop ? 450 : ResponsiveHelper.productCardWidth * 0.9;
+
+    final container = InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(15),
       child: Container(
-        height: imageHeight,
-        width: double.infinity,
+        height: imageSize,
+        width: isDesktop ? imageSize : double.infinity,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.2),
           borderRadius: BorderRadius.circular(15),
@@ -583,6 +583,12 @@ class _AddProductUiState extends State<AddProductUi> {
         child: child,
       ),
     );
+
+    // على الديسكتوب: نضع الحاوية في المركز
+    if (isDesktop) {
+      return Center(child: container);
+    }
+    return container;
   }
 
   Widget _buildPlaceholder(String text) {
