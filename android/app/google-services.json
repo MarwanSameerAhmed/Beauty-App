@@ -22,7 +22,7 @@
           }
         },
         {
-          "client_id": "677899943891-orcktooi62lcmg79o22a9uha5spl2c4h.apps.googleusercontent.com",
+          "client_id": "677899943891-5f1r21khbvsiphlelq0vs4qj82t7jc7p.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -35,14 +35,50 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "677899943891-orcktooi62lcmg79o22a9uha5spl2c4h.apps.googleusercontent.com",
+              "client_id": "677899943891-5f1r21khbvsiphlelq0vs4qj82t7jc7p.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "677899943891-bck5dcs26946fogiv1rp34or7h52j9uj.apps.googleusercontent.com",
+              "client_id": "677899943891-3brjn65v46vplgat2u5f9g19f1shhsf4.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.testPro"
+                "bundle_id": "com.glamify.beautyapp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:677899943891:android:6bdc5c4def0c2efe34b926",
+        "android_client_info": {
+          "package_name": "com.glamify.beautyapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "677899943891-5f1r21khbvsiphlelq0vs4qj82t7jc7p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDC1BArtQDDvkCAqxioiAjIpgJO7nATx-A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "677899943891-5f1r21khbvsiphlelq0vs4qj82t7jc7p.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "677899943891-3brjn65v46vplgat2u5f9g19f1shhsf4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.glamify.beautyapp"
               }
             }
           ]

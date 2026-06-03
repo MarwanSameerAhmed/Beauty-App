@@ -1,12 +1,45 @@
 workflows:
-  ios-release-no-shorebird:
+  # ==========================================
+  # iOS Release Workflow
+  # ==========================================
+  ios-release:
     name: iOS Release
     environment:
       flutter: 3.32.1
       xcode: latest
+      cocoapods: default
     scripts:
-      - flutter build ios --simulator
-      - mkdir -p build/ios/ipa
-      - zip -r build/ios/ipa/Runner.app.zip build/ios/iphonesimulator/Runner.app
+      - name: Install dependencies
+        script: flutter pub get
+      - name: Build iOS
+        script: flutter build ios --release --no-codesign
+      - name: Create IPA
+        script: |
+          cd ios
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/build/ios/Runner.xcarchive \
+            archive
     artifacts:
-      - build/ios/ipa/Runner.app.zip
+      - build/ios/ipa/*.ipa
+
+  # ==========================================
+  # Android Release Workflow
+  # ==========================================
+  android-release:
+    name: Android Release (Google Play)
+    environment:
+      flutter: 3.32.1
+      java: 17
+      android_signing:
+        - glamify_keystore
+    scripts:
+      - name: Install dependencies
+        script: flutter pub get
+      - name: Build AAB
+        script: flutter build appbundle --release
+    artifacts:
+      - build/app/outputs/bundle/release/*.aab
+      - build/app/outputs/mapping/release/mapping.txt

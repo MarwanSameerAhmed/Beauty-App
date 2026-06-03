@@ -47,6 +47,7 @@ app.*.map.json
 # 🔐 Security - Sensitive Files (NEVER COMMIT!)
 # Android signing keys
 android/key.properties
+android/upload-keystore.jks
 android/app/upload-keystore.jks
 android/app/*.keystore
 android/app/*.jks
