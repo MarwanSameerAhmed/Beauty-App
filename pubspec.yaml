@@ -101,7 +101,7 @@ flutter_native_splash:
   web: true
 
   android_12:
-    image: "images/splash/ios/Glamify-logo-transparent.png"
+    image: "images/splash/android/android12-splash-icon.png"
     color: "#FFFFFF"
 
 flutter_launcher_icons:
