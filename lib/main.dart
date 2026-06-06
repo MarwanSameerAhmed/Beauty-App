@@ -66,25 +66,27 @@ Future<void> main() async {
     sound: true,
   );
 
-  if (kIsWeb) {
-    await FirebaseAppCheck.instance.activate(
-      webProvider: ReCaptchaV3Provider('your-recaptcha-v3-site-key'),
-    );
-  } else {
-    // For production use
-    if (kDebugMode) {
-      // Debug mode - for development only
+  // Firebase App Check - مع timeout عشان ما يعلق التطبيق
+  try {
+    if (kIsWeb) {
       await FirebaseAppCheck.instance.activate(
-        androidProvider: AndroidProvider.debug,
-        appleProvider: AppleProvider.debug,
-      );
+        webProvider: ReCaptchaV3Provider('your-recaptcha-v3-site-key'),
+      ).timeout(const Duration(seconds: 5));
     } else {
-      // Production mode - for App Store release
-      await FirebaseAppCheck.instance.activate(
-        androidProvider: AndroidProvider.playIntegrity,
-        appleProvider: AppleProvider.appAttest,
-      );
+      if (kDebugMode) {
+        await FirebaseAppCheck.instance.activate(
+          androidProvider: AndroidProvider.debug,
+          appleProvider: AppleProvider.debug,
+        ).timeout(const Duration(seconds: 5));
+      } else {
+        await FirebaseAppCheck.instance.activate(
+          androidProvider: AndroidProvider.playIntegrity,
+          appleProvider: AppleProvider.appAttest,
+        ).timeout(const Duration(seconds: 5));
+      }
     }
+  } catch (e) {
+    // App Check failed or timed out - continue without it
   }
 
   final prefs = await SharedPreferences.getInstance();
@@ -132,12 +134,20 @@ Future<void> main() async {
 
   await initializeDateFormatting('ar', null);
 
-  // Initialize Remote Config
+  // Initialize Remote Config - مع timeout عشان ما يعلق التطبيق
   final remoteConfigService = RemoteConfigService();
-  await remoteConfigService.initialize();
+  try {
+    await remoteConfigService.initialize().timeout(const Duration(seconds: 5));
+  } catch (e) {
+    // Remote Config timed out - continue with defaults
+  }
 
-  // Initialize AppConfig for secure API keys
-  await AppConfig.instance.initialize();
+  // Initialize AppConfig for secure API keys - مع timeout
+  try {
+    await AppConfig.instance.initialize().timeout(const Duration(seconds: 5));
+  } catch (e) {
+    // AppConfig timed out - continue with defaults
+  }
 
   final connectivityService = ConnectivityService();
   final initialConnectivity = await connectivityService.hasInternetConnection();
