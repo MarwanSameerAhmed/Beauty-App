@@ -189,7 +189,6 @@ Future<void> _initializeBackgroundServices() async {
     // Background services initialization failed - app continues normally
   }
 }
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({
