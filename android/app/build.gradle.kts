@@ -60,9 +60,9 @@ android {
                 signingConfigs.getByName("debug")
             }
 
-            // Enable R8 code shrinking and resource shrinking
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // R8 معطل مؤقتاً للاختبار - لمعرفة إذا كان السبب في تعليق السبلاش
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
