@@ -58,6 +58,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "677899943891-rh0m2ekrfgbfjg5ppg7p4k9blfu7ra0g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.glamify.beautyapp",
+            "certificate_hash": "22d79405b9e8d55684f013db4f2eeeb625263590"
+          }
+        },
+        {
+          "client_id": "677899943891-sgp5sq31ac03ghfu4uat6oeunh5orda1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.glamify.beautyapp",
+            "certificate_hash": "bb1ce3085ea1b86115fcf5322e90ce30bd23cbe0"
+          }
+        },
+        {
           "client_id": "677899943891-5f1r21khbvsiphlelq0vs4qj82t7jc7p.apps.googleusercontent.com",
           "client_type": 3
         }
