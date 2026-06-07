@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glamify/controller/remote_config_service.dart';
+import 'package:glamify/controller/update_service.dart';
 import 'package:glamify/view/admin_dashboard/admin_bottom_nav_ui.dart';
 import 'package:glamify/view/bottomNavUi.dart';
 import 'package:glamify/view/auth_Ui/login_ui.dart';
 import 'package:glamify/view/onboardingUi.dart';
 import 'package:glamify/view/maintenance_page.dart';
+import 'package:glamify/view/update_dialog.dart';
 import '../utils/logger.dart';
 
 class AppWrapper extends StatefulWidget {
@@ -26,11 +28,17 @@ class AppWrapper extends StatefulWidget {
 }
 
 class _AppWrapperState extends State<AppWrapper> {
+
   @override
   void initState() {
     super.initState();
     // Start listening to remote config changes
     _startRemoteConfigListener();
+
+    // Check for updates after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdates();
+    });
   }
 
   void _startRemoteConfigListener() {
@@ -44,6 +52,45 @@ class _AppWrapperState extends State<AppWrapper> {
           setState(() {});
         }
       });
+    }
+  }
+
+  /// فحص التحديثات عند فتح التطبيق
+  Future<void> _checkForUpdates() async {
+    // لا نفحص على الويب
+    if (kIsWeb) return;
+
+    try {
+      final updateService = UpdateService(widget.remoteConfigService);
+      final updateInfo = await updateService.checkForUpdate();
+
+      if (!mounted) return;
+
+      switch (updateInfo.status) {
+        case UpdateStatus.forceUpdate:
+          // تحديث إجباري → dialog ما يقفل
+          AppLogger.info('Force update required', tag: 'UPDATE');
+          showUpdateDialog(context, updateInfo);
+          break;
+
+        case UpdateStatus.optionalUpdate:
+          // تحديث اختياري → نتحقق إذا ما تخطاه قبل
+          final wasDismissed = await updateService
+              .wasUpdateDismissedForSession(updateInfo.latestVersion);
+          if (!wasDismissed && mounted) {
+            AppLogger.info('Optional update available', tag: 'UPDATE');
+            await showUpdateDialog(context, updateInfo);
+            // لما يقفل الـ dialog = ضغط "لاحقاً"
+            await updateService.dismissUpdate(updateInfo.latestVersion);
+          }
+          break;
+
+        case UpdateStatus.upToDate:
+          AppLogger.debug('App is up to date', tag: 'UPDATE');
+          break;
+      }
+    } catch (e) {
+      AppLogger.error('Error checking for updates', tag: 'UPDATE', error: e);
     }
   }
 
@@ -88,4 +135,3 @@ class _AppWrapperState extends State<AppWrapper> {
     }
   }
 }
-

@@ -13,6 +13,14 @@ class RemoteConfigService {
   static const String _maintenanceMessageKey = 'maintenance_message';
   static const String _maintenanceImageUrlKey = 'maintenance_image_url';
   static const String _estimatedTimeKey = 'estimated_maintenance_time';
+
+  // Force Update keys
+  static const String _latestVersionKey = 'latest_version';
+  static const String _minVersionKey = 'min_version';
+  static const String _forceUpdateAfterDaysKey = 'force_update_after_days';
+  static const String _updateMessageKey = 'update_message';
+  static const String _storeUrlAndroidKey = 'store_url_android';
+  static const String _storeUrlIosKey = 'store_url_ios';
   
   Future<void> initialize() async {
     try {
@@ -25,6 +33,13 @@ class RemoteConfigService {
         _maintenanceMessageKey: 'نعتذر عن الإزعاج، التطبيق قيد الصيانة حالياً لتحسين الخدمة. سيعود التطبيق للعمل قريباً.',
         _maintenanceImageUrlKey: '',
         _estimatedTimeKey: 'قريباً',
+        // Force Update defaults
+        _latestVersionKey: '1.0.0',
+        _minVersionKey: '1.0.0',
+        _forceUpdateAfterDaysKey: 10,
+        _updateMessageKey: 'تحديث جديد متاح! يتضمن تحسينات في الأداء وميزات جديدة.',
+        _storeUrlAndroidKey: '',
+        _storeUrlIosKey: '',
       });
       
       // Configure settings
@@ -62,6 +77,19 @@ class RemoteConfigService {
   String get maintenanceImageUrl => _remoteConfig.getString(_maintenanceImageUrlKey);
   
   String get estimatedTime => _remoteConfig.getString(_estimatedTimeKey);
+
+  // Force Update getters
+  String get latestVersion => _remoteConfig.getString(_latestVersionKey);
+  
+  String get minVersion => _remoteConfig.getString(_minVersionKey);
+  
+  int get forceUpdateAfterDays => _remoteConfig.getInt(_forceUpdateAfterDaysKey);
+  
+  String get updateMessage => _remoteConfig.getString(_updateMessageKey);
+  
+  String get storeUrlAndroid => _remoteConfig.getString(_storeUrlAndroidKey);
+  
+  String get storeUrlIos => _remoteConfig.getString(_storeUrlIosKey);
   
   // Method to check app status periodically
   Stream<bool> get appStatusStream async* {
