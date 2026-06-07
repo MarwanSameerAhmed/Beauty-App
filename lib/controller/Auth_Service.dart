@@ -167,7 +167,8 @@ class AuthService {
       if (e.toString().contains('popup_closed_by_user')) {
         return 'تم إغلاق نافذة تسجيل الدخول.';
       }
-      return 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+      // مؤقت: عرض الخطأ الحقيقي للتشخيص
+      return 'خطأ تسجيل دخول جوجل: ${e.toString()}';
     }
   }
 

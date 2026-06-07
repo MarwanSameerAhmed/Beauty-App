@@ -28,7 +28,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // تخصيص شريط الحالة للتطبيق بالكامل - شفاف للسماح بامتداد الباك قراوند
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -39,7 +39,7 @@ Future<void> main() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  
+
   // === الخطوات الأساسية فقط (لازم تكتمل قبل ما يظهر التطبيق) ===
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
@@ -70,7 +70,8 @@ Future<void> main() async {
   }
 
   final connectivityService = ConnectivityService();
-  final initialConnectivity = await connectivityService.hasInternetConnection()
+  final initialConnectivity = await connectivityService
+      .hasInternetConnection()
       .timeout(const Duration(seconds: 3), onTimeout: () => true);
 
   // === شغّل التطبيق فوراً! ===
@@ -84,7 +85,7 @@ Future<void> main() async {
         ),
       ],
       child: MyApp(
-        onboardingComplete: onboardingComplete, 
+        onboardingComplete: onboardingComplete,
         prefs: prefs,
         remoteConfigService: remoteConfigService,
       ),
@@ -101,20 +102,26 @@ Future<void> _initializeBackgroundServices() async {
     // Firebase App Check
     try {
       if (kIsWeb) {
-        await FirebaseAppCheck.instance.activate(
-          webProvider: ReCaptchaV3Provider('your-recaptcha-v3-site-key'),
-        ).timeout(const Duration(seconds: 5));
+        await FirebaseAppCheck.instance
+            .activate(
+              webProvider: ReCaptchaV3Provider('your-recaptcha-v3-site-key'),
+            )
+            .timeout(const Duration(seconds: 5));
       } else {
         if (kDebugMode) {
-          await FirebaseAppCheck.instance.activate(
-            androidProvider: AndroidProvider.debug,
-            appleProvider: AppleProvider.debug,
-          ).timeout(const Duration(seconds: 5));
+          await FirebaseAppCheck.instance
+              .activate(
+                androidProvider: AndroidProvider.debug,
+                appleProvider: AppleProvider.debug,
+              )
+              .timeout(const Duration(seconds: 5));
         } else {
-          await FirebaseAppCheck.instance.activate(
-            androidProvider: AndroidProvider.playIntegrity,
-            appleProvider: AppleProvider.appAttest,
-          ).timeout(const Duration(seconds: 5));
+          await FirebaseAppCheck.instance
+              .activate(
+                androidProvider: AndroidProvider.playIntegrity,
+                appleProvider: AppleProvider.appAttest,
+              )
+              .timeout(const Duration(seconds: 5));
         }
       }
     } catch (e) {
@@ -123,22 +130,26 @@ Future<void> _initializeBackgroundServices() async {
 
     // Notification permissions
     try {
-      await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      ).timeout(const Duration(seconds: 5));
+      await FirebaseMessaging.instance
+          .requestPermission(
+            alert: true,
+            announcement: false,
+            badge: true,
+            carPlay: false,
+            criticalAlert: false,
+            provisional: false,
+            sound: true,
+          )
+          .timeout(const Duration(seconds: 5));
     } catch (e) {
       // Permission request failed - continue
     }
 
     // Local notifications
     try {
-      await LocalNotificationService.initialize().timeout(const Duration(seconds: 5));
+      await LocalNotificationService.initialize().timeout(
+        const Duration(seconds: 5),
+      );
     } catch (e) {
       // Local notification init failed - continue
     }
@@ -161,10 +172,13 @@ Future<void> _initializeBackgroundServices() async {
       try {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null && !user.isAnonymous) {
-          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-            'fcmToken': newToken,
-            'lastTokenUpdate': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({
+                'fcmToken': newToken,
+                'lastTokenUpdate': FieldValue.serverTimestamp(),
+              }, SetOptions(merge: true));
         }
       } catch (e) {
         // Error updating token
@@ -173,8 +187,9 @@ Future<void> _initializeBackgroundServices() async {
 
     // Handle notification tap when app was completely terminated
     try {
-      await FirebaseMessaging.instance.getInitialMessage()
-          .timeout(const Duration(seconds: 3));
+      await FirebaseMessaging.instance.getInitialMessage().timeout(
+        const Duration(seconds: 3),
+      );
     } catch (e) {
       // Initial message check failed - continue
     }
@@ -217,7 +232,6 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class ConnectivityWrapper extends StatelessWidget {
@@ -237,9 +251,7 @@ class ConnectivityWrapper extends StatelessWidget {
             top: 0,
             left: 0,
             right: 0,
-            child: SafeArea(
-              child: NoInternetCard(),
-            ),
+            child: SafeArea(child: NoInternetCard()),
           ),
       ],
     );
