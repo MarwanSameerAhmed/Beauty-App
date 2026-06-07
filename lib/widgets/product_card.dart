@@ -5,7 +5,7 @@ import 'package:glamify/controller/cart_service.dart';
 import 'package:glamify/controller/favorites_service.dart';
 import 'package:glamify/model/product.dart';
 import 'package:glamify/widgets/ElegantToast.dart';
-import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/widgets/cached_image.dart';
 import 'package:glamify/utils/responsive_helper.dart';
 
 class ProductCard extends StatefulWidget {
@@ -113,20 +113,9 @@ class _ProductCardState extends State<ProductCard> {
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(borderRadius),
               ),
-              child: Image.network(
-                widget.product.images.first,
+              child: AppCachedImage(
+                imageUrl: widget.product.images.first,
                 fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(child: Loader(width: 70, height: 70));
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.broken_image,
-                    color: Colors.grey,
-                    size: 40,
-                  );
-                },
               ),
             ),
           ),

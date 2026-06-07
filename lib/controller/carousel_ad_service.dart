@@ -57,6 +57,23 @@ class CarouselAdService {
     });
   }
 
+  // جلب إعلانات الكاروسيل مرة واحدة (Future - للهوم بيج)
+  Future<List<CarouselAd>> getCarouselAdsOnce() async {
+    try {
+      final snapshot = await _firestore.collection(_collectionPath).get();
+      return snapshot.docs.map((doc) {
+        try {
+          return CarouselAd.fromMap(doc.data(), doc.id);
+        } catch (e) {
+          return null;
+        }
+      }).where((ad) => ad != null).cast<CarouselAd>().toList();
+    } catch (e) {
+      AppLogger.error('Error fetching carousel ads once', tag: 'CAROUSEL', error: e);
+      return [];
+    }
+  }
+
   Future<void> updateCarouselAd(CarouselAd ad) async {
     try {
       await _firestore.collection(_collectionPath).doc(ad.id).update(ad.toMap());

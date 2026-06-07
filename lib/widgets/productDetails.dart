@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:glamify/model/product.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
+import 'package:glamify/widgets/cached_image.dart';
 import 'package:glamify/controller/favorites_service.dart';
 import 'package:glamify/controller/cart_service.dart';
 import 'package:lottie/lottie.dart';
@@ -426,13 +427,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     BoxFit? fit,
   }) {
     if (imageUrl != null && imageUrl.isNotEmpty) {
-      return Image.network(
-        imageUrl,
+      return AppCachedImage(
+        imageUrl: imageUrl,
         height: height,
         width: width,
         fit: fit ?? BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            const Icon(Icons.broken_image, size: 50, color: Colors.grey),
       );
     }
     return const Icon(Icons.broken_image, size: 50, color: Colors.grey);

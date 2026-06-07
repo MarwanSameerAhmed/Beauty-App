@@ -35,13 +35,29 @@ class ProductService {
     }
   }
 
-  // جلب المنتجات
+  // جلب المنتجات (Stream - للأدمن والصفحات اللي تحتاج تحديث فوري)
   Stream<List<Product>> getProducts() {
     return _productsCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         return Product.fromMap(doc.data() as Map<String, dynamic>);
       }).toList();
     });
+  }
+
+  // جلب المنتجات مرة واحدة (Future - للهوم بيج)
+  Future<List<Product>> getProductsOnce({int? limit}) async {
+    try {
+      Query query = _productsCollection;
+      if (limit != null) {
+        query = query.limit(limit);
+      }
+      final snapshot = await query.get();
+      return snapshot.docs.map((doc) {
+        return Product.fromMap(doc.data() as Map<String, dynamic>);
+      }).toList();
+    } catch (e) {
+      return [];
+    }
   }
 
   // جلب جميع المنتجات كـ Future للاستخدام في الفواتير

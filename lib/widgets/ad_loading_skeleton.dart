@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:glamify/widgets/cached_image.dart';
 
 class AdLoadingSkeleton extends StatefulWidget {
   final double width;
@@ -125,7 +126,7 @@ class _AdLoadingSkeletonState extends State<AdLoadingSkeleton>
   }
 }
 
-class AdImageWithLoading extends StatefulWidget {
+class AdImageWithLoading extends StatelessWidget {
   final String imageUrl;
   final double width;
   final double height;
@@ -142,110 +143,28 @@ class AdImageWithLoading extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<AdImageWithLoading> createState() => _AdImageWithLoadingState();
-}
-
-class _AdImageWithLoadingState extends State<AdImageWithLoading>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-  bool _imageLoaded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
-
-  void _onImageLoaded() {
-    if (!_imageLoaded && mounted) {
-      setState(() {
-        _imageLoaded = true;
-      });
-      _fadeController.forward();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(15),
         child: SizedBox(
-          width: widget.width,
-          height: widget.height,
-          child: Stack(
-            children: [
-              // مؤشر التحميل
-              if (!_imageLoaded)
-                AdLoadingSkeleton(
-                  width: widget.width,
-                  height: widget.height,
-                  isRectangle: widget.isRectangle,
-                ),
-              // الصورة الفعلية
-              AnimatedBuilder(
-                animation: _fadeAnimation,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _fadeAnimation.value,
-                    child: Image.network(
-                      widget.imageUrl,
-                      fit: BoxFit.cover,
-                      width: widget.width,
-                      height: widget.height,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) {
-                          // الصورة تم تحميلها
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _onImageLoaded();
-                          });
-                          return child;
-                        }
-                        return const SizedBox.shrink();
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: widget.width,
-                          height: widget.height,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            color: Colors.grey[200],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.error_outline,
-                              color: Colors.grey,
-                              size: 40,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            ],
+          width: width,
+          height: height,
+          child: AppCachedImage(
+            imageUrl: imageUrl,
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            placeholder: AdLoadingSkeleton(
+              width: width,
+              height: height,
+              isRectangle: isRectangle,
+            ),
           ),
         ),
       ),
     );
   }
 }
+

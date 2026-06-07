@@ -57,6 +57,23 @@ class AdsService {
     });
   }
 
+  // جلب الإعلانات مرة واحدة (Future - للهوم بيج)
+  Future<List<Ad>> getAdsOnce() async {
+    try {
+      final snapshot = await _firestore.collection(_collectionPath).get();
+      return snapshot.docs.map((doc) {
+        try {
+          return Ad.fromMap(doc.data(), doc.id);
+        } catch (e) {
+          return null;
+        }
+      }).where((ad) => ad != null).cast<Ad>().toList();
+    } catch (e) {
+      AppLogger.error('Error fetching ads once', tag: 'ADS', error: e);
+      return [];
+    }
+  }
+
   Future<void> updateAd(Ad ad) async {
     try {
       await _firestore.collection(_collectionPath).doc(ad.id).update(ad.toMap());
