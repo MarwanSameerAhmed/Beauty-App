@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:glamify/model/product.dart';
+import 'package:glamify/controller/barcode_service.dart';
 import 'image_upload_service.dart';
 
 class ProductService {
@@ -10,12 +11,19 @@ class ProductService {
   // فولدر مخصص للصور
   static const String _imageFolder = "/products";
 
-  // إضافة منتج جديد
+  // إضافة منتج جديد مع توليد باركود أوتوماتيكي
   Future<void> addProduct(Product product) async {
     try {
       final docRef = _productsCollection.doc();
       product.id = docRef.id;
-      await docRef.set(product.toMap());
+
+      // توليد باركود تلقائي إذا لم يكن موجوداً
+      final Map<String, dynamic> productData = product.toMap();
+      if (product.barcode == null || product.barcode!.isEmpty) {
+        productData['barcode'] = BarcodeService.generateBarcode();
+      }
+
+      await docRef.set(productData);
     } catch (e) {
       // Error adding product: $e
       rethrow;
@@ -226,6 +234,43 @@ class ProductService {
     } catch (e) {
       // Error getting search suggestions: $e
       return [];
+    }
+  }
+
+  /// إضافة باركود لجميع المنتجات التي لا تملك باركود
+  Future<int> generateBarcodesForExistingProducts() async {
+    try {
+      // جلب كل المنتجات
+      final snapshot = await _productsCollection.get();
+      int count = 0;
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        // فقط المنتجات التي لا تملك باركود
+        if (data['barcode'] == null || (data['barcode'] as String).isEmpty) {
+          batch.update(doc.reference, {
+            'barcode': BarcodeService.generateBarcode(),
+          });
+          count++;
+
+          // Firestore batch limit = 500
+          if (count % 499 == 0) {
+            await batch.commit();
+            batch = FirebaseFirestore.instance.batch();
+          }
+        }
+      }
+
+      // تنفيذ الباتش المتبقي
+      if (count > 0 && count % 499 != 0) {
+        await batch.commit();
+      }
+
+      return count;
+    } catch (e) {
+      // Error generating barcodes: $e
+      rethrow;
     }
   }
 }

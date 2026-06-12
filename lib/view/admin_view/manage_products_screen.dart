@@ -7,6 +7,7 @@ import 'package:glamify/view/admin_view/addProductUi.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/custom_admin_header.dart';
 import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/widgets/FormFields.dart';
 
 class ManageProductsScreen extends StatefulWidget {
   const ManageProductsScreen({super.key});
@@ -16,6 +17,25 @@ class ManageProductsScreen extends StatefulWidget {
 }
 
 class _ManageProductsScreenState extends State<ManageProductsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -29,6 +49,16 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                 title: 'إدارة المنتجات',
                 subtitle:
                     'إضافة وتعديل وحذف المنتجات مع التحكم بتفاصيلها وصورها وأسعارها',
+              ),
+              // حقل البحث
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: GlassField(
+                  controller: _searchController,
+                  hintText: 'ابحث عن منتج...',
+                  prefixIcon: Icons.search,
+                  textColor: Colors.black,
+                ),
               ),
               Expanded(
                 child: StreamBuilder<List<Product>>(
@@ -62,14 +92,35 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
 
                     final products = snapshot.data!;
 
+                    // فلترة حسب البحث
+                    final filteredProducts = _searchQuery.isEmpty
+                        ? products
+                        : products.where((p) =>
+                            p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                            p.description.toLowerCase().contains(_searchQuery.toLowerCase())
+                          ).toList();
+
+                    if (filteredProducts.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'لا توجد نتائج مطابقة.',
+                          style: TextStyle(
+                            fontFamily: 'Tajawal',
+                            fontSize: 18,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      );
+                    }
+
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      itemCount: products.length,
+                      itemCount: filteredProducts.length,
                       itemBuilder: (context, index) {
-                        final product = products[index];
+                        final product = filteredProducts[index];
                         return PlayAnimationBuilder<double>(
                           tween: Tween(begin: 0.0, end: 1.0),
-                          duration: Duration(milliseconds: 300 + (index * 100)),
+                          duration: Duration(milliseconds: 300 + ((index % 6) * 80)),
                           curve: Curves.easeOut,
                           builder: (context, value, child) {
                             return Opacity(

@@ -6,6 +6,7 @@ class Product {
   final double price;
   final String categoryId;
   final String companyId;
+  final String? barcode;
 
   Product({
     required this.id,
@@ -15,6 +16,7 @@ class Product {
     required this.price,
     required this.categoryId,
     required this.companyId,
+    this.barcode,
   });
 
   factory Product.fromMap(Map<String, dynamic> data) {
@@ -26,6 +28,7 @@ class Product {
       price: (data['price'] ?? 0).toDouble(),
       categoryId: data['categoryId'] ?? '',
       companyId: data['companyId'] ?? '',
+      barcode: data['barcode'],
     );
   }
 
@@ -38,6 +41,7 @@ class Product {
       'price': price,
       'categoryId': categoryId,
       'companyId': companyId,
+      'barcode': barcode,
     };
   }
 }

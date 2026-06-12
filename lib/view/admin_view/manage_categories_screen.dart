@@ -7,6 +7,7 @@ import 'package:glamify/view/admin_view/add_category_form.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/custom_admin_header.dart';
 import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/widgets/FormFields.dart';
 
 class ManageCategoriesScreen extends StatefulWidget {
   const ManageCategoriesScreen({super.key});
@@ -16,6 +17,15 @@ class ManageCategoriesScreen extends StatefulWidget {
 }
 
 class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -29,6 +39,16 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 title: 'إدارة الأصناف',
                 subtitle:
                     'تنظيم المنتجات والإعلانات ضمن تصنيفات رئيسية وفرعية لتسهيل التصفح',
+              ),
+              // حقل البحث
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: GlassField(
+                  controller: _searchController,
+                  hintText: 'ابحث عن صنف...',
+                  prefixIcon: Icons.search,
+                  textColor: Colors.black,
+                ),
               ),
               Expanded(
                 child: StreamBuilder<List<Category>>(
@@ -63,15 +83,26 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                     final categories = snapshot.data!;
                     final mainCategories = categories.where((c) => c.parentId == null).toList();
 
+                    // فلترة حسب البحث
+                    final filteredMainCategories = _searchQuery.isEmpty
+                        ? mainCategories
+                        : mainCategories.where((c) {
+                            // بحث في الصنف الرئيسي
+                            if (c.name.toLowerCase().contains(_searchQuery.toLowerCase())) return true;
+                            // بحث في الفرعيات
+                            final subs = categories.where((sub) => sub.parentId == c.id);
+                            return subs.any((sub) => sub.name.toLowerCase().contains(_searchQuery.toLowerCase()));
+                          }).toList();
+
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      itemCount: mainCategories.length,
+                      itemCount: filteredMainCategories.length,
                       itemBuilder: (context, index) {
-                        final category = mainCategories[index];
+                        final category = filteredMainCategories[index];
                         final subCategories = categories.where((c) => c.parentId == category.id).toList();
                         return PlayAnimationBuilder<double>(
                           tween: Tween(begin: 0.0, end: 1.0),
-                          duration: Duration(milliseconds: 300 + (index * 100)),
+                          duration: Duration(milliseconds: 300 + ((index % 6) * 80)),
                           curve: Curves.easeOut,
                           builder: (context, value, child) {
                             return Opacity(
@@ -147,6 +178,31 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 color: Colors.black87,
                 fontSize: 17,
               ),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _editCategory(category);
+                    } else if (value == 'delete') {
+                      _deleteCategoryWithCheck(category.id, subCategories.length);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Text('تعديل'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Text('حذف'),
+                    ),
+                  ],
+                ),
+                const Icon(Icons.expand_more, color: Colors.black54),
+              ],
             ),
             children: subCategories.map((sub) => _buildCategoryCard(sub, isSubCategory: true)).toList(),
           ),
@@ -228,22 +284,50 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     );
   }
 
+  void _deleteCategoryWithCheck(String categoryId, int subCategoriesCount) {
+    if (subCategoriesCount > 0) {
+      // منع الحذف إذا كان لديه فرعيات
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('لا يمكن الحذف', style: TextStyle(fontFamily: 'Tajawal')),
+            content: Text(
+              'لا يمكن حذف هذا الصنف لأنه يحتوي على $subCategoriesCount تصنيفات فرعية.\nيرجى حذف التصنيفات الفرعية أولاً.',
+              style: const TextStyle(fontFamily: 'Tajawal'),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('حسناً', style: TextStyle(fontFamily: 'Tajawal')),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+    _deleteCategory(categoryId);
+  }
+
   void _deleteCategory(String categoryId) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('تأكيد الحذف'),
-          content: const Text('هل أنت متأكد أنك تريد حذف هذا الصنف؟'),
+          title: const Text('تأكيد الحذف', style: TextStyle(fontFamily: 'Tajawal')),
+          content: const Text('هل أنت متأكد أنك تريد حذف هذا الصنف؟', style: TextStyle(fontFamily: 'Tajawal')),
           actions: <Widget>[
             TextButton(
-              child: const Text('إلغاء'),
+              child: const Text('إلغاء', style: TextStyle(fontFamily: 'Tajawal')),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('حذف'),
+              child: const Text('حذف', style: TextStyle(fontFamily: 'Tajawal')),
               onPressed: () {
                 CategoryService().deleteCategory(categoryId);
                 Navigator.of(context).pop();
@@ -253,5 +337,15 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
         );
       },
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
   }
 }

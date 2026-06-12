@@ -7,6 +7,7 @@ import 'package:glamify/view/admin_view/add_company_form.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/custom_admin_header.dart';
 import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/widgets/FormFields.dart';
 
 class ManageCompaniesScreen extends StatefulWidget {
   const ManageCompaniesScreen({super.key});
@@ -16,6 +17,25 @@ class ManageCompaniesScreen extends StatefulWidget {
 }
 
 class _ManageCompaniesScreenState extends State<ManageCompaniesScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -26,17 +46,28 @@ class _ManageCompaniesScreenState extends State<ManageCompaniesScreen> {
           child: Column(
             children: [
               const CustomAdminHeader(
-                title: 'إدارة الشركات',
-                subtitle: 'استعراض أسماء الشركات التي يتم التعامل معها',
+                title: 'إدارة الماركات',
+                subtitle: 'استعراض أسماء الماركات التي يتم التعامل معها',
+              ),
+              // حقل البحث
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: GlassField(
+                  controller: _searchController,
+                  hintText: 'ابحث عن ماركة...',
+                  prefixIcon: Icons.search,
+                  textColor: Colors.black,
+                ),
               ),
               Expanded(
                 child: StreamBuilder<List<Company>>(
                   stream: CompanyService().getCompanies(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: Loader(),
-                      );
+                      return const Center(child: Loader());
                     }
                     if (snapshot.hasError) {
                       return Center(
@@ -49,7 +80,7 @@ class _ManageCompaniesScreenState extends State<ManageCompaniesScreen> {
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return const Center(
                         child: Text(
-                          'لا توجد شركات حالياً.',
+                          'لا توجد ماركات حالياً.',
                           style: TextStyle(
                             fontFamily: 'Tajawal',
                             fontSize: 18,
@@ -61,14 +92,40 @@ class _ManageCompaniesScreenState extends State<ManageCompaniesScreen> {
 
                     final companies = snapshot.data!;
 
+                    // فلترة حسب البحث
+                    final filteredCompanies = _searchQuery.isEmpty
+                        ? companies
+                        : companies
+                              .where(
+                                (c) => c.name.toLowerCase().contains(
+                                  _searchQuery.toLowerCase(),
+                                ),
+                              )
+                              .toList();
+
+                    if (filteredCompanies.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'لا توجد نتائج مطابقة.',
+                          style: TextStyle(
+                            fontFamily: 'Tajawal',
+                            fontSize: 18,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      );
+                    }
+
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      itemCount: companies.length,
+                      itemCount: filteredCompanies.length,
                       itemBuilder: (context, index) {
-                        final company = companies[index];
+                        final company = filteredCompanies[index];
                         return PlayAnimationBuilder<double>(
                           tween: Tween(begin: 0.0, end: 1.0),
-                          duration: Duration(milliseconds: 300 + (index * 100)),
+                          duration: Duration(
+                            milliseconds: 300 + ((index % 6) * 80),
+                          ),
                           curve: Curves.easeOut,
                           builder: (context, value, child) {
                             return Opacity(
@@ -175,9 +232,7 @@ class _ManageCompaniesScreenState extends State<ManageCompaniesScreen> {
   void _editCompany(Company company) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => AddCompanyForm(company: company),
-      ),
+      MaterialPageRoute(builder: (context) => AddCompanyForm(company: company)),
     );
   }
 

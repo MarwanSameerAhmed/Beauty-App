@@ -4,6 +4,7 @@ import 'package:glamify/controller/category_service.dart';
 import 'package:glamify/controller/product_service.dart';
 import 'package:glamify/controller/image_service.dart';
 import 'package:glamify/controller/universal_image_picker.dart';
+import 'package:glamify/controller/barcode_service.dart';
 import 'package:glamify/model/company.dart';
 import 'package:glamify/model/categorys.dart';
 import 'package:glamify/model/product.dart';
@@ -32,6 +33,7 @@ class _AddProductUiState extends State<AddProductUi> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _priceController;
+  late TextEditingController _barcodeController;
 
   // Editing State
   bool get _isEditing => widget.product != null;
@@ -64,17 +66,22 @@ class _AddProductUiState extends State<AddProductUi> {
     _nameController = TextEditingController();
     _descriptionController = TextEditingController();
     _priceController = TextEditingController();
+    _barcodeController = TextEditingController();
 
     if (_isEditing) {
       final product = widget.product!;
       _nameController.text = product.name;
       _descriptionController.text = product.description;
       _priceController.text = product.price.toString();
+      _barcodeController.text = product.barcode ?? 'لا يوجد باركود';
       // Category will be set in _loadInitialData after categories are loaded
       _selectedCompanyId = product.companyId;
       _existingImageUrls = List.from(product.images);
       _uploadedImageUrls = List.from(product.images);
       _currentStep = 1; // Start at details step when editing
+    } else {
+      // توليد باركود أوتوماتيكي للمنتج الجديد
+      _barcodeController.text = BarcodeService.generateBarcode();
     }
 
     _loadInitialData();
@@ -230,6 +237,7 @@ class _AddProductUiState extends State<AddProductUi> {
         images: _uploadedImageUrls,
         categoryId: _selectedSubCategoryId ?? _selectedMainCategoryId!,
         companyId: _selectedCompanyId!,
+        barcode: _barcodeController.text,
       );
 
       if (_isEditing) {
@@ -493,6 +501,63 @@ class _AddProductUiState extends State<AddProductUi> {
                   keyboardType: TextInputType.number,
                   validator: (v) => v!.isEmpty ? 'الحقل مطلوب' : null,
                   textColor: Colors.black,
+                ),
+                const SizedBox(height: 16),
+                // حقل الباركود (للقراءة فقط)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15.0),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 7.0, sigmaY: 7.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(15.0),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.4),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: TextFormField(
+                        controller: _barcodeController,
+                        readOnly: true,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontFamily: 'Tajawal',
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2.0,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'الباركود (يُولَّد تلقائياً)',
+                          hintTextDirection: TextDirection.rtl,
+                          hintStyle: TextStyle(color: Colors.black.withOpacity(0.5)),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 14.0,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.qr_code,
+                            color: Colors.black.withOpacity(0.7),
+                          ),
+                          suffixIcon: !_isEditing
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.refresh,
+                                    color: Colors.black.withOpacity(0.7),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _barcodeController.text = BarcodeService.generateBarcode();
+                                    });
+                                  },
+                                  tooltip: 'توليد باركود جديد',
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 _buildCategoryDropdowns(),

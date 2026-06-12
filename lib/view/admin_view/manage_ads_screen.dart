@@ -71,7 +71,7 @@ class _ManageAdsScreenState extends State<ManageAdsScreen> {
                         final ad = ads[index];
                         return PlayAnimationBuilder<double>(
                           tween: Tween(begin: 0.0, end: 1.0),
-                          duration: Duration(milliseconds: 300 + (index * 100)),
+                          duration: Duration(milliseconds: 300 + ((index % 6) * 80)),
                           curve: Curves.easeOut,
                           builder: (context, value, child) {
                             return Opacity(

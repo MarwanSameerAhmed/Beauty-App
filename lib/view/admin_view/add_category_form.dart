@@ -175,7 +175,9 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
                                       },
                                     ),
                                     const SizedBox(height: 20),
-                                    _buildParentCategoryDropdown(),
+                                    // إظهار اختيار الصنف الرئيسي فقط عند الإضافة أو تعديل صنف فرعي
+                                    if (widget.category == null || widget.category!.parentId != null)
+                                      _buildParentCategoryDropdown(),
                                     const SizedBox(height: 30),
                                     GradientElevatedButton(
                                       text: widget.category == null ? 'حفظ الصنف' : 'تحديث الصنف',
