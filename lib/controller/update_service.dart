@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glamify/controller/remote_config_service.dart';
@@ -125,9 +125,11 @@ class UpdateService {
 
   /// رابط المتجر حسب النظام
   String _getStoreUrl() {
-    if (Platform.isAndroid) {
+    if (kIsWeb) return '';
+    // نستخدم defaultTargetPlatform بدل dart:io عشان يشتغل على الويب
+    if (defaultTargetPlatform == TargetPlatform.android) {
       return _remoteConfig.storeUrlAndroid;
-    } else if (Platform.isIOS) {
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return _remoteConfig.storeUrlIos;
     }
     return '';
