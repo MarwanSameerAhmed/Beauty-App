@@ -109,15 +109,24 @@ class _ProductCardState extends State<ProductCard> {
       child: Stack(
         children: [
           Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(borderRadius),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(borderRadius),
+                  ),
+                ),
+                padding: const EdgeInsets.all(12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(borderRadius - 2),
+                  ),
+                  child: AppCachedImage(
+                    imageUrl: widget.product.images.first,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
-              child: AppCachedImage(
-                imageUrl: widget.product.images.first,
-                fit: BoxFit.cover,
-              ),
-            ),
           ),
           Positioned(
             top: ResponsiveHelper.isMobile ? 12 : 14,
