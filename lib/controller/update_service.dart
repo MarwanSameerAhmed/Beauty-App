@@ -45,6 +45,9 @@ class UpdateService {
   /// فحص التحديث
   Future<UpdateInfo> checkForUpdate() async {
     try {
+      // نجلب آخر قيم من Firebase أولاً
+      await _remoteConfig.fetchConfig();
+
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version; // مثلاً "1.0.1"
       final latestVersion = _remoteConfig.latestVersion;
@@ -59,6 +62,14 @@ class UpdateService {
         'min': minVersion,
         'forceAfterDays': forceAfterDays,
       });
+
+      // طباعة للتتبع
+      print('🔄 [UPDATE CHECK]');
+      print('   النسخة الحالية: $currentVersion');
+      print('   آخر نسخة (Firebase): $latestVersion');
+      print('   أقل نسخة مسموحة: $minVersion');
+      print('   أيام الإجبار: $forceAfterDays');
+      print('   النتيجة: ${_compareVersions(currentVersion, latestVersion)}');
 
       // النسخة الحالية = أو أحدث من latest → ما فيه تحديث
       if (_compareVersions(currentVersion, latestVersion) >= 0) {

@@ -344,13 +344,13 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => _generateAndShareInvoice(),
+                      onPressed: () => _contactViaWhatsApp(),
                       icon: const Icon(
-                        Icons.picture_as_pdf,
+                        Icons.chat,
                         color: Colors.white,
                       ),
                       label: const Text(
-                        'إنشاء فاتورة PDF وإرسالها',
+                        'تأكيد الطلب عبر واتساب',
                         style: TextStyle(
                           fontFamily: 'Tajawal',
                           fontSize: 18,
@@ -756,6 +756,64 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
         },
       ),
     );
+  }
+
+  /// تواصل مباشر عبر واتساب بدون إنشاء فاتورة
+  Future<void> _contactViaWhatsApp() async {
+    try {
+      final companySettings = CompanySettingsService();
+      final storeWhatsApp = await companySettings.getWhatsappNumber();
+
+      // بناء رسالة ملخص الطلب
+      final activeItems = _items
+          .where((item) => item['userAction'] != 'rejected')
+          .toList();
+
+      String itemsList = '';
+      for (var item in activeItems) {
+        final price = (item['price'] ?? 0.0).toDouble();
+        final quantity = (item['quantity'] ?? 1).toInt();
+        itemsList += '• ${item['name']} × $quantity = ${(price * quantity).toStringAsFixed(2)} ر.س\n';
+      }
+
+      final message = '''مرحباً، أريد تأكيد طلبي 🛒
+
+رقم الطلب: ${widget.order.id}
+
+المنتجات:
+$itemsList
+الإجمالي: ${_totalPrice.toStringAsFixed(2)} ر.س
+
+أرجو تأكيد الطلب، شكراً لكم 🙏''';
+
+      final String whatsappUrl =
+          'https://wa.me/$storeWhatsApp?text=${Uri.encodeComponent(message)}';
+
+      if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+        await launchUrl(
+          Uri.parse(whatsappUrl),
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تعذر فتح واتساب'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('حدث خطأ: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _generateAndShareInvoice() async {

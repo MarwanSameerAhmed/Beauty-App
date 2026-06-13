@@ -404,81 +404,117 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   subtitle: 'مراجعة وتسعير المنتجات',
                 ),
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      final item = _items[index];
-                      final isRejected = item['userAction'] == 'rejected';
-                      return Opacity(
-                        opacity: isRejected ? 0.6 : 1.0,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20.0),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 8),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isRejected
-                                    ? Colors.grey.withOpacity(0.4)
-                                    : const Color(0xFFF9D5D3).withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(20.0),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
-                                  width: 1.5,
+                  child: Column(
+                    children: [
+                      // زر قبول الكل - يظهر فقط عند وجود أسعار مقترحة
+                      if (_status == 'awaiting_admin_approval' &&
+                          _items.any((item) => item['userAction'] == 'proposed'))
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 44,
+                            child: ElevatedButton.icon(
+                              onPressed: _acceptAllProposedPrices,
+                              icon: const Icon(Icons.done_all, color: Colors.white, size: 20),
+                              label: Text(
+                                'قبول جميع الأسعار المقترحة (${_items.where((i) => i['userAction'] == 'proposed').length})',
+                                style: const TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    child: Image.network(
-                                      item['imageUrl'],
-                                      width: 70,
-                                      height: 70,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 15),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item['name'],
-                                          style: const TextStyle(
-                                            fontFamily: 'Tajawal',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'الكمية: ${item['quantity']}',
-                                          style: const TextStyle(
-                                            fontFamily: 'Tajawal',
-                                            fontSize: 14,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        // عرض السعر الأصلي كـ hint أنيق
-                                        _buildPriceHint(item),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  _buildItemActions(item, index),
-                                ],
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green.shade600,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                elevation: 4,
                               ),
                             ),
                           ),
                         ),
-                      );
-                    },
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          itemCount: _items.length,
+                          itemBuilder: (context, index) {
+                            final item = _items[index];
+                            final isRejected = item['userAction'] == 'rejected';
+                            return Opacity(
+                              opacity: isRejected ? 0.6 : 1.0,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20.0),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(vertical: 8),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: isRejected
+                                          ? Colors.grey.withOpacity(0.4)
+                                          : const Color(0xFFF9D5D3).withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(20.0),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.3),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(12.0),
+                                          child: Image.network(
+                                            item['imageUrl'],
+                                            width: 70,
+                                            height: 70,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 15),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item['name'],
+                                                style: const TextStyle(
+                                                  fontFamily: 'Tajawal',
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'الكمية: ${item['quantity']}',
+                                                style: const TextStyle(
+                                                  fontFamily: 'Tajawal',
+                                                  fontSize: 14,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              // عرض السعر الأصلي كـ hint أنيق
+                                              _buildPriceHint(item),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        _buildItemActions(item, index),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -701,6 +737,34 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             _validateButtonState(); // Re-validate after price change
           });
         },
+      ),
+    );
+  }
+
+  /// قبول جميع الأسعار المقترحة من العميل دفعة واحدة
+  void _acceptAllProposedPrices() {
+    setState(() {
+      for (final item in _items) {
+        if (item['userAction'] == 'proposed') {
+          item['price'] = item['proposedPrice'];
+          item['userAction'] = 'admin_approved';
+          final key = item['productId']?.toString() ?? item['name']?.toString();
+          if (key != null) {
+            _priceControllers[key]?.text = item['price'].toString();
+          }
+        }
+      }
+    });
+    _validateButtonState();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'تم قبول جميع الأسعار المقترحة ✅',
+          style: TextStyle(fontFamily: 'Tajawal'),
+        ),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
       ),
     );
   }
