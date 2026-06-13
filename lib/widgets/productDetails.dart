@@ -151,8 +151,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           Hero(
             tag: 'product-image-${widget.product.id}',
             child: Padding(
-              padding: const EdgeInsets.only(
-                top: 15,
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 10,
                 bottom: 60,
                 left: 0,
                 right: 0,
