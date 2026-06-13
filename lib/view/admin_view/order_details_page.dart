@@ -626,13 +626,30 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             _buildPriceTextField(item),
-            const Chip(
-              label: Text(
-                'وافق العميل',
-                style: TextStyle(color: Colors.white, fontSize: 10),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
               ),
-              backgroundColor: Colors.green,
-              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 14),
+                  SizedBox(width: 4),
+                  Text(
+                    'قبول مباشر',
+                    style: TextStyle(
+                      fontFamily: 'Tajawal',
+                      color: Colors.green,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         );
@@ -705,13 +722,43 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             _buildPriceTextField(item),
-            const Chip(
-              label: Text(
-                'تمت الموافقة',
-                style: TextStyle(color: Colors.white, fontSize: 10),
+            const SizedBox(height: 4),
+            if (item['proposedPrice'] != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  'مقترح العميل: ${(item['proposedPrice'] as num).toStringAsFixed(2)} ر.س',
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 10,
+                    color: Colors.deepOrange.shade400,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-              backgroundColor: Colors.blueAccent,
-              padding: EdgeInsets.symmetric(horizontal: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.blueAccent.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.swap_horiz, color: Colors.blueAccent, size: 14),
+                  SizedBox(width: 4),
+                  Text(
+                    'سعر مقترح ومُوافق',
+                    style: TextStyle(
+                      fontFamily: 'Tajawal',
+                      color: Colors.blueAccent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         );
