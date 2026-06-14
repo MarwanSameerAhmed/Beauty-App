@@ -519,7 +519,7 @@ class _AddProductUiState extends State<AddProductUi> {
                       ),
                       child: TextFormField(
                         controller: _barcodeController,
-                        readOnly: true,
+                        readOnly: false,
                         textDirection: TextDirection.ltr,
                         style: const TextStyle(
                           color: Colors.black87,
@@ -527,8 +527,9 @@ class _AddProductUiState extends State<AddProductUi> {
                           fontWeight: FontWeight.bold,
                           letterSpacing: 2.0,
                         ),
+                        validator: (v) => (v == null || v.trim().isEmpty) ? 'الباركود مطلوب — أدخله يدوياً أو اضغط زر التوليد' : null,
                         decoration: InputDecoration(
-                          hintText: 'الباركود (يُولَّد تلقائياً)',
+                          hintText: 'أدخل الباركود يدوياً أو اضغط التوليد التلقائي',
                           hintTextDirection: TextDirection.rtl,
                           hintStyle: TextStyle(color: Colors.black.withOpacity(0.5)),
                           border: InputBorder.none,
@@ -540,8 +541,7 @@ class _AddProductUiState extends State<AddProductUi> {
                             Icons.qr_code,
                             color: Colors.black.withOpacity(0.7),
                           ),
-                          suffixIcon: !_isEditing
-                              ? IconButton(
+                          suffixIcon: IconButton(
                                   icon: Icon(
                                     Icons.refresh,
                                     color: Colors.black.withOpacity(0.7),
@@ -551,9 +551,8 @@ class _AddProductUiState extends State<AddProductUi> {
                                       _barcodeController.text = BarcodeService.generateBarcode();
                                     });
                                   },
-                                  tooltip: 'توليد باركود جديد',
-                                )
-                              : null,
+                                  tooltip: 'توليد باركود تلقائي',
+                                ),
                         ),
                       ),
                     ),
