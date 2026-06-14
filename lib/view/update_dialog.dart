@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:glamify/controller/update_service.dart';
@@ -9,17 +10,20 @@ Future<void> showUpdateDialog(BuildContext context, UpdateInfo updateInfo) async
 
   await showGeneralDialog(
     context: context,
-    barrierDismissible: !isForce, // إجباري = ما يقفل
+    barrierDismissible: !isForce,
     barrierLabel: 'Update Dialog',
-    barrierColor: Colors.black.withOpacity(0.6),
-    transitionDuration: const Duration(milliseconds: 500),
+    barrierColor: Colors.black.withOpacity(0.5),
+    transitionDuration: const Duration(milliseconds: 600),
     transitionBuilder: (context, animation, secondaryAnimation, child) {
       final curvedAnimation = CurvedAnimation(
         parent: animation,
-        curve: Curves.easeOutBack,
+        curve: Curves.easeOutCubic,
       );
-      return ScaleTransition(
-        scale: Tween<double>(begin: 0.8, end: 1.0).animate(curvedAnimation),
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.15),
+          end: Offset.zero,
+        ).animate(curvedAnimation),
         child: FadeTransition(
           opacity: curvedAnimation,
           child: child,
@@ -28,7 +32,7 @@ Future<void> showUpdateDialog(BuildContext context, UpdateInfo updateInfo) async
     },
     pageBuilder: (context, animation, secondaryAnimation) {
       return PopScope(
-        canPop: !isForce, // إجباري = ما يرجع بزر الباك
+        canPop: !isForce,
         child: Center(
           child: _UpdateDialogContent(
             updateInfo: updateInfo,
@@ -55,37 +59,32 @@ class _UpdateDialogContent extends StatefulWidget {
 
 class _UpdateDialogContentState extends State<_UpdateDialogContent>
     with TickerProviderStateMixin {
-  late AnimationController _iconController;
-  late AnimationController _pulseController;
-  late Animation<double> _iconAnimation;
-  late Animation<double> _pulseAnimation;
+  late AnimationController _floatController;
+  late AnimationController _shimmerController;
+  late Animation<double> _floatAnimation;
 
   @override
   void initState() {
     super.initState();
-    _iconController = AnimationController(
+    _floatController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _shimmerController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
-    )..repeat(reverse: true);
+    )..repeat();
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _iconAnimation = Tween<double>(begin: -5, end: 5).animate(
-      CurvedAnimation(parent: _iconController, curve: Curves.easeInOut),
-    );
-
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    _floatAnimation = Tween<double>(begin: -4, end: 4).animate(
+      CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
   }
 
   @override
   void dispose() {
-    _iconController.dispose();
-    _pulseController.dispose();
+    _floatController.dispose();
+    _shimmerController.dispose();
     super.dispose();
   }
 
@@ -102,96 +101,102 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final dialogWidth = screenWidth * 0.85;
+    final dialogWidth = screenWidth * 0.88;
 
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        width: dialogWidth > 380 ? 380 : dialogWidth,
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9EDED).withOpacity(0.95),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.5),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF52002C).withOpacity(0.15),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                    offset: const Offset(0, 10),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: dialogWidth > 400 ? 400 : dialogWidth,
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withOpacity(0.97),
+                      const Color(0xFFFDF2F8).withOpacity(0.95),
+                    ],
                   ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // الهيدر مع الأيقونة
-                  _buildHeader(),
-
-                  // المحتوى
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    child: Column(
-                      children: [
-                        // العنوان
-                        Text(
-                          widget.isForce
-                              ? 'تحديث مطلوب'
-                              : 'تحديث جديد متاح! 🎉',
-                          style: const TextStyle(
-                            fontFamily: 'Tajawal',
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF52002C),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // الرسالة
-                        Text(
-                          widget.updateInfo.message,
-                          style: TextStyle(
-                            fontFamily: 'Tajawal',
-                            fontSize: 14,
-                            color: Colors.black.withOpacity(0.7),
-                            height: 1.5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // معلومات النسخة
-                        _buildVersionInfo(),
-
-                        const SizedBox(height: 8),
-
-                        // عداد الأيام (للاختياري فقط)
-                        if (!widget.isForce &&
-                            widget.updateInfo.remainingDays > 0)
-                          _buildDaysCounter(),
-
-                        // تحذير الإجبار
-                        if (widget.isForce) _buildForceWarning(),
-
-                        const SizedBox(height: 20),
-
-                        // الأزرار
-                        _buildButtons(),
-                      ],
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.6),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF52002C).withOpacity(0.08),
+                      blurRadius: 40,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 16),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildElegantHeader(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(28, 20, 28, 28),
+                      child: Column(
+                        children: [
+                          // العنوان
+                          Text(
+                            widget.isForce
+                                ? 'تحديث مطلوب'
+                                : 'نسخة جديدة متاحة ✨',
+                            style: const TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D1B33),
+                              letterSpacing: -0.3,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          // الرسالة
+                          Text(
+                            widget.updateInfo.message,
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 14,
+                              color: const Color(0xFF2D1B33).withOpacity(0.6),
+                              height: 1.6,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // شريط النسخة
+                          _buildVersionStrip(),
+
+                          const SizedBox(height: 16),
+
+                          // عداد الأيام أو تحذير
+                          if (!widget.isForce &&
+                              widget.updateInfo.remainingDays > 0)
+                            _buildSoftDaysCounter(),
+                          if (widget.isForce) _buildSoftForceWarning(),
+
+                          const SizedBox(height: 24),
+
+                          // الأزرار
+                          _buildElegantButtons(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -200,64 +205,78 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildElegantHeader() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 28),
+      padding: const EdgeInsets.symmetric(vertical: 32),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
           colors: widget.isForce
               ? [
-                  const Color(0xFF52002C),
-                  const Color(0xFF8B1A4A),
+                  const Color(0xFF3D0A24),
+                  const Color(0xFF6B1D47),
+                  const Color(0xFF942A59),
                 ]
               : [
-                  const Color(0xFF52002C).withOpacity(0.85),
-                  const Color(0xFF942A59).withOpacity(0.85),
+                  const Color(0xFF6B1D47).withOpacity(0.9),
+                  const Color(0xFFA93670).withOpacity(0.85),
+                  const Color(0xFFD4608C).withOpacity(0.8),
                 ],
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(40),
-          bottomRight: Radius.circular(40),
         ),
       ),
       child: AnimatedBuilder(
-        animation: _iconAnimation,
+        animation: _floatAnimation,
         builder: (context, child) {
           return Transform.translate(
-            offset: Offset(0, _iconAnimation.value),
+            offset: Offset(0, _floatAnimation.value),
             child: Column(
               children: [
+                // أيقونة دائرية مع تأثير توهج
                 Container(
-                  width: 72,
-                  height: 72,
+                  width: 76,
+                  height: 76,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
                     shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.15),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withOpacity(0.25),
                       width: 2,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.1),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                    ],
                   ),
                   child: Icon(
                     widget.isForce
-                        ? Icons.system_update_alt_rounded
-                        : Icons.rocket_launch_rounded,
+                        ? Icons.security_update_warning_rounded
+                        : Icons.auto_awesome_rounded,
                     color: Colors.white,
-                    size: 36,
+                    size: 34,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'v${widget.updateInfo.latestVersion}',
-                  style: TextStyle(
-                    fontFamily: 'Tajawal',
-                    fontSize: 13,
-                    color: Colors.white.withOpacity(0.9),
-                    fontWeight: FontWeight.w500,
-                  ),
+
+                const SizedBox(height: 12),
+
+                // نقاط زخرفية صغيرة
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (i) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: i == 1 ? 20 : 6,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(i == 1 ? 0.6 : 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -267,43 +286,51 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent>
     );
   }
 
-  Widget _buildVersionInfo() {
+  Widget _buildVersionStrip() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF52002C).withOpacity(0.06),
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFF8F0F5),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF52002C).withOpacity(0.1),
+          color: const Color(0xFFE8D5E0),
+          width: 1,
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildVersionChip(
-            'الحالية',
+          _buildVersionLabel(
+            'نسختك',
             widget.updateInfo.currentVersion,
-            const Color(0xFF999999),
+            const Color(0xFF9E9E9E),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Icon(
-              Icons.arrow_forward_rounded,
-              color: const Color(0xFF52002C).withOpacity(0.5),
-              size: 20,
-            ),
+          // سهم متحرك
+          AnimatedBuilder(
+            animation: _shimmerController,
+            builder: (context, _) {
+              final value = _shimmerController.value;
+              return Opacity(
+                opacity: 0.4 + (sin(value * pi * 2) * 0.3),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Color(0xFF942A59),
+                  size: 20,
+                ),
+              );
+            },
           ),
-          _buildVersionChip(
+          _buildVersionLabel(
             'الجديدة',
             widget.updateInfo.latestVersion,
-            const Color(0xFF52002C),
+            const Color(0xFF942A59),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildVersionChip(String label, String version, Color color) {
+  Widget _buildVersionLabel(String label, String version, Color color) {
     return Column(
       children: [
         Text(
@@ -311,114 +338,143 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent>
           style: TextStyle(
             fontFamily: 'Tajawal',
             fontSize: 11,
-            color: color.withOpacity(0.7),
+            color: color.withOpacity(0.65),
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 2),
-        Text(
-          'v$version',
-          style: TextStyle(
-            fontFamily: 'Tajawal',
-            fontSize: 15,
-            color: color,
-            fontWeight: FontWeight.bold,
+        const SizedBox(height: 3),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'v$version',
+            style: TextStyle(
+              fontFamily: 'Tajawal',
+              fontSize: 14,
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDaysCounter() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFF3CD).withOpacity(0.7),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: const Color(0xFFFFD93D).withOpacity(0.4),
-          ),
+  Widget _buildSoftDaysCounter() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFFFE082).withOpacity(0.5),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.timer_outlined,
-              color: Color(0xFFB8860B),
-              size: 18,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9A825).withOpacity(0.15),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(width: 8),
-            Text(
-              'باقي ${widget.updateInfo.remainingDays} يوم للتحديث الإجباري',
+            child: const Icon(
+              Icons.schedule_rounded,
+              color: Color(0xFFF9A825),
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              'متبقي ${widget.updateInfo.remainingDays} يوم قبل التحديث الإجباري',
               style: const TextStyle(
                 fontFamily: 'Tajawal',
                 fontSize: 12,
-                color: Color(0xFFB8860B),
+                color: Color(0xFF8D6E00),
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildForceWarning() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFE0E0).withOpacity(0.7),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: const Color(0xFFEF5350).withOpacity(0.3),
-          ),
+  Widget _buildSoftForceWarning() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFCE4EC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFF48FB1).withOpacity(0.4),
         ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              color: Color(0xFFD32F2F),
-              size: 18,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE91E63).withOpacity(0.12),
+              shape: BoxShape.circle,
             ),
-            SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'يجب تحديث التطبيق للمتابعة',
-                style: TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontSize: 12,
-                  color: Color(0xFFD32F2F),
-                  fontWeight: FontWeight.w600,
-                ),
+            child: const Icon(
+              Icons.info_outline_rounded,
+              color: Color(0xFFC62828),
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Flexible(
+            child: Text(
+              'يجب التحديث للاستمرار في استخدام التطبيق',
+              style: TextStyle(
+                fontFamily: 'Tajawal',
+                fontSize: 12,
+                color: Color(0xFFC62828),
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildButtons() {
+  Widget _buildElegantButtons() {
     return Column(
       children: [
-        // زر التحديث
-        ScaleTransition(
-          scale: _pulseAnimation,
-          child: SizedBox(
-            width: double.infinity,
-            height: 50,
+        // زر التحديث الرئيسي
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF52002C), Color(0xFF942A59)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF52002C).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: ElevatedButton(
               onPressed: _openStore,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF52002C),
-                foregroundColor: Colors.white,
-                elevation: 4,
-                shadowColor: const Color(0xFF52002C).withOpacity(0.4),
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -426,7 +482,7 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent>
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.system_update_rounded, size: 22),
+                  Icon(Icons.upgrade_rounded, size: 22, color: Colors.white),
                   SizedBox(width: 10),
                   Text(
                     'تحديث الآن',
@@ -434,6 +490,7 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent>
                       fontFamily: 'Tajawal',
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -444,20 +501,21 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent>
 
         // زر لاحقاً (اختياري فقط)
         if (!widget.isForce) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: Text(
-              'لاحقاً',
+              'تذكيري لاحقاً',
               style: TextStyle(
                 fontFamily: 'Tajawal',
                 fontSize: 14,
-                color: Colors.black.withOpacity(0.5),
+                color: const Color(0xFF2D1B33).withOpacity(0.45),
                 fontWeight: FontWeight.w500,
               ),
             ),

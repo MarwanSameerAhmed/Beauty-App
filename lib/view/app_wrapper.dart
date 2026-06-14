@@ -28,6 +28,10 @@ class AppWrapper extends StatefulWidget {
 }
 
 class _AppWrapperState extends State<AppWrapper> {
+  /// مفتاح عداد فتحات التطبيق للتحديث الاختياري
+  static const String _appOpenCountKey = 'update_app_open_count';
+  /// عدد الفتحات قبل إعادة إظهار الدايلوق
+  static const int _showEveryNOpens = 5;
 
   @override
   void initState() {
@@ -68,30 +72,66 @@ class _AppWrapperState extends State<AppWrapper> {
 
       switch (updateInfo.status) {
         case UpdateStatus.forceUpdate:
-          // تحديث إجباري → dialog ما يقفل
+          // تحديث إجباري → dialog ما يقفل — يظهر دائماً
           AppLogger.info('Force update required', tag: 'UPDATE');
           showUpdateDialog(context, updateInfo);
           break;
 
         case UpdateStatus.optionalUpdate:
-          // تحديث اختياري → نتحقق إذا ما تخطاه قبل
-          final wasDismissed = await updateService
-              .wasUpdateDismissedForSession(updateInfo.latestVersion);
-          if (!wasDismissed && mounted) {
-            AppLogger.info('Optional update available', tag: 'UPDATE');
+          // تحديث اختياري → نظام ذكي: يظهر كل 5 فتحات
+          final shouldShow = await _shouldShowOptionalUpdate(updateInfo.latestVersion);
+          if (shouldShow && mounted) {
+            AppLogger.info('Showing optional update (periodic)', tag: 'UPDATE');
             await showUpdateDialog(context, updateInfo);
-            // لما يقفل الـ dialog = ضغط "لاحقاً"
-            await updateService.dismissUpdate(updateInfo.latestVersion);
           }
           break;
 
         case UpdateStatus.upToDate:
+          // محدث → نمسح العداد
+          await _resetOpenCount();
           AppLogger.debug('App is up to date', tag: 'UPDATE');
           break;
       }
     } catch (e) {
       AppLogger.error('Error checking for updates', tag: 'UPDATE', error: e);
     }
+  }
+
+  /// هل نعرض دايلوق التحديث الاختياري؟
+  /// أول مرة: نعم. بعدها كل 5 فتحات.
+  Future<bool> _shouldShowOptionalUpdate(String latestVersion) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // نتحقق إذا النسخة تغيرت — نعيد العداد
+    final lastKnownVersion = prefs.getString('update_last_known_version') ?? '';
+    if (lastKnownVersion != latestVersion) {
+      // نسخة جديدة → نعيد العداد ونعرض فوراً
+      await prefs.setString('update_last_known_version', latestVersion);
+      await prefs.setInt(_appOpenCountKey, 0);
+      AppLogger.info('New version detected ($latestVersion), resetting counter', tag: 'UPDATE');
+      return true;
+    }
+
+    // نفس النسخة → نزيد العداد
+    final currentCount = (prefs.getInt(_appOpenCountKey) ?? 0) + 1;
+    await prefs.setInt(_appOpenCountKey, currentCount);
+
+    AppLogger.debug('Optional update open count: $currentCount / $_showEveryNOpens', tag: 'UPDATE');
+
+    // نعرض عند كل مضاعف لـ 5
+    if (currentCount >= _showEveryNOpens) {
+      await prefs.setInt(_appOpenCountKey, 0); // نعيد العداد
+      return true;
+    }
+
+    return false;
+  }
+
+  /// مسح عداد الفتحات (عند التحديث)
+  Future<void> _resetOpenCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_appOpenCountKey);
+    await prefs.remove('update_last_known_version');
   }
 
   @override
