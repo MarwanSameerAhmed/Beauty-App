@@ -16,8 +16,49 @@ class MyOrdersPage extends StatefulWidget {
 }
 
 class _MyOrdersPageState extends State<MyOrdersPage> {
+  List<QueryDocumentSnapshot>? _orders;
+  bool _isLoading = true;
 
-    @override
+  @override
+  void initState() {
+    super.initState();
+    _loadOrders();
+  }
+
+  /// جلب الطلبات مرة واحدة (Future بدل Stream)
+  Future<void> _loadOrders() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || user.isAnonymous) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('customer_orders')
+          .where('userId', isEqualTo: user.uid)
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      if (mounted) {
+        setState(() {
+          _orders = snapshot.docs;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  /// تحديث (Pull-to-Refresh)
+  Future<void> _onRefresh() async {
+    await _loadOrders();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
@@ -77,6 +118,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
         ),
       );
     }
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: FlowerBackground(
@@ -89,212 +131,169 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                 subtitle: 'تتبّع حالة طلباتك السابقة والحالية',
               ),
               Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('customer_orders')
-                            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-                            .orderBy('timestamp', descending: true)
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: Loader(),
-                            );
-                          }
-                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                            return const Center(
-                              child: Text(
-                                'ليس لديك طلبات حاليًا.',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontFamily: 'Tajawal',
-                                  color: Colors.black,
-                                ),
-                              ),
-                            );
-                          }
-
-                          final orders = snapshot.data!.docs;
-
-                          if (orders.isEmpty) {
-                            return const Center(
-                              child: Text(
-                                'ليس لديك طلبات حاليًا.',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontFamily: 'Tajawal',
-                                  color: Colors.white70,
-                                ),
-                              ),
-                            );
-                          }
-
-                          return ListView.builder(
-                            padding: const EdgeInsets.only(
-                              bottom: 80,
-                            ), // To avoid overlap with bottom nav bar
-                            itemCount: orders.length,
-                            itemBuilder: (context, index) {
-                              final order = orders[index];
-                              final orderData = order.data() as Map<String, dynamic>;
-                              final status = orderData['status'];
-                              final orderDate = (orderData['timestamp'] as Timestamp).toDate();
-                              final bool isCancelled = status == 'cancelled';
-                              final items = orderData['items'] as List? ?? [];
-
-                              final String titleText = isCancelled ? 'طلب ملغي' : items.isNotEmpty ? items[0]['name'] : 'طلب فارغ';
-                              final String? imageUrl = isCancelled || items.isEmpty ? null : items[0]['imageUrl'];
-
-                              final formattedDate =
-                                  '${orderDate.year}-${orderDate.month.toString().padLeft(2, '0')}-${orderDate.day.toString().padLeft(2, '0')}';
-
-                              return GestureDetector(
-                                onTap: () {
-                                  if (isCancelled) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('هذا الطلب ملغي ولا يمكن عرض تفاصيله.', style: TextStyle(fontFamily: 'Tajawal')),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  } else {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            CustomerOrderDetailsPage(
-                                              order: order,
-                                            ),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(25.0),
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                      sigmaX: 5.0,
-                                      sigmaY: 5.0,
-                                    ),
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 15,
-                                        vertical: 10,
-                                      ),
-                                      padding: const EdgeInsets.all(12),
-                                      height: 110,
-                                      decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFFF9D5D3,
-                                        ).withOpacity(0.5),
-                                        borderRadius: BorderRadius.circular(
-                                          25.0,
-                                        ),
-                                        border: Border.all(
-                                          color: Colors.white.withOpacity(0.3),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(15.0),
-                                            child: imageUrl != null
-                                                ? Image.network(
-                                                    imageUrl,
-                                                    width: 90,
-                                                    height: 90,
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : Container(
-                                                    width: 90,
-                                                    height: 90,
-                                                    color: Colors.grey.shade300,
-                                                    child: Icon(
-                                                      Icons.cancel_outlined,
-                                                      color: Colors.red.shade400,
-                                                      size: 40,
-                                                    ),
-                                                  ),
-                                          ),
-                                          const SizedBox(width: 15),
-                                          Expanded(
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  titleText,
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontFamily: 'Tajawal',
-                                                    color: isCancelled ? Colors.red.shade400 : Colors.black,
-                                                    decoration: isCancelled ? TextDecoration.lineThrough : TextDecoration.none,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  'تاريخ الطلب: $formattedDate',
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Tajawal',
-                                                    fontSize: 14,
-                                                    color: Colors.black54,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 4,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: _getStatusColor(
-                                                      status,
-                                                    ).withOpacity(0.8),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    _getStatusText(status),
-                                                    style: const TextStyle(
-                                                      fontFamily: 'Tajawal',
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 13,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (!isCancelled)
-                                            const Icon(
-                                              Icons.arrow_forward_ios,
-                                              color: Colors.grey,
-                                              size: 20,
-                                            ),
-                                        ],
-                                      ),
+                child: RefreshIndicator(
+                  onRefresh: _onRefresh,
+                  color: const Color(0xFF52002C),
+                  backgroundColor: Colors.white,
+                  child: _isLoading
+                      ? const Center(child: Loader())
+                      : (_orders == null || _orders!.isEmpty)
+                          ? ListView(
+                              // ListView فاضي عشان RefreshIndicator يشتغل
+                              children: const [
+                                SizedBox(height: 200),
+                                Center(
+                                  child: Text(
+                                    'ليس لديك طلبات حاليًا.',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontFamily: 'Tajawal',
+                                      color: Colors.black,
                                     ),
                                   ),
                                 ),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                              ],
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 80),
+                              itemCount: _orders!.length,
+                              itemBuilder: (context, index) {
+                                return _buildOrderCard(_orders![index]);
+                              },
+                            ),
+                ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderCard(QueryDocumentSnapshot order) {
+    final orderData = order.data() as Map<String, dynamic>;
+    final status = orderData['status'];
+    final orderDate = (orderData['timestamp'] as Timestamp).toDate();
+    final bool isCancelled = status == 'cancelled';
+    final items = orderData['items'] as List? ?? [];
+
+    final String titleText = isCancelled ? 'طلب ملغي' : items.isNotEmpty ? items[0]['name'] : 'طلب فارغ';
+    final String? imageUrl = isCancelled || items.isEmpty ? null : items[0]['imageUrl'];
+
+    final formattedDate =
+        '${orderDate.year}-${orderDate.month.toString().padLeft(2, '0')}-${orderDate.day.toString().padLeft(2, '0')}';
+
+    return GestureDetector(
+      onTap: () {
+        if (isCancelled) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('هذا الطلب ملغي ولا يمكن عرض تفاصيله.', style: TextStyle(fontFamily: 'Tajawal')),
+              backgroundColor: Colors.red,
+            ),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CustomerOrderDetailsPage(order: order),
+            ),
+          ).then((_) => _loadOrders()); // تحديث لما يرجع
+        }
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(25.0),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            padding: const EdgeInsets.all(12),
+            height: 110,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9D5D3).withOpacity(0.5),
+              borderRadius: BorderRadius.circular(25.0),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15.0),
+                  child: imageUrl != null
+                      ? Image.network(
+                          imageUrl,
+                          width: 90,
+                          height: 90,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          width: 90,
+                          height: 90,
+                          color: Colors.grey.shade300,
+                          child: Icon(
+                            Icons.cancel_outlined,
+                            color: Colors.red.shade400,
+                            size: 40,
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        titleText,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Tajawal',
+                          color: isCancelled ? Colors.red.shade400 : Colors.black,
+                          decoration: isCancelled ? TextDecoration.lineThrough : TextDecoration.none,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'تاريخ الطلب: $formattedDate',
+                        style: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontSize: 14,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(status).withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          _getStatusText(status),
+                          style: const TextStyle(
+                            fontFamily: 'Tajawal',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!isCancelled)
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+              ],
+            ),
           ),
         ),
       ),

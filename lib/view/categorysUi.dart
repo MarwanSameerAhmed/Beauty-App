@@ -22,10 +22,13 @@ class _CategorysState extends State<Categorys> {
   final ProductService _productService = ProductService();
   final ScrollController _mainCategoryScrollController = ScrollController();
   
-  // Cache للبيانات
-  Stream<List<Category>>? _categoriesStream;
+  // البيانات المحمّلة
   List<Category> _allCategories = [];
-  List<Category>? _cachedCategories;
+  List<Product> _products = [];
+  
+  // حالة التحميل
+  bool _isCategoriesLoading = true;
+  bool _isProductsLoading = true;
   
   String? _selectedMainCategoryId;
   String? _selectedSubCategoryId;
@@ -35,14 +38,75 @@ class _CategorysState extends State<Categorys> {
   @override
   void initState() {
     super.initState();
-    // تهيئة الـ stream مرة واحدة فقط
-    _categoriesStream = _categoryService.getCategories();
+    _loadCategories();
+    _loadProducts();
   }
   
   @override
   void dispose() {
     _mainCategoryScrollController.dispose();
     super.dispose();
+  }
+
+  /// جلب الأقسام مرة واحدة (Future بدل Stream)
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await _categoryService.getCategoriesFuture();
+      if (mounted) {
+        setState(() {
+          _allCategories = categories;
+          _isCategoriesLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isCategoriesLoading = false);
+      }
+    }
+  }
+
+  /// جلب المنتجات مرة واحدة بناءً على القسم المحدد
+  Future<void> _loadProducts() async {
+    setState(() => _isProductsLoading = true);
+
+    try {
+      List<Product> products;
+
+      if (_selectedSubCategoryId != null) {
+        products = await _productService.getProductsByCategoryOnce(
+          _selectedSubCategoryId!,
+        );
+      } else if (_selectedMainCategoryId != null) {
+        final categoryIds = [_selectedMainCategoryId!];
+        final subCategoryIds = _allCategories
+            .where((c) => c.parentId == _selectedMainCategoryId)
+            .map((c) => c.id)
+            .toList();
+        categoryIds.addAll(subCategoryIds);
+        products = await _productService.getProductsByCategoriesOnce(categoryIds);
+      } else {
+        products = await _productService.getProductsOnce();
+      }
+
+      if (mounted) {
+        setState(() {
+          _products = products;
+          _isProductsLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProductsLoading = false);
+      }
+    }
+  }
+
+  /// تحديث كل البيانات (Pull-to-Refresh)
+  Future<void> _onRefresh() async {
+    await Future.wait([
+      _loadCategories(),
+      _loadProducts(),
+    ]);
   }
 
   @override
@@ -53,49 +117,30 @@ class _CategorysState extends State<Categorys> {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const CustomHeaderUser(
-                title: 'الاقسام',
-                subtitle: "اختر القسم لتعرض المنتجات المرتبطة به",
-              ),
-              SizedBox(
-                height: 60,
-                child: StreamBuilder<List<Category>>(
-                  stream: _categoriesStream,
-                  builder: (context, snapshot) {
-                    // استخدام الـ cache أثناء الانتظار
-                    if (snapshot.connectionState == ConnectionState.waiting && _cachedCategories != null) {
-                      _allCategories = _cachedCategories!;
-                      final mainCategories = _allCategories.where((c) => c.parentId == null).toList();
-                      return _buildMainCategoryList(mainCategories);
-                    }
-                    
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: Loader());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('لا توجد أقسام حالياً'));
-                    }
-
-                    _allCategories = snapshot.data!;
-                    _cachedCategories = snapshot.data;
-                    final mainCategories = _allCategories
-                        .where((c) => c.parentId == null)
-                        .toList();
-
-                    return _buildMainCategoryList(mainCategories);
-                  },
+          body: RefreshIndicator(
+            onRefresh: _onRefresh,
+            color: const Color(0xFF52002C),
+            backgroundColor: Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CustomHeaderUser(
+                  title: 'الاقسام',
+                  subtitle: "اختر القسم لتعرض المنتجات المرتبطة به",
                 ),
-              ),
-              _buildSubCategoryList(),
-              Expanded(child: _buildProductsGrid()),
-              const SizedBox(height: 65.0),
-            ],
+                SizedBox(
+                  height: 60,
+                  child: _isCategoriesLoading
+                      ? const Center(child: Loader())
+                      : _buildMainCategoryList(
+                          _allCategories.where((c) => c.parentId == null).toList(),
+                        ),
+                ),
+                _buildSubCategoryList(),
+                Expanded(child: _buildProductsGrid()),
+                const SizedBox(height: 65.0),
+              ],
+            ),
           ),
         ),
       ),
@@ -117,12 +162,12 @@ class _CategorysState extends State<Categorys> {
                 _selectedMainCategoryId = null;
                 _selectedSubCategoryId = null;
               });
-              // Scroll للبداية
               _mainCategoryScrollController.animateTo(
                 0,
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
               );
+              _loadProducts();
             },
             child: CategoryCard(
               category: Category(id: 'all', name: 'الكل'),
@@ -138,17 +183,17 @@ class _CategorysState extends State<Categorys> {
             setState(() {
               _selectedMainIndex = categoryIndex;
               _selectedMainCategoryId = category.id;
-              _selectedSubCategoryId = null; // Reset sub-category selection
+              _selectedSubCategoryId = null;
               _selectedSubIndex = -1;
             });
-            // Scroll للعنصر المحدد
-            final itemWidth = 100.0; // عرض تقريبي للـ CategoryCard
+            final itemWidth = 100.0;
             final scrollPosition = index * itemWidth;
             _mainCategoryScrollController.animateTo(
               scrollPosition.clamp(0, _mainCategoryScrollController.position.maxScrollExtent),
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
             );
+            _loadProducts();
           },
           child: CategoryCard(
             category: category,
@@ -206,6 +251,7 @@ class _CategorysState extends State<Categorys> {
                                 _selectedSubIndex = -1;
                                 _selectedSubCategoryId = null;
                               });
+                              _loadProducts();
                             },
                             child: CategoryCard(
                               category: Category(id: 'all_sub', name: 'الكل'),
@@ -223,6 +269,7 @@ class _CategorysState extends State<Categorys> {
                               _selectedSubIndex = subCategoryIndex;
                               _selectedSubCategoryId = subCategory.id;
                             });
+                            _loadProducts();
                           },
                           child: CategoryCard(
                             category: subCategory,
@@ -240,73 +287,44 @@ class _CategorysState extends State<Categorys> {
   }
 
   Widget _buildProductsGrid() {
-    final Stream<List<Product>> productsStream;
-
-    if (_selectedSubCategoryId != null) {
-      // A sub-category is selected
-      productsStream = _productService.getProductsByCategory(
-        _selectedSubCategoryId!,
-      );
-    } else if (_selectedMainCategoryId != null) {
-      // A main category is selected, get products from it and all its sub-categories
-      final categoryIds = [_selectedMainCategoryId!];
-      final subCategoryIds = _allCategories
-          .where((c) => c.parentId == _selectedMainCategoryId)
-          .map((c) => c.id)
-          .toList();
-      categoryIds.addAll(subCategoryIds);
-      productsStream = _productService.getProductsByCategories(categoryIds);
-    } else {
-      // 'All' is selected
-      productsStream = _productService.getProducts();
+    if (_isProductsLoading) {
+      return const Center(child: Loader());
     }
 
-    return StreamBuilder<List<Product>>(
-      stream: productsStream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: Loader());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
-            child: Text(
-              'لا توجد منتجات في هذا التصنيف حالياً',
-              style: TextStyle(fontFamily: 'Tajawal', fontSize: 16),
-            ),
-          );
-        }
+    if (_products.isEmpty) {
+      return const Center(
+        child: Text(
+          'لا توجد منتجات في هذا التصنيف حالياً',
+          style: TextStyle(fontFamily: 'Tajawal', fontSize: 16),
+        ),
+      );
+    }
 
-        final products = snapshot.data!;
-        return GridView.builder(
-          padding: const EdgeInsets.all(16.0),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 9.0,
-            crossAxisSpacing: 9.0,
-            childAspectRatio: 0.8,
+    return GridView.builder(
+      padding: const EdgeInsets.all(16.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 9.0,
+        crossAxisSpacing: 9.0,
+        childAspectRatio: 0.8,
+      ),
+      itemCount: _products.length,
+      itemBuilder: (context, index) {
+        final product = _products[index];
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: ProductCard(
+            product: product,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProductDetailsPage(product: product),
+                ),
+              );
+            },
           ),
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final product = products[index];
-            return Directionality(
-              textDirection: TextDirection.ltr,
-              child: ProductCard(
-                product: product,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ProductDetailsPage(product: product),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
         );
       },
     );

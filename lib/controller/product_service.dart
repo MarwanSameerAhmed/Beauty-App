@@ -120,6 +120,35 @@ class ProductService {
     });
   }
 
+  // جلب المنتجات بالصنف مرة واحدة (Future — للعميل)
+  Future<List<Product>> getProductsByCategoryOnce(String categoryId) async {
+    try {
+      final snapshot = await _productsCollection
+          .where('categoryId', isEqualTo: categoryId)
+          .get();
+      return snapshot.docs
+          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // جلب المنتجات بعدة أصناف مرة واحدة (Future — للعميل)
+  Future<List<Product>> getProductsByCategoriesOnce(List<String> categoryIds) async {
+    if (categoryIds.isEmpty) return [];
+    try {
+      final snapshot = await _productsCollection
+          .where('categoryId', whereIn: categoryIds)
+          .get();
+      return snapshot.docs
+          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
   Stream<List<Product>> getProductsByCompanyId(String companyId) {
     return _productsCollection
         .where('companyId', isEqualTo: companyId)

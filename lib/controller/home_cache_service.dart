@@ -14,10 +14,11 @@ class HomeCacheService {
   static const String _keyAds = 'home_cache_ads';
   static const String _keyCarouselAds = 'home_cache_carousel';
   static const String _keySections = 'home_cache_sections';
+  static const String _keyCategories = 'home_cache_categories';
   static const String _keyLastFetch = 'home_cache_last_fetch';
 
-  /// مدة صلاحية الكاش (10 دقائق)
-  static const Duration cacheValidity = Duration(minutes: 10);
+  /// مدة صلاحية الكاش (30 دقيقة)
+  static const Duration cacheValidity = Duration(minutes: 30);
 
   /// هل الكاش صالح (ما انتهت صلاحيته)
   static Future<bool> isCacheValid() async {
@@ -98,6 +99,18 @@ class HomeCacheService {
       AppLogger.info('Cached ${sections.length} sections', tag: 'CACHE');
     } catch (e) {
       AppLogger.error('Failed to cache sections', tag: 'CACHE', error: e);
+    }
+  }
+
+  /// حفظ الأقسام (Categories)
+  static Future<void> cacheCategories(List categories) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = categories.map((c) => jsonEncode(c.toMap())).toList();
+      await prefs.setStringList(_keyCategories, jsonList.cast<String>());
+      AppLogger.info('Cached ${categories.length} categories', tag: 'CACHE');
+    } catch (e) {
+      AppLogger.error('Failed to cache categories', tag: 'CACHE', error: e);
     }
   }
 
@@ -202,6 +215,23 @@ class HomeCacheService {
     }
   }
 
+  /// جلب الأقسام (Categories) المحفوظة
+  static Future<List<Map<String, dynamic>>> getCachedCategories() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = prefs.getStringList(_keyCategories);
+      if (jsonList == null || jsonList.isEmpty) return [];
+
+      return jsonList.map((json) {
+        return jsonDecode(json) as Map<String, dynamic>;
+      }).toList();
+    } catch (e) {
+      AppLogger.error('Failed to get cached categories', tag: 'CACHE', error: e);
+      return [];
+    }
+  }
+
+
   /// مسح كل الكاش
   static Future<void> clearCache() async {
     try {
@@ -211,6 +241,7 @@ class HomeCacheService {
         prefs.remove(_keyAds),
         prefs.remove(_keyCarouselAds),
         prefs.remove(_keySections),
+        prefs.remove(_keyCategories),
         prefs.remove(_keyLastFetch),
       ]);
       AppLogger.info('Cache cleared', tag: 'CACHE');
