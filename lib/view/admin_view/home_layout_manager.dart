@@ -253,7 +253,9 @@ class _HomeLayoutManagerState extends State<HomeLayoutManager> {
                               ? [Colors.purple.shade400, Colors.purple.shade600]
                               : section.isAdsSection
                                   ? [Colors.blue.shade400, Colors.blue.shade600]
-                                  : [Colors.orange.shade400, Colors.orange.shade600],
+                                  : section.isPosterSection
+                                      ? [Colors.deepPurple.shade400, Colors.deepPurple.shade600]
+                                      : [Colors.orange.shade400, Colors.orange.shade600],
                         ),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
@@ -262,7 +264,9 @@ class _HomeLayoutManagerState extends State<HomeLayoutManager> {
                                 ? Colors.purple 
                                 : section.isAdsSection 
                                     ? Colors.blue 
-                                    : Colors.orange).withOpacity(0.3),
+                                    : section.isPosterSection
+                                        ? Colors.deepPurple
+                                        : Colors.orange).withOpacity(0.3),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -282,7 +286,9 @@ class _HomeLayoutManagerState extends State<HomeLayoutManager> {
                                 ? 'كاروسيل'
                                 : section.isAdsSection 
                                     ? 'إعلانات'
-                                    : 'منتجات',
+                                    : section.isPosterSection
+                                        ? 'بوستر'
+                                        : 'منتجات',
                             style: const TextStyle(
                               fontFamily: 'Tajawal',
                               fontSize: 13,
@@ -361,6 +367,43 @@ class _HomeLayoutManagerState extends State<HomeLayoutManager> {
                     ),
                   ],
                 ),
+                // بادج مربوط ببوستر
+                if (!section.isPosterSection)
+                  Builder(
+                    builder: (_) {
+                      final linkedPoster = _sections
+                          .where((s) => s.isPosterSection && s.linkedSectionIds.contains(section.id))
+                          .toList();
+                      if (linkedPoster.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.deepPurple.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.deepPurple.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.collections, size: 14, color: Colors.deepPurple),
+                              const SizedBox(width: 4),
+                              Text(
+                                'مربوط بـ: ${linkedPoster.map((p) => p.title).join("، ")}',
+                                style: const TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.deepPurple,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
             trailing: IconButton(

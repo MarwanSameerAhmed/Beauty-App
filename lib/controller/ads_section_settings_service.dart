@@ -239,6 +239,53 @@ class AdsSectionSettingsService {
     }
   }
 
+  // إضافة بوستر جامع جديد
+  Future<void> addPosterSection({
+    required String title,
+    required List<String> linkedSectionIds,
+    String? posterImageUrl,
+    String? description,
+  }) async {
+    try {
+      final lastOrderQuery = await _firestore
+          .collection(_collection)
+          .orderBy('order', descending: true)
+          .limit(1)
+          .get();
+      
+      final nextOrder = lastOrderQuery.docs.isEmpty ? 0 : 
+          (lastOrderQuery.docs.first.data()['order'] ?? 0) + 1;
+
+      final poster = AdsSectionSettings.createPosterSection(
+        title: title,
+        order: nextOrder,
+        linkedSectionIds: linkedSectionIds,
+        posterImageUrl: posterImageUrl,
+        description: description,
+      );
+
+      await addNewSection(poster);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // تحديث الأقسام المربوطة ببوستر
+  Future<void> updatePosterLinkedSections(String posterId, List<String> linkedSectionIds) async {
+    await _firestore
+        .collection(_collection)
+        .doc(posterId)
+        .update({'linkedSectionIds': linkedSectionIds});
+  }
+
+  // تحديث صورة البوستر
+  Future<void> updatePosterImage(String posterId, String imageUrl) async {
+    await _firestore
+        .collection(_collection)
+        .doc(posterId)
+        .update({'posterImageUrl': imageUrl});
+  }
+
   // الحصول على جميع الأقسام مع محتواها (إعلانات ومنتجات)
   Stream<List<Map<String, dynamic>>> getAllSectionsWithContent() {
     return getSectionSettings().asyncMap((sections) async {

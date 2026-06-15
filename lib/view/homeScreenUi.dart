@@ -23,6 +23,7 @@ import 'package:glamify/view/favoritesUi.dart';
 import 'package:glamify/view/company_products_page.dart';
 import 'package:glamify/utils/responsive_helper.dart';
 import 'package:glamify/utils/logger.dart';
+import 'package:glamify/view/poster_page.dart';
 
 class Homescreenui extends StatefulWidget {
   final TabController tabController;
@@ -177,17 +178,10 @@ class _HomescreenuiState extends State<Homescreenui>
           .get();
 
       return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return AdsSectionSettings(
-          id: doc.id,
-          title: data['title'] ?? '',
-          position: data['position'] ?? 'middle',
-          order: data['order'] ?? 0,
-          isVisible: data['isVisible'] ?? true,
-          type: data['type'] ?? 'ads',
-          maxItems: data['maxItems'] ?? 6,
-          description: data['description'],
-        );
+        return AdsSectionSettings.fromMap({
+          ...doc.data(),
+          'id': doc.id,
+        });
       }).toList();
     } catch (e) {
       return [];
@@ -306,8 +300,17 @@ class _HomescreenuiState extends State<Homescreenui>
 
   /// بناء التخطيط الديناميكي من الأقسام
   Widget _buildDynamicLayout() {
-    final sections = List<AdsSectionSettings>.from(_sections!)
+    final allSections = List<AdsSectionSettings>.from(_sections!)
       ..sort((a, b) => a.order.compareTo(b.order));
+
+    // جمع IDs الأقسام المربوطة بالبوسترات — هذه تختفي من الهوم
+    final Set<String> linkedIds = {};
+    for (final s in allSections.where((s) => s.isPosterSection)) {
+      linkedIds.addAll(s.linkedSectionIds);
+    }
+
+    // فلترة: عرض البوسترات + الأقسام الغير مربوطة فقط
+    final sections = allSections.where((s) => !linkedIds.contains(s.id)).toList();
 
     return SliverList(
       delegate: SliverChildBuilderDelegate((context, index) {
@@ -322,6 +325,8 @@ class _HomescreenuiState extends State<Homescreenui>
               SizedBox(height: ResponsiveHelper.verticalSpacing),
             ],
           );
+        } else if (section.isPosterSection) {
+          return _buildPosterBanner(section);
         } else if (section.isAdsSection) {
           return _buildAdsSectionWidget(section);
         } else if (section.isProductsSection) {
@@ -332,6 +337,158 @@ class _HomescreenuiState extends State<Homescreenui>
       }, childCount: sections.length),
     );
   }
+
+  /// بناء بانر البوستر
+  Widget _buildPosterBanner(AdsSectionSettings poster) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveHelper.horizontalPadding,
+        vertical: ResponsiveHelper.verticalSpacing,
+      ),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PosterPage(
+                poster: poster,
+                allSections: _sections ?? [],
+                allAds: _ads ?? [],
+                allProducts: _products ?? [],
+              ),
+            ),
+          );
+        },
+        child: Container(
+          height: ResponsiveHelper.rectangleAdHeight + 20,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF52002C).withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // صورة البوستر
+                if (poster.posterImageUrl != null && poster.posterImageUrl!.isNotEmpty)
+                  Image.network(
+                    poster.posterImageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF52002C), Color(0xFF7A0039), Color(0xFFB5004F)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF52002C), Color(0xFF7A0039), Color(0xFFB5004F)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                  ),
+                // Gradient overlay — من اليمين للعربي
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerRight,
+                      end: Alignment.centerLeft,
+                      colors: [
+                        Colors.black.withOpacity(0.7),
+                        Colors.black.withOpacity(0.05),
+                      ],
+                    ),
+                  ),
+                ),
+                // النص والمحتوى — من اليمين وفي الأسفل
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        poster.title,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black38,
+                              blurRadius: 10,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (poster.description != null && poster.description!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            poster.description!,
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 13,
+                              color: Colors.white.withOpacity(0.85),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.4),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.arrow_back_ios, color: Colors.white, size: 14),
+                            SizedBox(width: 4),
+                            Text(
+                              'اكتشف الآن',
+                              style: TextStyle(
+                                fontFamily: 'Tajawal',
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
 
   /// التخطيط الافتراضي
   Widget _buildDefaultLayout() {

@@ -6,6 +6,8 @@ import 'package:glamify/view/admin_view/product_section_management_page.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/custom_admin_header.dart';
 import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/controller/image_upload_service.dart';
+import 'package:file_picker/file_picker.dart';
 
 class AdsSectionsManager extends StatefulWidget {
   const AdsSectionsManager({Key? key}) : super(key: key);
@@ -25,7 +27,7 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
     });
@@ -137,7 +139,7 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
                                   size: 18,
                                 ),
                                 SizedBox(width: 8),
-                                Text('أقسام الإعلانات'),
+                                Text('الإعلانات'),
                               ],
                             ),
                           ),
@@ -150,7 +152,20 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
                                   size: 18,
                                 ),
                                 SizedBox(width: 8),
-                                Text('أقسام المنتجات'),
+                                Text('المنتجات'),
+                              ],
+                            ),
+                          ),
+                          Tab(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.collections_outlined,
+                                  size: 18,
+                                ),
+                                SizedBox(width: 8),
+                                Text('البوسترات'),
                               ],
                             ),
                           ),
@@ -181,6 +196,8 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
         _buildAdsSectionsTab(),
         // تبويب أقسام المنتجات
         _buildProductsSectionsTab(),
+        // تبويب البوسترات
+        _buildPostersSectionsTab(),
       ],
     );
   }
@@ -609,6 +626,42 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
                         color: Colors.grey,
                       ),
                     ),
+                  // بادج مربوط ببوستر
+                  Builder(
+                    builder: (context) {
+                      final linkedPoster = _sections
+                          .where((s) => s.isPosterSection && s.linkedSectionIds.contains(section.id))
+                          .toList();
+                      if (linkedPoster.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.purple.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.collections, size: 14, color: Colors.purple),
+                              const SizedBox(width: 4),
+                              Text(
+                                'مربوط بـ: ${linkedPoster.map((p) => p.title).join("، ")}',
+                                style: const TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.purple,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
               trailing: Row(
@@ -1170,20 +1223,614 @@ class _AdsSectionsManagerState extends State<AdsSectionsManager>
       ),
     );
   }
+
+  // ========== تبويب البوسترات ==========
+
+  Widget _buildPostersSectionsTab() {
+    final posterSections = _sections.where((s) => s.isPosterSection).toList();
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          _buildPostersInfoCard(posterSections),
+          const SizedBox(height: 20),
+          _buildPostersSectionsList(posterSections),
+          const SizedBox(height: 20),
+          _buildPostersActionButtons(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostersInfoCard(List<AdsSectionSettings> posterSections) {
+    final visiblePosters = posterSections.where((s) => s.isVisible).length;
+    
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.purple.withOpacity(0.1),
+                  Colors.deepPurple.withOpacity(0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.purple,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.collections,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    const Expanded(
+                      child: Text(
+                        'البوسترات الجامعة',
+                        style: TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'بوستر يجمع عدة أقسام تحت مسمى واحد في الصفحة الرئيسية',
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 13,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        'إجمالي البوسترات',
+                        '${posterSections.length}',
+                        Icons.collections,
+                        Colors.purple,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildStatCard(
+                        'المرئية',
+                        '$visiblePosters',
+                        Icons.visibility,
+                        Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPostersSectionsList(List<AdsSectionSettings> posterSections) {
+    if (posterSections.isEmpty) {
+      return _buildEmptyState(
+        'لا توجد بوسترات',
+        'ابدأ بإضافة بوستر جامع جديد',
+        Icons.collections_outlined,
+      );
     }
 
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: posterSections.length,
+      itemBuilder: (context, index) {
+        final poster = posterSections[index];
+        return _buildPosterCard(poster);
+      },
+    );
+  }
 
+  Widget _buildPosterCard(AdsSectionSettings poster) {
+    final linkedCount = poster.linkedSectionIds.length;
+    // الأقسام المربوطة
+    final linkedNames = _sections
+        .where((s) => poster.linkedSectionIds.contains(s.id))
+        .map((s) => s.title)
+        .toList();
 
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.purple.withOpacity(0.3),
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              children: [
+                // صورة البوستر المصغرة
+                if (poster.posterImageUrl != null && poster.posterImageUrl!.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: Image.network(
+                      poster.posterImageUrl!,
+                      height: 100,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 60,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF52002C), Color(0xFFB5004F)],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.purple,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.collections,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    poster.title,
+                    style: const TextStyle(
+                      fontFamily: 'Tajawal',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 4),
+                      Text(
+                        '$linkedCount أقسام مربوطة',
+                        style: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontSize: 12,
+                          color: Colors.purple,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (linkedNames.isNotEmpty)
+                        Text(
+                          linkedNames.join(' • '),
+                          style: const TextStyle(
+                            fontFamily: 'Tajawal',
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Switch(
+                        value: poster.isVisible,
+                        onChanged: (value) => _toggleSectionVisibility(poster.id, value),
+                        activeColor: Colors.purple,
+                      ),
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          switch (value) {
+                            case 'edit':
+                              _showEditPosterDialog(poster);
+                              break;
+                            case 'delete':
+                              _showDeleteConfirmation(poster);
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, size: 18),
+                                SizedBox(width: 8),
+                                Text('تعديل', style: TextStyle(fontFamily: 'Tajawal')),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, size: 18, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('حذف', style: TextStyle(fontFamily: 'Tajawal', color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-  
+  Widget _buildPostersActionButtons() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton.icon(
+        onPressed: () => _showAddPosterDialog(),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'إضافة بوستر جامع جديد',
+          style: TextStyle(
+            fontFamily: 'Tajawal',
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.purple,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          elevation: 5,
+        ),
+      ),
+    );
+  }
 
- 
+  // ديالوق إضافة بوستر جديد
+  void _showAddPosterDialog() {
+    _showPosterFormDialog(null);
+  }
 
- 
+  void _showEditPosterDialog(AdsSectionSettings poster) {
+    _showPosterFormDialog(poster);
+  }
 
- 
+  void _showPosterFormDialog(AdsSectionSettings? existingPoster) {
+    final titleController = TextEditingController(text: existingPoster?.title ?? '');
+    final descController = TextEditingController(text: existingPoster?.description ?? '');
+    String? imageUrl = existingPoster?.posterImageUrl;
+    Set<String> selectedIds = Set<String>.from(existingPoster?.linkedSectionIds ?? []);
+    bool isLoading = false;
+    bool isUploading = false;
 
- 
- 
+    // الأقسام القابلة للربط (إعلانات + منتجات فقط)
+    final linkableSections = _sections
+        .where((s) => s.isAdsSection || s.isProductsSection)
+        .toList();
 
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    constraints: const BoxConstraints(maxHeight: 600),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.all(24),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            existingPoster != null ? 'تعديل البوستر' : 'إضافة بوستر جامع جديد',
+                            style: const TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purple,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // اسم البوستر
+                          TextField(
+                            controller: titleController,
+                            decoration: const InputDecoration(
+                              labelText: 'اسم البوستر (مثلاً: العناية)',
+                              labelStyle: TextStyle(fontFamily: 'Tajawal'),
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.title),
+                            ),
+                            style: const TextStyle(fontFamily: 'Tajawal'),
+                          ),
+                          const SizedBox(height: 15),
+                          // وصف البوستر
+                          TextField(
+                            controller: descController,
+                            decoration: const InputDecoration(
+                              labelText: 'الوصف (اختياري)',
+                              labelStyle: TextStyle(fontFamily: 'Tajawal'),
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.description),
+                            ),
+                            style: const TextStyle(fontFamily: 'Tajawal'),
+                          ),
+                          const SizedBox(height: 15),
+                          // رفع صورة البوستر
+                          const Text(
+                            'صورة البوستر',
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: isUploading ? null : () async {
+                              final result = await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                withData: true,
+                              );
+                              if (result != null && result.files.single.bytes != null) {
+                                setState(() => isUploading = true);
+                                try {
+                                  final urls = await ImageUploadService.instance.uploadMultipleImages(
+                                    [result.files.single.bytes!],
+                                    '/posters',
+                                  );
+                                  if (urls.isNotEmpty) {
+                                    setState(() {
+                                      imageUrl = urls.first;
+                                    });
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('خطأ في رفع الصورة: $e'), backgroundColor: Colors.red),
+                                  );
+                                } finally {
+                                  setState(() => isUploading = false);
+                                }
+                              }
+                            },
+                            child: Container(
+                              height: 120,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: isUploading
+                                  ? const Center(child: CircularProgressIndicator())
+                                  : imageUrl != null && imageUrl!.isNotEmpty
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Image.network(
+                                            imageUrl!,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                          ),
+                                        )
+                                      : const Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.cloud_upload, size: 40, color: Colors.grey),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              'اضغط لرفع صورة البوستر',
+                                              style: TextStyle(fontFamily: 'Tajawal', color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // اختيار الأقسام المربوطة
+                          const Text(
+                            'اختر الأقسام المربوطة',
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          if (linkableSections.isEmpty)
+                            const Text(
+                              'لا توجد أقسام لربطها. أضف أقسام إعلانات أو منتجات أولاً.',
+                              style: TextStyle(fontFamily: 'Tajawal', color: Colors.grey),
+                            )
+                          else
+                            Container(
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: linkableSections.length,
+                                itemBuilder: (context, index) {
+                                  final section = linkableSections[index];
+                                  final isSelected = selectedIds.contains(section.id);
+                                  return CheckboxListTile(
+                                    dense: true,
+                                    value: isSelected,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        if (val == true) {
+                                          selectedIds.add(section.id);
+                                        } else {
+                                          selectedIds.remove(section.id);
+                                        }
+                                      });
+                                    },
+                                    title: Text(
+                                      section.title,
+                                      style: const TextStyle(fontFamily: 'Tajawal', fontSize: 14),
+                                    ),
+                                    subtitle: Text(
+                                      section.isAdsSection ? 'قسم إعلانات' : 'قسم منتجات',
+                                      style: TextStyle(
+                                        fontFamily: 'Tajawal',
+                                        fontSize: 11,
+                                        color: section.isAdsSection
+                                            ? const Color(0xFF52002C)
+                                            : Colors.orange,
+                                      ),
+                                    ),
+                                    secondary: Icon(
+                                      section.isAdsSection
+                                          ? Icons.campaign_outlined
+                                          : Icons.inventory_2_outlined,
+                                      color: section.isAdsSection
+                                          ? const Color(0xFF52002C)
+                                          : Colors.orange,
+                                      size: 20,
+                                    ),
+                                    activeColor: Colors.purple,
+                                  );
+                                },
+                              ),
+                            ),
+                          const SizedBox(height: 20),
+                          // أزرار
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: isLoading ? null : () => Navigator.pop(context),
+                                  child: const Text('إلغاء', style: TextStyle(fontFamily: 'Tajawal', color: Colors.grey)),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: isLoading ? null : () async {
+                                    if (titleController.text.trim().isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('يرجى إدخال اسم البوستر'), backgroundColor: Colors.red),
+                                      );
+                                      return;
+                                    }
+                                    if (selectedIds.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('يرجى اختيار قسم واحد على الأقل'), backgroundColor: Colors.red),
+                                      );
+                                      return;
+                                    }
 
+                                    setState(() => isLoading = true);
+                                    try {
+                                      if (existingPoster != null) {
+                                        // تعديل
+                                        final updated = existingPoster.copyWith(
+                                          title: titleController.text.trim(),
+                                          description: descController.text.trim().isEmpty ? null : descController.text.trim(),
+                                          posterImageUrl: imageUrl,
+                                          linkedSectionIds: selectedIds.toList(),
+                                        );
+                                        await _settingsService.updateSectionSettings(updated);
+                                      } else {
+                                        // إضافة
+                                        await _settingsService.addPosterSection(
+                                          title: titleController.text.trim(),
+                                          linkedSectionIds: selectedIds.toList(),
+                                          posterImageUrl: imageUrl,
+                                          description: descController.text.trim().isEmpty ? null : descController.text.trim(),
+                                        );
+                                      }
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(existingPoster != null ? 'تم تحديث البوستر' : 'تم إضافة البوستر'),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                      _loadSections();
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('خطأ: $e'), backgroundColor: Colors.red),
+                                      );
+                                    } finally {
+                                      setState(() => isLoading = false);
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.purple,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: isLoading
+                                      ? const SizedBox(
+                                          width: 20, height: 20,
+                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                        )
+                                      : Text(
+                                          existingPoster != null ? 'حفظ' : 'إضافة',
+                                          style: const TextStyle(fontFamily: 'Tajawal', color: Colors.white),
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}

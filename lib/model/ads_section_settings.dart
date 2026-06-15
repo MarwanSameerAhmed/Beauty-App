@@ -6,9 +6,11 @@ class AdsSectionSettings {
   final String title;
   final bool isVisible;
   final int order;
-  final String type; // 'ads' أو 'products' أو 'carousel'
+  final String type; // 'ads' أو 'products' أو 'carousel' أو 'poster'
   final int maxItems; // عدد العناصر المعروضة
   final String? description; // وصف القسم (اختياري)
+  final List<String> linkedSectionIds; // أقسام مربوطة بالبوستر
+  final String? posterImageUrl; // صورة البوستر
 
   AdsSectionSettings({
     required this.id,
@@ -19,6 +21,8 @@ class AdsSectionSettings {
     this.type = 'ads',
     this.maxItems = 6,
     this.description,
+    this.linkedSectionIds = const [],
+    this.posterImageUrl,
   });
 
   factory AdsSectionSettings.fromMap(Map<String, dynamic> data) {
@@ -31,6 +35,8 @@ class AdsSectionSettings {
       type: data['type'] ?? 'ads',
       maxItems: data['maxItems'] ?? 6,
       description: data['description'],
+      linkedSectionIds: List<String>.from(data['linkedSectionIds'] ?? []),
+      posterImageUrl: data['posterImageUrl'],
     );
   }
 
@@ -44,6 +50,8 @@ class AdsSectionSettings {
       'type': type,
       'maxItems': maxItems,
       'description': description,
+      'linkedSectionIds': linkedSectionIds,
+      'posterImageUrl': posterImageUrl,
     };
   }
 
@@ -56,6 +64,8 @@ class AdsSectionSettings {
     String? type,
     int? maxItems,
     String? description,
+    List<String>? linkedSectionIds,
+    String? posterImageUrl,
   }) {
     return AdsSectionSettings(
       id: id ?? this.id,
@@ -66,6 +76,8 @@ class AdsSectionSettings {
       type: type ?? this.type,
       maxItems: maxItems ?? this.maxItems,
       description: description ?? this.description,
+      linkedSectionIds: linkedSectionIds ?? this.linkedSectionIds,
+      posterImageUrl: posterImageUrl ?? this.posterImageUrl,
     );
   }
 
@@ -157,6 +169,7 @@ class AdsSectionSettings {
   bool get isAdsSection => type == 'ads';
   bool get isProductsSection => type == 'products';
   bool get isCarouselSection => type == 'carousel';
+  bool get isPosterSection => type == 'poster';
 
   // الحصول على أيقونة القسم
   String get sectionIcon {
@@ -165,6 +178,8 @@ class AdsSectionSettings {
         return '🛍️';
       case 'carousel':
         return '🎠';
+      case 'poster':
+        return '🖼️';
       case 'ads':
       default:
         return '📢';
@@ -178,6 +193,8 @@ class AdsSectionSettings {
         return Icons.shopping_bag;
       case 'carousel':
         return Icons.view_carousel;
+      case 'poster':
+        return Icons.collections;
       case 'ads':
       default:
         return Icons.campaign;
@@ -191,9 +208,33 @@ class AdsSectionSettings {
         return 'قسم منتجات';
       case 'carousel':
         return 'البانر المتحرك';
+      case 'poster':
+        return 'بوستر جامع';
       case 'ads':
       default:
         return 'قسم إعلانات';
     }
+  }
+
+  // إنشاء بوستر جامع
+  static AdsSectionSettings createPosterSection({
+    required String title,
+    required int order,
+    required List<String> linkedSectionIds,
+    String? posterImageUrl,
+    String? description,
+  }) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return AdsSectionSettings(
+      id: 'poster_$timestamp',
+      position: 'middle',
+      title: title,
+      isVisible: true,
+      order: order,
+      type: 'poster',
+      linkedSectionIds: linkedSectionIds,
+      posterImageUrl: posterImageUrl,
+      description: description,
+    );
   }
 }

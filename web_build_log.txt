@@ -1,0 +1,76 @@
+﻿Compiling lib\main.dart for the Web...                          
+Font asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 1472 bytes (99.4% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "Entypo.ttf" was tree-shaken, reducing it from 66200 to 59852 bytes (9.6% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "EvilIcons.ttf" was tree-shaken, reducing it from 13456 to 11768 bytes (12.5% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "AntDesign.ttf" was tree-shaken, reducing it from 70344 to 61444 bytes (12.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "Feather.ttf" was tree-shaken, reducing it from 56228 to 52112 bytes (7.3% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "Foundation.ttf" was tree-shaken, reducing it from 56976 to 53220 bytes (6.6% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "FontAwesome.ttf" was tree-shaken, reducing it from 165548 to 156268 bytes (5.6% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "Fontisto.ttf" was tree-shaken, reducing it from 313528 to 311184 bytes (0.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "Ionicons.ttf" was tree-shaken, reducing it from 247192 to 224484 bytes (9.2% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "MaterialIcons.ttf" was tree-shaken, reducing it from 230384 to 186436 bytes (19.1% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+flutter : Codepoint 62694 not found in font, aborting.
+At line:1 char:1
++ flutter build web --release 2>&1 | Out-File -FilePath "web_build_log. ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Codepoint 62694...font, aborting.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+Codepoint 62694 not found in font, aborting.
+
+Codepoint 62694 not found in font, aborting.
+
+Codepoint 63116 not found in font, aborting.
+
+Font asset "SimpleLineIcons.ttf" was tree-shaken, reducing it from 54056 to 51012 bytes (5.6% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "Octicons.ttf" was tree-shaken, reducing it from 49404 to 45616 bytes (7.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "Zocial.ttf" was tree-shaken, reducing it from 25788 to 24012 bytes (6.9% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 23084 bytes (98.6% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Target web_release_bundle failed: IconTreeShakerException: Font subsetting failed with exit code -1.
+
+To disable icon tree shaking, pass --no-tree-shake-icons to the requested flutter build command
+#0      IconTreeShaker.subsetFont (package:flutter_tools/src/build_system/targets/icon_tree_shaker.dart:223:7)
+<asynchronous suspension>
+#1      copyAssets.<anonymous closure> (package:flutter_tools/src/build_system/targets/assets.dart:144:20)
+<asynchronous suspension>
+#2      Future.wait.<anonymous closure> (dart:async/future.dart:525:21)
+<asynchronous suspension>
+#3      copyAssets (package:flutter_tools/src/build_system/targets/assets.dart:106:3)
+<asynchronous suspension>
+#4      WebReleaseBundle.build (package:flutter_tools/src/build_system/targets/web.dart:457:29)
+<asynchronous suspension>
+#5      _BuildInstance._invokeInternal (package:flutter_tools/src/build_system/build_system.dart:873:9)
+<asynchronous suspension>
+#6      Future.wait.<anonymous closure> (dart:async/future.dart:525:21)
+<asynchronous suspension>
+#7      _BuildInstance.invokeTarget (package:flutter_tools/src/build_system/build_system.dart:811:32)
+<asynchronous suspension>
+#8      FlutterBuildSystem.build (package:flutter_tools/src/build_system/build_system.dart:629:16)
+<asynchronous suspension>
+#9      WebBuilder.buildWeb (package:flutter_tools/src/web/compile.dart:91:34)
+<asynchronous suspension>
+#10     BuildWebCommand.runCommand (package:flutter_tools/src/commands/build_web.dart:246:5)
+<asynchronous suspension>
+#11     FlutterCommand.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command.dart:1563:27)
+<asynchronous suspension>
+#12     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#13     CommandRunner.runCommand (package:args/command_runner.dart:212:13)
+<asynchronous suspension>
+#14     FlutterCommandRunner.runCommand.<anonymous closure> 
+(package:flutter_tools/src/runner/flutter_command_runner.dart:494:9)
+<asynchronous suspension>
+#15     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#16     FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:431:5)
+<asynchronous suspension>
+#17     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:98:11)
+<asynchronous suspension>
+#18     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#19     main (package:flutter_tools/executable.dart:102:3)
+<asynchronous suspension>
+
+Compiling lib\main.dart for the Web...                              7.3s
+Error: Failed to compile application for the Web.
