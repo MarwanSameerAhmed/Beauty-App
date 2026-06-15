@@ -676,88 +676,82 @@ class _AddProductUiState extends State<AddProductUi> {
   }
 
   Widget _buildCompanyDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _selectedCompanyId,
-      isExpanded: true,
-      hint: const Text('اختر الشركة', style: TextStyle(color: Colors.black54)),
-      decoration: _glassInputDecoration('الشركة'),
-      dropdownColor: Colors.pink[100]?.withOpacity(0.9),
-      style: const TextStyle(
-        color: Colors.black,
-        fontFamily: 'Tajawal',
-        fontWeight: FontWeight.bold,
-      ),
-      items: _companies.map((company) {
-        return DropdownMenuItem<String>(
-          value: company.id,
-          child: Text(company.name),
+    final selectedCompany = _companies.where((c) => c.id == _selectedCompanyId).toList();
+    final displayName = selectedCompany.isNotEmpty ? selectedCompany.first.name : null;
+
+    return _buildSearchableDropdown(
+      label: 'الشركة',
+      hint: 'اختر الشركة',
+      value: displayName,
+      validator: (_) => _selectedCompanyId == null ? 'الرجاء اختيار شركة' : null,
+      onTap: () async {
+        final result = await _showSearchDialog(
+          title: 'اختر الشركة',
+          items: _companies.map((c) => _SearchItem(id: c.id, name: c.name)).toList(),
+          selectedId: _selectedCompanyId,
         );
-      }).toList(),
-      onChanged: (value) => setState(() => _selectedCompanyId = value),
-      validator: (value) => value == null ? 'الرجاء اختيار شركة' : null,
+        if (result != null) {
+          setState(() => _selectedCompanyId = result);
+        }
+      },
     );
   }
 
   Widget _buildCategoryDropdowns() {
+    final selectedMain = _mainCategories.where((c) => c.id == _selectedMainCategoryId).toList();
+    final mainDisplayName = selectedMain.isNotEmpty ? selectedMain.first.name : null;
+
+    final selectedSub = _subCategories.where((c) => c.id == _selectedSubCategoryId).toList();
+    final subDisplayName = selectedSub.isNotEmpty ? selectedSub.first.name : null;
+
     return Column(
       children: [
-        // Main Category Dropdown
-        DropdownButtonFormField<String>(
-          value: _selectedMainCategoryId,
-          isExpanded: true,
-          hint: const Text('اختر الصنف الرئيسي', style: TextStyle(color: Colors.black54)),
-          decoration: _glassInputDecoration('الصنف الرئيسي'),
-          dropdownColor: Colors.pink[100]?.withOpacity(0.9),
-          style: const TextStyle(
-            color: Colors.black,
-            fontFamily: 'Tajawal',
-            fontWeight: FontWeight.bold,
-          ),
-          items: _mainCategories.map((category) {
-            return DropdownMenuItem<String>(
-              value: category.id,
-              child: Text(category.name),
+        // Main Category
+        _buildSearchableDropdown(
+          label: 'الصنف الرئيسي',
+          hint: 'اختر الصنف الرئيسي',
+          value: mainDisplayName,
+          validator: (_) => _selectedMainCategoryId == null ? 'الرجاء اختيار صنف رئيسي' : null,
+          onTap: () async {
+            final result = await _showSearchDialog(
+              title: 'اختر الصنف الرئيسي',
+              items: _mainCategories.map((c) => _SearchItem(id: c.id, name: c.name)).toList(),
+              selectedId: _selectedMainCategoryId,
             );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedMainCategoryId = value;
-              _selectedSubCategoryId = null; // Reset sub-category
-              _subCategories = _categories.where((c) => c.parentId == value).toList();
-            });
+            if (result != null) {
+              setState(() {
+                _selectedMainCategoryId = result;
+                _selectedSubCategoryId = null;
+                _subCategories = _categories.where((c) => c.parentId == result).toList();
+              });
+            }
           },
-          validator: (value) => value == null ? 'الرجاء اختيار صنف رئيسي' : null,
         ),
 
         if (_subCategories.isNotEmpty)
           const SizedBox(height: 16),
 
-        // Sub-Category Dropdown
+        // Sub-Category
         if (_subCategories.isNotEmpty)
-          DropdownButtonFormField<String>(
-            value: _selectedSubCategoryId,
-            isExpanded: true,
-            hint: const Text('اختر الصنف الفرعي', style: TextStyle(color: Colors.black54)),
-            decoration: _glassInputDecoration('الصنف الفرعي (اختياري)'),
-            dropdownColor: Colors.pink[100]?.withOpacity(0.9),
-            style: const TextStyle(
-              color: Colors.black,
-              fontFamily: 'Tajawal',
-              fontWeight: FontWeight.bold,
-            ),
-            items: _subCategories.map((category) {
-              return DropdownMenuItem<String>(
-                value: category.id,
-                child: Text(category.name),
-              );
-            }).toList(),
-            onChanged: (value) => setState(() => _selectedSubCategoryId = value),
-            // This field is optional if a main category is already selected
-            validator: (value) {
-              if (_selectedMainCategoryId != null && _subCategories.isNotEmpty && value == null) {
+          _buildSearchableDropdown(
+            label: 'الصنف الفرعي (اختياري)',
+            hint: 'اختر الصنف الفرعي',
+            value: subDisplayName,
+            validator: (_) {
+              if (_selectedMainCategoryId != null && _subCategories.isNotEmpty && _selectedSubCategoryId == null) {
                 return 'الرجاء اختيار صنف فرعي';
               }
               return null;
+            },
+            onTap: () async {
+              final result = await _showSearchDialog(
+                title: 'اختر الصنف الفرعي',
+                items: _subCategories.map((c) => _SearchItem(id: c.id, name: c.name)).toList(),
+                selectedId: _selectedSubCategoryId,
+              );
+              if (result != null) {
+                setState(() => _selectedSubCategoryId = result);
+              }
             },
           ),
       ],
@@ -789,6 +783,279 @@ class _AddProductUiState extends State<AddProductUi> {
         borderSide: BorderSide(
           color: Colors.black.withOpacity(0.4),
           width: 1.2,
+        ),
+      ),
+    );
+  }
+
+  /// حقل دروب داون قابل للبحث
+  Widget _buildSearchableDropdown({
+    required String label,
+    required String hint,
+    required String? value,
+    required VoidCallback onTap,
+    String? Function(String?)? validator,
+  }) {
+    return FormField<String>(
+      validator: validator,
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(15),
+              child: InputDecorator(
+                decoration: _glassInputDecoration(label).copyWith(
+                  errorText: state.errorText,
+                  suffixIcon: const Icon(Icons.arrow_drop_down, color: Colors.black54),
+                ),
+                child: Text(
+                  value ?? hint,
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontWeight: value != null ? FontWeight.bold : FontWeight.normal,
+                    color: value != null ? Colors.black : Colors.black54,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// ديالوج البحث — يظهر قائمة مع شريط بحث
+  Future<String?> _showSearchDialog({
+    required String title,
+    required List<_SearchItem> items,
+    String? selectedId,
+  }) async {
+    return showDialog<String>(
+      context: context,
+      builder: (context) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: _SearchDialog(
+            title: title,
+            items: items,
+            selectedId: selectedId,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// موديل عنصر البحث
+class _SearchItem {
+  final String id;
+  final String name;
+
+  _SearchItem({required this.id, required this.name});
+}
+
+/// ديالوج البحث — StatefulWidget مستقل
+class _SearchDialog extends StatefulWidget {
+  final String title;
+  final List<_SearchItem> items;
+  final String? selectedId;
+
+  const _SearchDialog({
+    required this.title,
+    required this.items,
+    this.selectedId,
+  });
+
+  @override
+  State<_SearchDialog> createState() => _SearchDialogState();
+}
+
+class _SearchDialogState extends State<_SearchDialog> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  List<_SearchItem> get _filteredItems {
+    if (_query.isEmpty) return widget.items;
+    return widget.items
+        .where((item) => item.name.toLowerCase().contains(_query.toLowerCase()))
+        .toList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.white,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+          maxWidth: 400,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // الهيدر
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF52002C).withOpacity(0.05),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        widget.title,
+                        style: const TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF52002C),
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 22),
+                        onPressed: () => Navigator.pop(context),
+                        color: Colors.grey,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // شريط البحث
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF52002C).withOpacity(0.15),
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 15,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'ابحث...',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Tajawal',
+                          color: Colors.grey.shade400,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: const Color(0xFF52002C).withOpacity(0.4),
+                        ),
+                        suffixIcon: _query.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close, size: 18),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _query = '');
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                      ),
+                      onChanged: (v) => setState(() => _query = v.trim()),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // عدد النتائج
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${_filteredItems.length} نتيجة',
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ),
+            ),
+
+            // القائمة
+            Flexible(
+              child: _filteredItems.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(30),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
+                            const SizedBox(height: 8),
+                            Text(
+                              'لا توجد نتائج',
+                              style: TextStyle(
+                                fontFamily: 'Tajawal',
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      itemCount: _filteredItems.length,
+                      separatorBuilder: (_, __) => Divider(
+                        height: 1,
+                        color: Colors.grey.shade200,
+                      ),
+                      itemBuilder: (context, index) {
+                        final item = _filteredItems[index];
+                        final isSelected = item.id == widget.selectedId;
+
+                        return ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          selected: isSelected,
+                          selectedTileColor: const Color(0xFF52002C).withOpacity(0.08),
+                          title: Text(
+                            item.name,
+                            style: TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              fontSize: 15,
+                              color: isSelected ? const Color(0xFF52002C) : Colors.black87,
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? const Icon(Icons.check_circle, color: Color(0xFF52002C), size: 22)
+                              : null,
+                          onTap: () => Navigator.pop(context, item.id),
+                        );
+                      },
+                    ),
+            ),
+            const SizedBox(height: 12),
+          ],
         ),
       ),
     );
