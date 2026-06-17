@@ -12,6 +12,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:glamify/controller/notification_service.dart';
+import 'package:intl/intl.dart' hide TextDirection;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:glamify/widgets/cached_image.dart';
 import 'package:glamify/controller/company_settings_service.dart';
 import '../utils/logger.dart';
 
@@ -120,8 +124,8 @@ class _CustomerOrderDetailsPageState extends State<CustomerOrderDetailsPage> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(12.0),
-                                    child: Image.network(
-                                      item['imageUrl'],
+                                    child: AppCachedImage(
+                                      imageUrl: item['imageUrl'],
                                       width: 70,
                                       height: 70,
                                       fit: BoxFit.cover,

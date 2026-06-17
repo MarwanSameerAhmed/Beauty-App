@@ -7,6 +7,7 @@ import 'package:glamify/view/customer_order_details_page.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/custom_Header_user.dart';
 import 'package:glamify/widgets/loader.dart';
+import 'package:glamify/widgets/cached_image.dart';
 
 class MyOrdersPage extends StatefulWidget {
   const MyOrdersPage({Key? key}) : super(key: key);
@@ -222,8 +223,8 @@ class _MyOrdersPageState extends State<MyOrdersPage> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(15.0),
                   child: imageUrl != null
-                      ? Image.network(
-                          imageUrl,
+                      ? AppCachedImage(
+                          imageUrl: imageUrl,
                           width: 90,
                           height: 90,
                           fit: BoxFit.cover,

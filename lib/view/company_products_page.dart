@@ -35,8 +35,8 @@ class CompanyProductsPage extends StatelessWidget {
                 subtitle: 'استعرض كافة منتجات الشركة',
               ),
               Expanded(
-                child: StreamBuilder<List<Product>>(
-                  stream: _productService.getProductsByCompanyId(companyId),
+                child: FutureBuilder<List<Product>>(
+                  future: _productService.getProductsByCompanyIdOnce(companyId),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: Loader());

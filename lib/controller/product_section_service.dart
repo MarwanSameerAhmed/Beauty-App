@@ -24,27 +24,40 @@ class ProductSectionService {
   Stream<List<Map<String, dynamic>>> getSectionProductsWithDetails(String sectionId) {
     return getSectionItems(sectionId).asyncMap((items) async {
       final List<Map<String, dynamic>> productsWithDetails = [];
+      final visibleItems = items.where((i) => i.isVisible).toList();
       
-      for (final item in items.where((i) => i.isVisible)) {
+      if (visibleItems.isEmpty) return [];
+
+      final productIds = visibleItems.map((i) => i.productId).toList();
+      final Map<String, Product> productsMap = {};
+
+      // Firestore 'whereIn' supports up to 10 items per query
+      for (var i = 0; i < productIds.length; i += 10) {
+        final chunk = productIds.sublist(i, i + 10 > productIds.length ? productIds.length : i + 10);
+        
         try {
-          final productDoc = await _firestore
+          final querySnapshot = await _firestore
               .collection('products')
-              .doc(item.productId)
+              .where(FieldPath.documentId, whereIn: chunk)
               .get();
-          
-          if (productDoc.exists) {
-            final product = Product.fromMap({
-              'id': productDoc.id,
-              ...productDoc.data()!,
-            });
-            
-            productsWithDetails.add({
-              'item': item,
-              'product': product,
+              
+          for (final doc in querySnapshot.docs) {
+            productsMap[doc.id] = Product.fromMap({
+              'id': doc.id,
+              ...doc.data(),
             });
           }
         } catch (e) {
-          // Error fetching product ${item.productId}: $e
+          // Error fetching chunk
+        }
+      }
+
+      for (final item in visibleItems) {
+        if (productsMap.containsKey(item.productId)) {
+          productsWithDetails.add({
+            'item': item,
+            'product': productsMap[item.productId]!,
+          });
         }
       }
       

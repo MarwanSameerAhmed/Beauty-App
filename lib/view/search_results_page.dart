@@ -145,13 +145,13 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
               // Search results
               Expanded(
-                child: StreamBuilder<List<Product>>(
-                  stream: widget.categoryId != null
-                      ? _productService.searchProductsWithCategory(
+                child: FutureBuilder<List<Product>>(
+                  future: widget.categoryId != null
+                      ? _productService.searchProductsWithCategoryOnce(
                           _currentQuery,
                           widget.categoryId,
                         )
-                      : _productService.searchProducts(_currentQuery),
+                      : _productService.searchProductsOnce(_currentQuery),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: Loader());

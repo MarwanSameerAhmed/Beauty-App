@@ -10,6 +10,7 @@ import 'package:glamify/widgets/loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:glamify/widgets/elegant_dialog.dart';
 import 'package:glamify/view/auth_Ui/login_ui.dart';
+import 'package:glamify/widgets/cached_image.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({Key? key}) : super(key: key);
@@ -183,8 +184,8 @@ class _CartPageState extends State<CartPage> {
                                                       bottomRight:
                                                           Radius.circular(20),
                                                     ),
-                                                child: Image.network(
-                                                  item.images.first,
+                                                child: AppCachedImage(
+                                                  imageUrl: item.images.first,
                                                   width: 110,
                                                   height: 110,
                                                   fit: BoxFit.cover,

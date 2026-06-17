@@ -160,6 +160,19 @@ class ProductService {
     });
   }
 
+  Future<List<Product>> getProductsByCompanyIdOnce(String companyId) async {
+    try {
+      final snapshot = await _productsCollection
+          .where('companyId', isEqualTo: companyId)
+          .get();
+      return snapshot.docs
+          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
   // تحديث منتج
   Future<void> updateProduct(Product product) async {
     try {
@@ -202,6 +215,27 @@ class ProductService {
     });
   }
 
+  Future<List<Product>> searchProductsOnce(String query) async {
+    if (query.isEmpty) {
+      return [];
+    }
+    
+    String searchQuery = query.toLowerCase().trim();
+    
+    try {
+      final snapshot = await _productsCollection.get();
+      return snapshot.docs
+          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .where((product) {
+            return product.name.toLowerCase().contains(searchQuery) ||
+                   product.description.toLowerCase().contains(searchQuery);
+          })
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
   // البحث المتقدم في المنتجات مع فلترة حسب الفئة
   Stream<List<Product>> searchProductsWithCategory(String query, String? categoryId) {
     if (query.isEmpty) {
@@ -225,6 +259,33 @@ class ProductService {
           .toList();
     });
   }
+
+  Future<List<Product>> searchProductsWithCategoryOnce(String query, String? categoryId) async {
+    if (query.isEmpty) {
+      return [];
+    }
+    
+    String searchQuery = query.toLowerCase().trim();
+    
+    Query queryRef = _productsCollection;
+    if (categoryId != null && categoryId.isNotEmpty) {
+      queryRef = queryRef.where('categoryId', isEqualTo: categoryId);
+    }
+    
+    try {
+      final snapshot = await queryRef.get();
+      return snapshot.docs
+          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .where((product) {
+            return product.name.toLowerCase().contains(searchQuery) ||
+                   product.description.toLowerCase().contains(searchQuery);
+          })
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
 
   // الحصول على اقتراحات البحث
   Future<List<String>> getSearchSuggestions(String query) async {

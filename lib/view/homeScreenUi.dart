@@ -24,6 +24,7 @@ import 'package:glamify/view/company_products_page.dart';
 import 'package:glamify/utils/responsive_helper.dart';
 import 'package:glamify/utils/logger.dart';
 import 'package:glamify/view/poster_page.dart';
+import 'package:glamify/widgets/cached_image.dart';
 
 class Homescreenui extends StatefulWidget {
   final TabController tabController;
@@ -378,10 +379,10 @@ class _HomescreenuiState extends State<Homescreenui>
               children: [
                 // صورة البوستر
                 if (poster.posterImageUrl != null && poster.posterImageUrl!.isNotEmpty)
-                  Image.network(
-                    poster.posterImageUrl!,
+                  AppCachedImage(
+                    imageUrl: poster.posterImageUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorWidget: Container(
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           colors: [Color(0xFF52002C), Color(0xFF7A0039), Color(0xFFB5004F)],

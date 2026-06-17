@@ -8,6 +8,7 @@ import 'package:glamify/widgets/productDetails.dart';
 import 'package:glamify/view/company_products_page.dart';
 import 'package:glamify/widgets/ad_loading_skeleton.dart';
 import 'package:glamify/utils/responsive_helper.dart';
+import 'package:glamify/widgets/cached_image.dart';
 
 class PosterPage extends StatefulWidget {
   final AdsSectionSettings poster;
@@ -232,10 +233,10 @@ class _PosterPageState extends State<PosterPage> {
                   children: [
                     // صورة البوستر
             if (widget.poster.posterImageUrl != null && widget.poster.posterImageUrl!.isNotEmpty)
-              Image.network(
-                widget.poster.posterImageUrl!,
+              AppCachedImage(
+                imageUrl: widget.poster.posterImageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _buildGradientBackground(),
+                errorWidget: _buildGradientBackground(),
               )
             else
               _buildGradientBackground(),
