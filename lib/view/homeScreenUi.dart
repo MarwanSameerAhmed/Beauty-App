@@ -130,7 +130,7 @@ class _HomescreenuiState extends State<Homescreenui>
     try {
       // جلب كل البيانات بالتوازي
       final results = await Future.wait([
-        _productService.getProductsOnce(),
+        _productService.getProductsOnce(limit: 50),
         _adsService.getAdsOnce(),
         _carouselAdService.getCarouselAdsOnce(),
         _fetchSections(),

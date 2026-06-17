@@ -56,6 +56,12 @@ class _CartPageState extends State<CartPage> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      // تحديث عداد الطلبات للإدارة (لتخفيف قراءات الفايربيس)
+      await FirebaseFirestore.instance.collection('metadata').doc('orders_status').set({
+        'pending_orders_count': FieldValue.increment(1)
+      }, SetOptions(merge: true));
+
+
       // Notify admins about the new order
       final String? notificationError =
           await NotificationService.sendTopicNotification(

@@ -8,6 +8,7 @@ import 'package:glamify/model/company.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/buttonsWidgets.dart';
 import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/searchable_dropdown.dart';
 import 'package:glamify/widgets/loader.dart';
 import 'package:glamify/utils/responsive_helper.dart';
 
@@ -253,29 +254,24 @@ class _AddCarouselAdFormState extends State<AddCarouselAdForm> {
                         const SizedBox(height: 24),
                         
                         // Company Selection Dropdown
-                        DropdownButtonFormField<Company>(
-                          value: _selectedCompany,
-                          isExpanded: true,
-                          hint: const Text('اختر الشركة', style: TextStyle(color: Colors.black54)),
-                          decoration: _glassInputDecoration('الشركة'),
-                          dropdownColor: Colors.pink[100]?.withOpacity(0.9),
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontFamily: 'Tajawal',
-                            fontWeight: FontWeight.bold,
-                          ),
-                          items: _companies.map((Company company) {
-                            return DropdownMenuItem<Company>(
-                              value: company,
-                              child: Text(company.name),
+                        SearchableDropdown(
+                          label: 'الشركة',
+                          hint: 'اختر الشركة',
+                          value: _selectedCompany?.name,
+                          validator: (_) => _selectedCompany == null ? 'الرجاء اختيار شركة' : null,
+                          onTap: () async {
+                            final result = await SearchableDropdown.showSearchDialog(
+                              context: context,
+                              title: 'اختر الشركة',
+                              items: _companies.map((c) => SearchItem(id: c.id, name: c.name)).toList(),
+                              selectedId: _selectedCompany?.id,
                             );
-                          }).toList(),
-                          onChanged: (Company? newValue) {
-                            setState(() {
-                              _selectedCompany = newValue;
-                            });
+                            if (result != null) {
+                              setState(() {
+                                _selectedCompany = _companies.firstWhere((c) => c.id == result);
+                              });
+                            }
                           },
-                          validator: (value) => value == null ? 'الرجاء اختيار شركة' : null,
                         ),
                         
                         const SizedBox(height: 32),

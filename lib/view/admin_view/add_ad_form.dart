@@ -12,6 +12,7 @@ import 'package:glamify/model/company.dart';
 import 'package:glamify/widgets/backgroundUi.dart';
 import 'package:glamify/widgets/buttonsWidgets.dart';
 import 'package:glamify/widgets/custom_admin_header.dart';
+import 'package:glamify/widgets/searchable_dropdown.dart';
 import 'package:glamify/widgets/loader.dart';
 import 'package:glamify/utils/responsive_helper.dart';
 
@@ -600,47 +601,24 @@ class _AddAdFormState extends State<AddAdForm> {
   }
 
   Widget _buildCompanyDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(15.0),
-        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<Company>(
-          value: _selectedCompany,
-          isExpanded: true,
-          hint: const Text(
-            'اختر شركة',
-            style: TextStyle(color: Colors.black, fontFamily: 'Tajawal'),
-          ),
-          dropdownColor: const Color(0xFFC15C5C).withOpacity(0.9),
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-          style: const TextStyle(
-            color: Colors.white,
-            fontFamily: 'Tajawal',
-            fontSize: 16,
-          ),
-          items: _companies.map((Company company) {
-            return DropdownMenuItem<Company>(
-              value: company,
-              child: Text(
-                company.name,
-                style: const TextStyle(
-                  fontFamily: 'Tajawal',
-                  color: Colors.black,
-                ),
-              ),
-            );
-          }).toList(),
-          onChanged: (Company? newValue) {
-            setState(() {
-              _selectedCompany = newValue;
-            });
-          },
-        ),
-      ),
+    return SearchableDropdown(
+      label: 'الشركة',
+      hint: 'اختر الشركة',
+      value: _selectedCompany?.name,
+      validator: (_) => _selectedCompany == null ? 'الرجاء اختيار شركة' : null,
+      onTap: () async {
+        final result = await SearchableDropdown.showSearchDialog(
+          context: context,
+          title: 'اختر الشركة',
+          items: _companies.map((c) => SearchItem(id: c.id, name: c.name)).toList(),
+          selectedId: _selectedCompany?.id,
+        );
+        if (result != null) {
+          setState(() {
+            _selectedCompany = _companies.firstWhere((c) => c.id == result);
+          });
+        }
+      },
     );
   }
 }

@@ -89,6 +89,28 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
     if (confirm != true) return;
 
     try {
+      // جلب الطلبات لمعرفة حالتها قبل الحذف لتحديث العداد
+      int pendingOrdersToDelete = 0;
+      
+      final selectedList = _selectedOrderIds.toList();
+
+      // تقسيم الطلبات لمجموعات من 10 لتجاوز حد whereIn
+      for (var i = 0; i < selectedList.length; i += 10) {
+        final end = (i + 10 < selectedList.length) ? i + 10 : selectedList.length;
+        final chunk = selectedList.sublist(i, end);
+        
+        final snapshot = await FirebaseFirestore.instance
+            .collection('customer_orders')
+            .where(FieldPath.documentId, whereIn: chunk)
+            .get();
+            
+        for (var doc in snapshot.docs) {
+          if (doc.data()['status'] == 'pending_pricing') {
+            pendingOrdersToDelete++;
+          }
+        }
+      }
+
       final batch = FirebaseFirestore.instance.batch();
       for (final orderId in _selectedOrderIds) {
         final docRef = FirebaseFirestore.instance
@@ -97,6 +119,14 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
         batch.delete(docRef);
       }
       await batch.commit();
+
+      // تحديث العداد إذا تم حذف طلبات قيد الانتظار
+      if (pendingOrdersToDelete > 0) {
+        await FirebaseFirestore.instance.collection('metadata').doc('orders_status').set({
+          'pending_orders_count': FieldValue.increment(-pendingOrdersToDelete)
+        }, SetOptions(merge: true));
+      }
+
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

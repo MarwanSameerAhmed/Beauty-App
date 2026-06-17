@@ -153,6 +153,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         'status': newStatus,
       });
 
+      // Step 1.5: Decrement the admin badge counter if the old status was pending_pricing
+      if (_status == 'pending' || _status == 'pending_pricing') {
+        await FirebaseFirestore.instance.collection('metadata').doc('orders_status').set({
+          'pending_orders_count': FieldValue.increment(-1)
+        }, SetOptions(merge: true));
+      }
+
       AppLogger.info(
         'Order updated successfully',
         tag: 'ORDER_DETAILS',
