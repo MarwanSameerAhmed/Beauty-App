@@ -5,18 +5,13 @@ class OrderStatusService {
 
   Stream<int> getOrderStatusNotificationStream({required String userId, required String userRole}) {
     if (userRole == 'admin') {
-      // استخدام العداد المنفصل للإدارة بدلاً من جلب كل الطلبات (لتوفير Reads)
+      // جلب عدد الطلبات غير المسعّرة فقط (pending_pricing) مباشرةً
+      // عدد هذه الطلبات قليل جداً دائماً لذلك لن يستهلك قراءات كثيرة
       return _firestore
-          .collection('metadata')
-          .doc('orders_status')
+          .collection('customer_orders')
+          .where('status', isEqualTo: 'pending_pricing')
           .snapshots()
-          .map((snapshot) {
-        if (snapshot.exists && snapshot.data() != null) {
-          final count = snapshot.data()!['pending_orders_count'] ?? 0;
-          return count < 0 ? 0 : count as int; // التأكد أن الرقم لا يصبح سالب
-        }
-        return 0;
-      });
+          .map((snapshot) => snapshot.docs.length);
     } else {
       // للعملاء، العدد قليل جداً لذلك يمكننا استخدام snapshots بأمان
       Query query = _firestore

@@ -20,6 +20,25 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
+  Future<List<Category>>? _categoriesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  void _loadCategories() {
+    setState(() {
+      _categoriesFuture = CategoryService().getCategoriesFuture();
+    });
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -51,32 +70,53 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 ),
               ),
               Expanded(
-                child: StreamBuilder<List<Category>>(
-                  stream: CategoryService().getCategories(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: Loader(),
-                      );
-                    }
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    _loadCategories();
+                    await _categoriesFuture;
+                  },
+                  child: FutureBuilder<List<Category>>(
+                    future: _categoriesFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: Loader(),
+                        );
+                      }
                     if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'حدث خطأ: ${snapshot.error}',
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: Center(
+                              child: Text(
+                                'حدث خطأ: ${snapshot.error}',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     }
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'لا توجد أصناف حالياً.',
-                          style: TextStyle(
-                            fontFamily: 'Tajawal',
-                            fontSize: 18,
-                            color: Colors.white70,
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: const Center(
+                              child: Text(
+                                'لا توجد أصناف حالياً.',
+                                style: TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 18,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       );
                     }
 
@@ -94,7 +134,29 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                             return subs.any((sub) => sub.name.toLowerCase().contains(_searchQuery.toLowerCase()));
                           }).toList();
 
+                    if (filteredMainCategories.isEmpty) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: const Center(
+                              child: Text(
+                                'لا توجد نتائج مطابقة.',
+                                style: TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 18,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
                     return ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       itemCount: filteredMainCategories.length,
                       itemBuilder: (context, index) {
@@ -119,6 +181,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                     );
                   },
                 ),
+              ),
               ),
             ],
           ),
@@ -339,13 +402,4 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text;
-      });
-    });
-  }
 }

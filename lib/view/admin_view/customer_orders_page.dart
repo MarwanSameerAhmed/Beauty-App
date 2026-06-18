@@ -27,7 +27,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -198,42 +198,82 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
                     ),
                 ],
               ),
-              TabBar(
-                controller: _tabController,
-                labelColor: Colors.pink.shade800,
-                unselectedLabelColor: Colors.black54,
-                indicatorColor: Colors.pink.shade800,
-                indicatorWeight: 3,
-                labelStyle: const TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontWeight: FontWeight.bold,
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(128), // 0.5 opacity
+                  borderRadius: BorderRadius.circular(25.0),
                 ),
-                tabs: const [
-                  Tab(text: 'الكل'),
-                  Tab(text: 'تحتاج مراجعة'),
-                  Tab(text: 'المؤكدة'),
-                ],
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.black87,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  indicator: BoxDecoration(
+                    color: const Color(0xFF942A59),
+                    borderRadius: BorderRadius.circular(25.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF942A59).withAlpha(100),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  labelStyle: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontWeight: FontWeight.bold,
+                  ),
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  tabs: const [
+                    Tab(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text('تحتاج تسعير'),
+                      ),
+                    ),
+                    Tab(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text('تم التسعير'),
+                      ),
+                    ),
+                    Tab(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text('تحتاج مراجعة'),
+                      ),
+                    ),
+                    Tab(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text('المؤكدة'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
                   children: [
                     _buildOrdersList([
-                      // Active orders
                       'pending_pricing',
                       'pending',
+                    ]), // تحتاج تسعير
+                    _buildOrdersList([
                       'priced',
                       'awaiting_customer_approval',
-                      'awaiting_admin_approval',
-                      'cancelled',
-                    ]),
+                    ]), // تم التسعير - بانتظار رد العميل
                     _buildOrdersList([
                       'awaiting_admin_approval',
-                    ]), // Needs review
+                    ]), // تحتاج مراجعة الإدارة
                     _buildOrdersList([
                       'final_approved',
                       'completed',
-                    ]), // Confirmed
+                    ]), // المؤكدة
                   ],
                 ),
               ),
@@ -253,22 +293,34 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
       query = query.where('status', whereIn: statuses);
     }
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: query.snapshots(),
+    return RefreshIndicator(
+      onRefresh: () async {
+        setState(() {}); // Rebuild to fetch futures again
+      },
+      child: FutureBuilder<QuerySnapshot>(
+        future: query.get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: Loader());
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Text(
-              'لا توجد طلبات في هذا القسم.',
-              style: TextStyle(
-                fontSize: 18,
-                fontFamily: 'Tajawal',
-                color: Colors.black,
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.5,
+                child: const Center(
+                  child: Text(
+                    'لا توجد طلبات في هذا القسم.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: 'Tajawal',
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           );
         }
 
@@ -278,6 +330,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
         _prefetchUserData(orders);
 
         return ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 20),
           itemCount: orders.length,
           itemBuilder: (context, index) {
@@ -297,6 +350,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
           },
         );
       },
+    ),
     );
   }
 

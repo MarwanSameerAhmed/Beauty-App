@@ -20,13 +20,22 @@ class _ManageCompaniesScreenState extends State<ManageCompaniesScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
+  Future<List<Company>>? _companiesFuture;
+
   @override
   void initState() {
     super.initState();
+    _loadCompanies();
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text;
       });
+    });
+  }
+
+  void _loadCompanies() {
+    setState(() {
+      _companiesFuture = CompanyService().getCompaniesFuture();
     });
   }
 
@@ -63,30 +72,51 @@ class _ManageCompaniesScreenState extends State<ManageCompaniesScreen> {
                 ),
               ),
               Expanded(
-                child: StreamBuilder<List<Company>>(
-                  stream: CompanyService().getCompanies(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: Loader());
-                    }
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    _loadCompanies();
+                    await _companiesFuture;
+                  },
+                  child: FutureBuilder<List<Company>>(
+                    future: _companiesFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: Loader());
+                      }
                     if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'حدث خطأ: ${snapshot.error}',
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: Center(
+                              child: Text(
+                                'حدث خطأ: ${snapshot.error}',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     }
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'لا توجد ماركات حالياً.',
-                          style: TextStyle(
-                            fontFamily: 'Tajawal',
-                            fontSize: 18,
-                            color: Colors.white70,
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: const Center(
+                              child: Text(
+                                'لا توجد ماركات حالياً.',
+                                style: TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 18,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       );
                     }
 
@@ -104,19 +134,28 @@ class _ManageCompaniesScreenState extends State<ManageCompaniesScreen> {
                               .toList();
 
                     if (filteredCompanies.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'لا توجد نتائج مطابقة.',
-                          style: TextStyle(
-                            fontFamily: 'Tajawal',
-                            fontSize: 18,
-                            color: Colors.white70,
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: const Center(
+                              child: Text(
+                                'لا توجد نتائج مطابقة.',
+                                style: TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 18,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       );
                     }
 
                     return ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       itemCount: filteredCompanies.length,
                       itemBuilder: (context, index) {
@@ -142,6 +181,7 @@ class _ManageCompaniesScreenState extends State<ManageCompaniesScreen> {
                     );
                   },
                 ),
+              ),
               ),
             ],
           ),

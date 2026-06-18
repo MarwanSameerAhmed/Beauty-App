@@ -20,13 +20,22 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
+  Future<List<Product>>? _productsFuture;
+
   @override
   void initState() {
     super.initState();
+    _loadProducts();
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text;
       });
+    });
+  }
+
+  void _loadProducts() {
+    setState(() {
+      _productsFuture = ProductService().getAllProducts();
     });
   }
 
@@ -61,32 +70,53 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                 ),
               ),
               Expanded(
-                child: StreamBuilder<List<Product>>(
-                  stream: ProductService().getProducts(),
-                  builder: (context, snapshot) {
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    _loadProducts();
+                    await _productsFuture;
+                  },
+                  child: FutureBuilder<List<Product>>(
+                    future: _productsFuture,
+                    builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                         child: Loader(),
                       );
                     }
                     if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'حدث خطأ: ${snapshot.error}',
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: Center(
+                              child: Text(
+                                'حدث خطأ: ${snapshot.error}',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     }
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'لا توجد منتجات حالياً.',
-                          style: TextStyle(
-                            fontFamily: 'Tajawal',
-                            fontSize: 18,
-                            color: Colors.white70,
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: const Center(
+                              child: Text(
+                                'لا توجد منتجات حالياً.',
+                                style: TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 18,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       );
                     }
 
@@ -101,19 +131,28 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                           ).toList();
 
                     if (filteredProducts.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'لا توجد نتائج مطابقة.',
-                          style: TextStyle(
-                            fontFamily: 'Tajawal',
-                            fontSize: 18,
-                            color: Colors.white70,
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: const Center(
+                              child: Text(
+                                'لا توجد نتائج مطابقة.',
+                                style: TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 18,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       );
                     }
 
                     return ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       itemCount: filteredProducts.length,
                       itemBuilder: (context, index) {
@@ -137,6 +176,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                     );
                   },
                 ),
+              ),
               ),
             ],
           ),
