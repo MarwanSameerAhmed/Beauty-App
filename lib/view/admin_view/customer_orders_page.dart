@@ -7,6 +7,8 @@ import 'package:glamify/widgets/custom_Header_user.dart';
 import 'package:glamify/widgets/loader.dart';
 import 'package:intl/intl.dart';
 import '../../utils/logger.dart';
+import 'package:glamify/view/update_dialog.dart';
+import 'package:glamify/controller/update_service.dart';
 
 class CustomerOrdersPage extends StatefulWidget {
   const CustomerOrdersPage({Key? key}) : super(key: key);
@@ -168,6 +170,7 @@ class _CustomerOrdersPageState extends State<CustomerOrdersPage>
                     title: 'طلبات العملاء',
                     subtitle: 'عرض وإدارة طلبات العملاء',
                   ),
+
                   if (_isSelectionMode)
                     Positioned(
                       left: 20,
